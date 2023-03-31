@@ -94,7 +94,7 @@ function wp_dapp_add_admin_page() {
         'wp_dapp_admin_page',      // Function to display the page content
         'dashicons-admin-plugins', // Icon URL
         100 // Menu position
-);
+        );
 }
     add_action( 'admin_menu', 'wp_dapp_add_admin_page' );
 
