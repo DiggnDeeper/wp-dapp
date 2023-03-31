@@ -1,4 +1,4 @@
- <?php
+<?php
 
 /*
  * Plugin Name:       Hive interface.
@@ -71,3 +71,30 @@ function check_hive_keychain() {
     <?php
 }
 add_action( 'wp_head', 'check_hive_keychain' );
+
+// Create a function to display the admin page content
+function wp_dapp_admin_page() {
+    ?>
+    <div class="wrap">
+        <h1>wp-dapp</h1>
+        <p>Welcome to the Hive Interface plugin admin page. Here you'll find instructions and options to configure the plugin.</p>
+        <!-- You can add more content and options here -->
+    </div>
+    <?php
+}
+
+// Register the admin page
+function wp_dapp_add_admin_page() {
+    // Add a top-level menu page
+    add_menu_page(
+        'Hive Interface',   // Page title
+        'Hive Interface',   // Menu title
+        'manage_options',   // Capability
+        'wp-dapp-admin',    // Menu slug
+        'wp_dapp_admin_page',      // Function to display the page content
+        'dashicons-admin-plugins', // Icon URL
+        100 // Menu position
+);
+}
+    add_action( 'admin_menu', 'wp_dapp_add_admin_page' );
+
