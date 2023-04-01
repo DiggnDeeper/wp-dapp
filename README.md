@@ -10,6 +10,20 @@ This could lead to true power in the hands of individuals, starving centralizati
 
 For the first time in humanity, people own the tools that enable anyone, anywhere to have ownership of their content and commerce. Let's get this plugin built!
 
+* Discord: https://discord.gg/Yp3aXUbtQg
+* Project page: https://diggndeeper.com/wp-dapp/
+
+Functionality/ feature plans:
+* Interface with Hive KeyChain
+* Hive username, update/ publish and a button to send to Hive.
+* Add tags
+* Set beneficiaries. Full control with @DiggnDeeper.com set to 15% as default (user can change).
+* Publish to communities.
+* 2 way integration
+* Use Hive to pay for access to content such as paid courses or whatever.
+* E-commerce
+* Graphics, marketing material.
+
 ## Here are the steps to use the shortcode:
 
 1. Create a new post or page in your WordPress site or edit an existing one.
