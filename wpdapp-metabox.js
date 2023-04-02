@@ -1,7 +1,8 @@
-console.log("wpdapp-metabox.js loaded"); // Add this line
+console.log("wpdapp-metabox.js loaded");
 
 jQuery(document).ready(function() {
     jQuery(document).on('click', '#wpdapp-publish-to-hive-button', function() {
+        console.log("Publish to Hive button clicked"); // Added console.log
         const postId = jQuery('#post_ID').val();
         const title = jQuery('#title').val();
         const content = jQuery('#content').val();
@@ -20,16 +21,19 @@ jQuery(document).ready(function() {
             _wpnonce: wpdapp_metabox_vars.nonce,
         };
 
-        console.log('Sending AJAX request:', data); // Added console.log
+        console.log('Sending AJAX request:', data);
 
         jQuery.post(wpdapp_metabox_vars.ajax_url, data, function(response) {
-            console.log('Received response:', response); // Added console.log
+            console.log('Received response:', response);
 
             if (response.success) {
                 alert(response.data.message);
             } else {
                 alert(response.data.error);
             }
+        }).fail(function(jqXHR, textStatus, errorThrown) {
+            console.log('AJAX request failed:', textStatus, errorThrown); // Added console.log
+            alert('An error occurred while trying to publish to Hive.');
         });
     });
 });
