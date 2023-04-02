@@ -87,6 +87,7 @@ function wpdapp_handle_ajax_push_to_hive() {
 }
 add_action('wp_ajax_wpdapp_push_to_hive', 'wpdapp_handle_ajax_push_to_hive');
 add_action('wp_ajax_nopriv_wpdapp_push_to_hive', 'wpdapp_handle_ajax_push_to_hive');
+
 // Debug to console log
 function wpdapp_handle_ajax_push_to_hive() {
     // Check if user is logged in
@@ -120,7 +121,6 @@ function wpdapp_handle_ajax_push_to_hive() {
     // Send a success message
     wp_send_json_success(array('message' => 'Post published to Hive!'));
 }
-
 
 // Function for publishing post to WordPress and Hive
 function wpdapp_publish_post($post_id, $hive_username, $hive_option, $post_data) {
