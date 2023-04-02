@@ -26,6 +26,8 @@ jQuery(document).ready(function() {
         jQuery.post(wpdapp_metabox_vars.ajax_url, data, function(response) {
             console.log('Received response:', response);
 
+			console.log('Error:', response.data.error); // Added console.log
+
             if (response.success) {
                 alert(response.data.message);
             } else {
