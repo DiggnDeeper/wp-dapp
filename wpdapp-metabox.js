@@ -1,42 +1,35 @@
- function wpdapp_push_to_hive() {
-    const postId = document.getElementById('post_ID').value;
-    const title = document.getElementById('title').value;
-    const content = document.getElementById('content').value;
-    const tags = ''; // Get the post tags, you may need a custom implementation depending on your setup
-    const hiveUsername = document.getElementById('wpdapp_hive_username').value;
-    const hiveOption = document.getElementById('wpdapp_hive_option').value;
+console.log("wpdapp-metabox.js loaded"); // Add this line
 
-    // Create a FormData object to send the data to the server
-    const formData = new FormData();
-    formData.append('action', 'wpdapp_push_to_hive');
-    formData.append('_wpnonce', document.getElementById('_wpnonce').value);
-    formData.append('post_id', postId);
-    formData.append('title', title);
-    formData.append('content', content);
-    formData.append('tags', tags);
-    formData.append('hive_username', hiveUsername);
-    formData.append('hive_option', hiveOption);
+jQuery(document).ready(function() {
+    jQuery(document).on('click', '#wpdapp-publish-to-hive-button', function() {
+        const postId = jQuery('#post_ID').val();
+        const title = jQuery('#title').val();
+        const content = jQuery('#content').val();
+        const tags = jQuery('#new-tag-post_tag').val();
+        const hiveUsername = jQuery('#wpdapp_hive_username').val();
+        const hiveOption = jQuery('#wpdapp_hive_option').val();
 
-    // Send the AJAX request
-    fetch(ajaxurl, {
-        method: 'POST',
-        body: formData,
-        credentials: 'same-origin',
-    })
-        .then((response) => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then((data) => {
-            if (data.success) {
-                alert(data.data.message);
+        const data = {
+            action: 'wpdapp_push_to_hive',
+            post_id: postId,
+            title: title,
+            content: content,
+            tags: tags,
+            hive_username: hiveUsername,
+            hive_option: hiveOption,
+            _wpnonce: wpdapp_metabox_vars.nonce,
+        };
+
+        console.log('Sending AJAX request:', data); // Added console.log
+
+        jQuery.post(wpdapp_metabox_vars.ajax_url, data, function(response) {
+            console.log('Received response:', response); // Added console.log
+
+            if (response.success) {
+                alert(response.data.message);
             } else {
-                alert(data.data.error);
+                alert(response.data.error);
             }
-        })
-        .catch((error) => {
-            console.error('There was a problem with the fetch operation:', error);
         });
-}
+    });
+});

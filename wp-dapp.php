@@ -16,7 +16,12 @@
 // Enqueue the JavaScript file for the metabox
 function wpdapp_enqueue_scripts() {
     wp_enqueue_script('wpdapp-metabox', plugin_dir_url(__FILE__) . 'wpdapp-metabox.js', array('jquery'), '1.0', true);
+    wp_localize_script('wpdapp-metabox', 'wpdapp_metabox_vars', array(
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('wpdapp_push_to_hive_nonce'),
+    ));
 }
+
 add_action('admin_enqueue_scripts', 'wpdapp_enqueue_scripts');
 
 // Add the metabox to the post edit page
@@ -45,7 +50,7 @@ function wpdapp_meta_box_callback($post) {
         <option value="update" <?php selected($hive_option, 'update'); ?>><?php _e('Update on Hive', 'wp-dapp'); ?></option>
     </select>
 
-    <button type="button" onclick="wpdapp_push_to_hive();"><?php _e('Publish to Hive', 'wp-dapp'); ?></button>
+    <button type="button" id="wpdapp-publish-to-hive-button"><?php _e('Publish to Hive', 'wp-dapp'); ?></button>
     <?php
 }
 
@@ -82,6 +87,40 @@ function wpdapp_handle_ajax_push_to_hive() {
 }
 add_action('wp_ajax_wpdapp_push_to_hive', 'wpdapp_handle_ajax_push_to_hive');
 add_action('wp_ajax_nopriv_wpdapp_push_to_hive', 'wpdapp_handle_ajax_push_to_hive');
+// Debug to console log
+function wpdapp_handle_ajax_push_to_hive() {
+    // Check if user is logged in
+    if (!is_user_logged_in()) {
+        wp_send_json_error(array('error' => 'User not logged in.'));
+    }
+
+    // Verify the nonce
+    if (!wp_verify_nonce($_POST['_wpnonce'], 'wpdapp_push_to_hive_nonce')) {
+        wp_send_json_error(array('error' => 'Nonce verification failed.'));
+    }
+
+    // Get the post data from the AJAX request
+    $post_id = sanitize_text_field($_POST['post_id']);
+    $title = sanitize_text_field($_POST['title']);
+    $content = wp_kses_post($_POST['content']);
+    $tags = sanitize_text_field($_POST['tags']);
+    $hive_username = sanitize_text_field($_POST['hive_username']);
+    $hive_option = sanitize_text_field($_POST['hive_option']);
+
+    error_log('Received post data: ' . print_r($_POST, true)); // Add this line
+
+    // Publish the post to WordPress and Hive
+    $post_data = array(
+        'title' => $title,
+        'body' => $content,
+        'tags' => $tags,
+    );
+    wpdapp_publish_post($post_id, $hive_username, $hive_option, $post_data);
+
+    // Send a success message
+    wp_send_json_success(array('message' => 'Post published to Hive!'));
+}
+
 
 // Function for publishing post to WordPress and Hive
 function wpdapp_publish_post($post_id, $hive_username, $hive_option, $post_data) {
@@ -94,6 +133,7 @@ function wpdapp_publish_post($post_id, $hive_username, $hive_option, $post_data)
         // Post has not been published to Hive and user selected "Update on Hive"
         return;
     }
+
     // Get the user's Hive private key
     $hive_key = get_user_meta(get_current_user_id(), 'wpdapp_hive_key', true);
 
@@ -101,7 +141,12 @@ function wpdapp_publish_post($post_id, $hive_username, $hive_option, $post_data)
     require_once('hive-api.php');
     $hive = new Hive();
     $hive->setKey($hive_key);
-    $hive_post_id = $hive->publishPost($post_data['title'], $post_data['body'], $hive_username, $post_data['tags']);
+    try {
+        $hive_post_id = $hive->publishPost($post_data['title'], $post_data['body'], $hive_username, $post_data['tags']);
+    } catch (Exception $e) {
+        wp_send_json_error(array('error' => 'Error publishing to Hive: ' . $e->getMessage()));
+        return;
+    }
 
     // Save the Hive post ID as post meta
     update_post_meta($post_id, 'wpdapp_hive_post_id', $hive_post_id);
@@ -118,3 +163,5 @@ function wpdapp_save_post($post_id) {
     }
 }
 add_action('save_post', 'wpdapp_save_post');
+
+
