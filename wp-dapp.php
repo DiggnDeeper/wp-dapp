@@ -62,7 +62,8 @@ function wpdapp_handle_ajax_push_to_hive() {
     }
 
     // Verify the nonce
-    if (!wp_verify_nonce($_POST['_wpnonce'], 'wpdapp_push_to_hive_nonce')) {
+    if (!wp_verify_nonce($_POST['_wpnonce'], 'wpdapp
+_push_to_hive_nonce')) {
         wp_send_json_error(array('error' => 'Nonce verification failed.'));
     }
 
@@ -87,40 +88,6 @@ function wpdapp_handle_ajax_push_to_hive() {
 }
 add_action('wp_ajax_wpdapp_push_to_hive', 'wpdapp_handle_ajax_push_to_hive');
 add_action('wp_ajax_nopriv_wpdapp_push_to_hive', 'wpdapp_handle_ajax_push_to_hive');
-
-// Debug to console log
-function wpdapp_handle_ajax_push_to_hive() {
-    // Check if user is logged in
-    if (!is_user_logged_in()) {
-        wp_send_json_error(array('error' => 'User not logged in.'));
-    }
-
-    // Verify the nonce
-    if (!wp_verify_nonce($_POST['_wpnonce'], 'wpdapp_push_to_hive_nonce')) {
-        wp_send_json_error(array('error' => 'Nonce verification failed.'));
-    }
-
-    // Get the post data from the AJAX request
-    $post_id = sanitize_text_field($_POST['post_id']);
-    $title = sanitize_text_field($_POST['title']);
-    $content = wp_kses_post($_POST['content']);
-    $tags = sanitize_text_field($_POST['tags']);
-    $hive_username = sanitize_text_field($_POST['hive_username']);
-    $hive_option = sanitize_text_field($_POST['hive_option']);
-
-    error_log('Received post data: ' . print_r($_POST, true)); // Add this line
-
-    // Publish the post to WordPress and Hive
-    $post_data = array(
-        'title' => $title,
-        'body' => $content,
-        'tags' => $tags,
-    );
-    wpdapp_publish_post($post_id, $hive_username, $hive_option, $post_data);
-
-    // Send a success message
-    wp_send_json_success(array('message' => 'Post published to Hive!'));
-}
 
 // Function for publishing post to WordPress and Hive
 function wpdapp_publish_post($post_id, $hive_username, $hive_option, $post_data) {
@@ -163,5 +130,3 @@ function wpdapp_save_post($post_id) {
     }
 }
 add_action('save_post', 'wpdapp_save_post');
-
-
