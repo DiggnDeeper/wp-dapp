@@ -8,85 +8,79 @@ class WP_Dapp_Publish_Handler {
     protected $hive_api;
 
     public function __construct() {
-        // Initialize the Hive API wrapper, which uses the credentials from your settings page.
+        // Initialize the Hive API wrapper
         $this->hive_api = new WP_Dapp_Hive_API();
+        
+        // Register hooks for post meta box
+        add_action('add_meta_boxes', [$this, 'add_hive_publish_meta_box']);
     }
 
     /**
-     * Handle the WordPress publish post event.
-     *
-     * @param int     $post_id The Post ID.
-     * @param WP_Post $post    The Post object.
+     * Add Hive publish meta box to post editor
      */
-    public function on_publish_post( $post_id, $post ) {
-        // Only handle posts, not pages or other post types
-        if ( $post->post_type !== 'post' ) {
+    public function add_hive_publish_meta_box() {
+        add_meta_box(
+            'wpdapp_hive_publish_box',
+            'Publish to Hive',
+            [$this, 'render_hive_publish_meta_box'],
+            'post',
+            'side',
+            'default'
+        );
+    }
+    
+    /**
+     * Render the Hive publish meta box
+     *
+     * @param WP_Post $post The post object
+     */
+    public function render_hive_publish_meta_box($post) {
+        // Get Hive account
+        $options = get_option('wpdapp_options', []);
+        $hive_account = !empty($options['hive_account']) ? $options['hive_account'] : '';
+        
+        // Check if post is published to Hive
+        $hive_published = get_post_meta($post->ID, '_wpdapp_hive_published', true);
+        $hive_permlink = get_post_meta($post->ID, '_wpdapp_hive_permlink', true);
+        
+        if ($hive_published && $hive_permlink) {
+            // Show published status
+            echo '<div class="wpdapp-published-info">';
+            echo '<p><strong style="color: green;">✓ Published to Hive</strong></p>';
+            echo '<p><a href="https://hive.blog/@' . esc_attr($hive_account) . '/' . esc_attr($hive_permlink) . '" target="_blank">View on Hive</a></p>';
+            echo '</div>';
             return;
         }
-
-        // Check if already published to Hive
-        if ( get_post_meta( $post_id, '_hive_published', true ) ) {
+        
+        // If Hive account is not set, show warning
+        if (empty($hive_account)) {
+            echo '<p style="color: red;">Hive account not configured. Please configure it in the <a href="' . admin_url('options-general.php?page=wpdapp-settings') . '">WP-Dapp Settings</a>.</p>';
             return;
         }
         
-        // Check if the user opted out of Hive publishing for this post
-        $publish_to_hive = get_post_meta($post_id, '_wpdapp_publish_to_hive', true);
-        if ($publish_to_hive === '0') {
+        // Show publish button only for published posts
+        if ($post->post_status !== 'publish') {
+            echo '<p>Publish this post in WordPress first before publishing to Hive.</p>';
             return;
         }
-
-        // Get post categories and tags
-        $categories = wp_get_post_categories( $post_id, ['fields' => 'names'] );
-        $tags = wp_get_post_tags( $post_id, ['fields' => 'names'] );
-        $all_tags = array_merge( $categories, $tags );
         
-        // Get custom tags if any
-        $custom_tags_string = get_post_meta($post_id, '_wpdapp_custom_tags', true);
-        if (!empty($custom_tags_string)) {
-            $custom_tags = array_map('trim', explode(',', $custom_tags_string));
-            $all_tags = array_merge($all_tags, $custom_tags);
-        }
+        // Show Keychain publish button
+        echo '<div id="wpdapp-keychain-status"></div>';
+        echo '<button type="button" id="wpdapp-publish-button" class="button button-primary">Publish to Hive with Keychain</button>';
+        echo '<div id="wpdapp-publish-status"></div>';
         
-        // Get plugin options
-        $options = get_option('wpdapp_options');
+        // Add nonce and meta data for JavaScript
+        wp_nonce_field('wpdapp_publish', 'wpdapp_publish_nonce');
         
-        // Add default tags if enabled
-        if (!empty($options['enable_custom_tags']) && !empty($options['default_tags'])) {
-            $default_tags = array_map('trim', explode(',', $options['default_tags']));
-            $all_tags = array_merge($all_tags, $default_tags);
-        }
-        
-        // Make sure tags are unique and limited to 5
-        $all_tags = array_unique($all_tags);
-        $all_tags = array_slice($all_tags, 0, 5);
-        
-        // Get post beneficiaries
-        $beneficiaries = get_post_meta($post_id, '_wpdapp_beneficiaries', true);
-        if (empty($beneficiaries)) {
-            $beneficiaries = [];
-        }
-
-        $post_data = [
-            'title' => $post->post_title,
-            'body' => $this->format_content_for_hive($post->post_content, $post_id),
-            'tags' => $all_tags,
-            'beneficiaries' => $beneficiaries
-        ];
-
-        $result = $this->hive_api->post_to_hive( $post_data );
-
-        if ( is_wp_error( $result ) ) {
-            update_post_meta( $post_id, '_hive_publish_error', $result->get_error_message() );
-        } else {
-            update_post_meta( $post_id, '_hive_published', true );
-            update_post_meta( $post_id, '_hive_permlink', $result['permlink'] );
-            update_post_meta( $post_id, '_hive_author', $result['author'] );
-            
-            // Store beneficiary information
-            if (!empty($result['beneficiaries'])) {
-                update_post_meta( $post_id, '_hive_beneficiaries', $result['beneficiaries'] );
-            }
-        }
+        // Add inline script with data for the Keychain publish script
+        echo '<script>';
+        echo 'var wpdapp_publish = {';
+        echo 'ajax_url: "' . admin_url('admin-ajax.php') . '",';
+        echo 'nonce: "' . wp_create_nonce('wpdapp_publish') . '",';
+        echo 'post_id: ' . $post->ID . ',';
+        echo 'hive_account: "' . esc_js($hive_account) . '"';
+        echo '};';
+        echo '</script>';
     }
     
     /**
@@ -96,7 +90,7 @@ class WP_Dapp_Publish_Handler {
      * @param int $post_id The post ID.
      * @return string Formatted content.
      */
-    private function format_content_for_hive($content, $post_id) {
+    public function format_content_for_hive($content, $post_id) {
         // Strip shortcodes
         $content = strip_shortcodes($content);
         

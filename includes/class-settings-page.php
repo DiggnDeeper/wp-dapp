@@ -40,39 +40,53 @@ class WP_Dapp_Settings_Page {
             return;
         }
 
+        // Enqueue the Keychain API script from CDN
         wp_enqueue_script(
-            'wpdapp-admin-settings',
-            WPDAPP_PLUGIN_URL . 'assets/js/admin-settings.js',
-            ['jquery'],
+            'hive-keychain',
+            'https://cdn.jsdelivr.net/npm/hive-keychain-browser@1.0.4/index.min.js',
+            [],
+            '1.0.4',
+            false
+        );
+
+        // Enqueue our admin settings scripts
+        wp_enqueue_script(
+            'wpdapp-keychain-integration',
+            WPDAPP_PLUGIN_URL . 'assets/js/keychain-integration.js',
+            ['jquery', 'hive-keychain'],
             WPDAPP_VERSION,
             true
         );
         
-        // Add verification script
-        wp_enqueue_script(
-            'wpdapp-verification',
-            WPDAPP_PLUGIN_URL . 'assets/js/verification.js',
-            ['jquery'],
-            WPDAPP_VERSION,
-            true
+        // Localize script
+        wp_localize_script(
+            'wpdapp-keychain-integration',
+            'wpdapp_settings',
+            [
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('wpdapp_verify_credentials'),
+                'verify_text' => __('Verify with Keychain', 'wp-dapp'),
+                'verifying_text' => __('Verifying...', 'wp-dapp'),
+                'success_text' => __('Account verified successfully!', 'wp-dapp'),
+                'error_text' => __('Verification failed', 'wp-dapp')
+            ]
         );
         
-        // Add localized data for the verification script
-        wp_localize_script('wpdapp-verification', 'wpdappVerification', [
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('wpdapp_verification'),
-            'checking_text' => 'Checking publication status...',
-            'error_text' => 'An error occurred while checking publication status.',
-            'no_posts_text' => 'No posts found with Hive publication data.'
-        ]);
+        // Enqueue our admin CSS
+        wp_enqueue_style(
+            'wpdapp-admin-styles',
+            WPDAPP_PLUGIN_URL . 'assets/css/admin-styles.css',
+            [],
+            WPDAPP_VERSION
+        );
     }
 
     /**
      * Register and add settings.
      */
     public function register_settings() {
-        register_setting('wpdapp_options', 'wpdapp_options', [$this, 'sanitize_options']);
-
+        register_setting('wpdapp_options_group', 'wpdapp_options');
+        
         // Account Settings Section
         add_settings_section(
             'wpdapp_account_section',
@@ -80,48 +94,30 @@ class WP_Dapp_Settings_Page {
             [$this, 'account_section_callback'],
             'wpdapp-settings'
         );
-
+        
         add_settings_field(
             'hive_account',
-            'Hive Username',
+            'Hive Account',
             [$this, 'render_field'],
             'wpdapp-settings',
             'wpdapp_account_section',
             ['field' => 'hive_account']
         );
-
-        add_settings_field(
-            'private_key',
-            'Private Posting Key',
-            [$this, 'render_field'],
-            'wpdapp-settings',
-            'wpdapp_account_section',
-            [
-                'field' => 'private_key', 
-                'type' => 'password',
-                'description' => 'Your private posting key is stored securely using encryption.'
-            ]
-        );
         
         add_settings_field(
-            'verify_credentials',
-            'Verify Credentials',
-            [$this, 'render_verify_button'],
+            'keychain_status',
+            'Keychain Status',
+            [$this, 'render_keychain_status'],
             'wpdapp-settings',
             'wpdapp_account_section'
         );
         
         add_settings_field(
-            'secure_storage',
-            'Secure Storage',
-            [$this, 'render_field'],
+            'verify_account',
+            'Verify Account',
+            [$this, 'render_verify_button'],
             'wpdapp-settings',
-            'wpdapp_account_section',
-            [
-                'field' => 'secure_storage', 
-                'type' => 'checkbox',
-                'description' => 'Store credentials securely using encryption (recommended)'
-            ]
+            'wpdapp_account_section'
         );
         
         // Beneficiary Settings Section
@@ -159,27 +155,16 @@ class WP_Dapp_Settings_Page {
             [
                 'field' => 'default_beneficiary_weight', 
                 'type' => 'number',
-                'min' => '1',
-                'max' => '10',
-                'description' => 'Percentage of rewards (1-10%)'
+                'description' => 'Percentage of rewards (1-10). Default is 1%.'
             ]
         );
         
-        // Publishing Settings Section
+        // Post Settings Section
         add_settings_section(
-            'wpdapp_publishing_section',
-            'Publishing Settings',
-            [$this, 'publishing_section_callback'],
+            'wpdapp_post_section',
+            'Post Settings',
+            [$this, 'post_section_callback'],
             'wpdapp-settings'
-        );
-        
-        add_settings_field(
-            'enable_custom_tags',
-            'Enable Custom Tags',
-            [$this, 'render_field'],
-            'wpdapp-settings',
-            'wpdapp_publishing_section',
-            ['field' => 'enable_custom_tags', 'type' => 'checkbox']
         );
         
         add_settings_field(
@@ -187,10 +172,23 @@ class WP_Dapp_Settings_Page {
             'Default Tags',
             [$this, 'render_field'],
             'wpdapp-settings',
-            'wpdapp_publishing_section',
+            'wpdapp_post_section',
             [
                 'field' => 'default_tags',
-                'description' => 'Comma-separated list of default tags to include in all posts'
+                'description' => 'Comma-separated list of default tags to use when none are specified.'
+            ]
+        );
+        
+        add_settings_field(
+            'auto_publish',
+            'Auto-Publish',
+            [$this, 'render_field'],
+            'wpdapp-settings',
+            'wpdapp_post_section',
+            [
+                'field' => 'auto_publish',
+                'type' => 'checkbox',
+                'description' => 'Automatically publish to Hive when a post is published in WordPress.'
             ]
         );
         
@@ -203,24 +201,15 @@ class WP_Dapp_Settings_Page {
         );
         
         add_settings_field(
-            'delete_data_on_uninstall',
-            'Delete Data on Uninstall',
+            'hive_api_node',
+            'Hive API Node',
             [$this, 'render_field'],
             'wpdapp-settings',
             'wpdapp_advanced_section',
             [
-                'field' => 'delete_data_on_uninstall', 
-                'type' => 'checkbox',
-                'description' => 'Delete all plugin data when uninstalling the plugin'
+                'field' => 'hive_api_node',
+                'description' => 'Custom Hive API node URL. Leave blank to use the default (api.hive.blog).'
             ]
-        );
-
-        // Add verification section
-        add_settings_section(
-            'wpdapp_section_verification',
-            'Publishing Verification',
-            [$this, 'render_section_verification'],
-            'wpdapp-settings'
         );
     }
 
@@ -309,7 +298,8 @@ class WP_Dapp_Settings_Page {
      * Print the Account Section text.
      */
     public function account_section_callback() {
-        echo '<p>Enter your Hive account credentials below:</p>';
+        echo '<p>Connect your plugin to the Hive blockchain by verifying your Hive account using Hive Keychain.</p>';
+        echo '<p>You will need to have the <a href="https://hive-keychain.com/" target="_blank">Hive Keychain browser extension</a> installed to use this plugin.</p>';
     }
     
     /**
@@ -321,10 +311,10 @@ class WP_Dapp_Settings_Page {
     }
     
     /**
-     * Print the Publishing Section text.
+     * Print the Post Section text.
      */
-    public function publishing_section_callback() {
-        echo '<p>Configure publishing settings for your Hive posts.</p>';
+    public function post_section_callback() {
+        echo '<p>Configure post settings for your Hive posts.</p>';
     }
     
     /**
@@ -335,15 +325,18 @@ class WP_Dapp_Settings_Page {
     }
 
     /**
-     * Render credential verification button.
+     * Render the Keychain status field.
+     */
+    public function render_keychain_status() {
+        echo '<div id="wpdapp-keychain-status"></div>';
+    }
+
+    /**
+     * Render the verify button.
      */
     public function render_verify_button() {
-        ?>
-        <button type="button" id="wpdapp-verify-credentials" class="button button-secondary">
-            <?php _e('Verify Credentials', 'wpdapp'); ?>
-        </button>
-        <span id="wpdapp-credential-status" style="margin-left: 10px; display: inline-block;"></span>
-        <?php
+        echo '<button id="wpdapp-verify-account" class="button">Verify with Keychain</button>';
+        echo '<div id="wpdapp-credential-status" style="margin-top: 8px;"></div>';
     }
 
     /**
@@ -419,41 +412,6 @@ class WP_Dapp_Settings_Page {
         if (isset($args['description'])) {
             printf('<p class="description">%s</p>', esc_html($args['description']));
         }
-    }
-
-    /**
-     * Render the verification section.
-     */
-    public function render_section_verification() {
-        ?>
-        <p>
-            Use this section to verify the Hive publishing status of your posts.
-            This can help you identify any posts that may have failed to publish to Hive.
-        </p>
-        
-        <div class="wpdapp-verification">
-            <button type="button" id="wpdapp-verify-posts" class="button button-secondary">
-                Check Hive Publication Status
-            </button>
-            
-            <div id="wpdapp-verification-results" style="display:none; margin-top:10px; padding:10px; border:1px solid #ccc; background:#f9f9f9;">
-                <h3>Publication Status</h3>
-                <table class="widefat" id="wpdapp-verified-posts">
-                    <thead>
-                        <tr>
-                            <th>Post ID</th>
-                            <th>Title</th>
-                            <th>Status</th>
-                            <th>Hive Link</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Results will be loaded here -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <?php
     }
 
     /**

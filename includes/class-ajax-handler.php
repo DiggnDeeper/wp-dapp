@@ -15,14 +15,16 @@ class WP_Dapp_Ajax_Handler {
      */
     public function __construct() {
         // Register AJAX actions
-        add_action('wp_ajax_wpdapp_verify_credentials', [$this, 'ajax_verify_credentials']);
+        add_action('wp_ajax_wpdapp_verify_keychain', [$this, 'ajax_verify_keychain']);
         add_action('wp_ajax_wpdapp_verify_posts', [$this, 'ajax_verify_posts']);
+        add_action('wp_ajax_wpdapp_prepare_post', [$this, 'ajax_prepare_post']);
+        add_action('wp_ajax_wpdapp_update_post_meta', [$this, 'ajax_update_post_meta']);
     }
 
     /**
-     * AJAX handler for verifying Hive credentials.
+     * AJAX handler for verifying Hive account with Keychain.
      */
-    public function ajax_verify_credentials() {
+    public function ajax_verify_keychain() {
         // Verify nonce
         if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'wpdapp_verify_credentials')) {
             wp_send_json_error('Security check failed');
@@ -33,54 +35,37 @@ class WP_Dapp_Ajax_Handler {
             wp_send_json_error('Permission denied');
         }
         
-        // Get credentials from request
+        // Get data from request
         $account = isset($_POST['account']) ? sanitize_text_field($_POST['account']) : '';
-        $key = isset($_POST['key']) ? sanitize_text_field($_POST['key']) : '';
-        $secure_storage = isset($_POST['secure_storage']) ? (bool)$_POST['secure_storage'] : false;
+        $message = isset($_POST['message']) ? sanitize_text_field($_POST['message']) : '';
+        $signature = isset($_POST['signature']) ? sanitize_text_field($_POST['signature']) : '';
         
         // Basic validation
         if (empty($account)) {
             wp_send_json_error('Hive account name is required');
         }
         
-        // If secure storage is enabled and no new key provided, try to get the stored key
-        if ($secure_storage && empty($key)) {
-            $encryption = wpdapp_get_encryption();
-            $key = $encryption->get_secure_option('wpdapp_secure_private_key');
-            
-            if (empty($key)) {
-                wp_send_json_error('Private key not found. Please enter your private key.');
-            }
+        if (empty($message) || empty($signature)) {
+            wp_send_json_error('Signature verification failed');
         }
         
-        if (empty($key)) {
-            wp_send_json_error('Private posting key is required');
-        }
-        
-        // Verify credentials
+        // Verify signature with the Hive API
         $hive_api = new WP_Dapp_Hive_API();
-        $result = $hive_api->verify_credentials($account, $key);
+        $result = $hive_api->verify_keychain_signature($account, $message, $signature);
         
         if (is_wp_error($result)) {
             wp_send_json_error($result->get_error_message());
         }
         
-        // If we got here, credentials are valid
+        // If we got here, verification was successful
         
-        // If secure storage is enabled, store the key securely
-        if ($secure_storage && !empty($key)) {
-            $encryption = wpdapp_get_encryption();
-            $encryption->store_secure_option('wpdapp_secure_private_key', $key);
-            
-            // Update options to use secure storage
-            $options = get_option('wpdapp_options', []);
-            $options['secure_storage'] = 1;
-            $options['private_key'] = ''; // Clear plaintext key
-            update_option('wpdapp_options', $options);
-        }
+        // Save the verified account in options
+        $options = get_option('wpdapp_options', []);
+        $options['hive_account'] = $account;
+        update_option('wpdapp_options', $options);
         
         wp_send_json_success([
-            'message' => 'Credentials verified successfully'
+            'message' => 'Hive account verified successfully'
         ]);
     }
 
@@ -93,69 +78,186 @@ class WP_Dapp_Ajax_Handler {
             wp_send_json_error('Invalid security token');
         }
         
-        // Check if Hive credentials are configured
+        // Check if Hive account is configured
         $options = get_option('wpdapp_options', []);
         $hive_account = !empty($options['hive_account']) ? $options['hive_account'] : '';
-        $has_key = false;
         
-        // Check for key in either secure storage or plaintext
-        if (!empty($options['secure_storage'])) {
-            $encryption = wpdapp_get_encryption();
-            $has_key = !empty($encryption->get_secure_option('wpdapp_secure_private_key'));
-        } else {
-            $has_key = !empty($options['private_key']);
+        if (empty($hive_account)) {
+            wp_send_json_error('Hive credentials are not configured');
         }
         
-        if (empty($hive_account) || !$has_key) {
-            wp_send_json_error('Hive credentials are not configured. Please configure your Hive account and private key in the settings.');
-        }
-        
-        // Get posts with Hive metadata
+        // Get published posts with Hive meta
         $args = [
             'post_type' => 'post',
             'post_status' => 'publish',
-            'posts_per_page' => -1,
+            'posts_per_page' => 20,
             'meta_query' => [
-                'relation' => 'OR',
                 [
-                    'key' => '_hive_published',
-                    'compare' => 'EXISTS',
-                ],
-                [
-                    'key' => '_hive_publish_error',
-                    'compare' => 'EXISTS',
-                ],
-                [
-                    'key' => '_wpdapp_publish_to_hive',
-                    'compare' => 'EXISTS',
+                    'key' => '_wpdapp_processed',
+                    'compare' => 'EXISTS'
                 ]
             ]
         ];
         
         $query = new WP_Query($args);
         
-        $result = [];
-        
-        if ($query->have_posts()) {
-            while ($query->have_posts()) {
-                $query->the_post();
-                $post_id = get_the_ID();
-                
-                $result[] = [
-                    'ID' => $post_id,
-                    'title' => get_the_title(),
-                    'edit_url' => get_edit_post_link($post_id, ''),
-                    'hive_published' => get_post_meta($post_id, '_hive_published', true),
-                    'hive_permlink' => get_post_meta($post_id, '_hive_permlink', true),
-                    'hive_author' => get_post_meta($post_id, '_hive_author', true),
-                    'hive_publish_error' => get_post_meta($post_id, '_hive_publish_error', true),
-                    'wpdapp_publish_to_hive' => get_post_meta($post_id, '_wpdapp_publish_to_hive', true)
-                ];
-            }
-            
-            wp_reset_postdata();
+        if (!$query->have_posts()) {
+            wp_send_json_success([]);
         }
         
-        wp_send_json_success($result);
+        $posts_data = [];
+        
+        while ($query->have_posts()) {
+            $query->the_post();
+            $post_id = get_the_ID();
+            $post_title = get_the_title();
+            
+            $hive_published = get_post_meta($post_id, '_wpdapp_hive_published', true);
+            $hive_author = get_post_meta($post_id, '_wpdapp_hive_author', true);
+            $hive_permlink = get_post_meta($post_id, '_wpdapp_hive_permlink', true);
+            $hive_publish_error = get_post_meta($post_id, '_wpdapp_hive_error', true);
+            
+            $posts_data[] = [
+                'ID' => $post_id,
+                'title' => $post_title,
+                'edit_url' => get_edit_post_link($post_id, 'raw'),
+                'hive_published' => !empty($hive_published),
+                'hive_author' => $hive_author,
+                'hive_permlink' => $hive_permlink,
+                'hive_publish_error' => $hive_publish_error
+            ];
+        }
+        
+        wp_reset_postdata();
+        
+        wp_send_json_success($posts_data);
+    }
+    
+    /**
+     * AJAX handler to prepare post data for Keychain publishing.
+     */
+    public function ajax_prepare_post() {
+        // Check nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'wpdapp_publish')) {
+            wp_send_json_error('Invalid security token');
+        }
+        
+        // Get post ID
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        
+        if (!$post_id) {
+            wp_send_json_error('Invalid post ID');
+        }
+        
+        // Check if current user can edit this post
+        if (!current_user_can('edit_post', $post_id)) {
+            wp_send_json_error('Permission denied');
+        }
+        
+        // Get post data
+        $post = get_post($post_id);
+        
+        if (!$post) {
+            wp_send_json_error('Post not found');
+        }
+        
+        // Get post meta
+        $tags = [];
+        $post_tags = wp_get_post_tags($post_id);
+        
+        if (!empty($post_tags)) {
+            foreach ($post_tags as $tag) {
+                $tags[] = $tag->name;
+            }
+        }
+        
+        // Get beneficiaries from post meta
+        $beneficiaries = get_post_meta($post_id, '_wpdapp_beneficiaries', true);
+        
+        if (!is_array($beneficiaries)) {
+            $beneficiaries = [];
+        }
+        
+        // Get excerpt
+        $excerpt = $post->post_excerpt;
+        
+        if (empty($excerpt)) {
+            // Generate excerpt from content
+            $excerpt = wp_strip_all_tags($post->post_content);
+            $excerpt = wp_trim_words($excerpt, 30, '...');
+        }
+        
+        // Get featured image
+        $featured_image_url = '';
+        if (has_post_thumbnail($post_id)) {
+            $featured_image_id = get_post_thumbnail_id($post_id);
+            $image_data = wp_get_attachment_image_src($featured_image_id, 'full');
+            
+            if ($image_data) {
+                $featured_image_url = $image_data[0];
+            }
+        }
+        
+        // Prepare post data for Hive API
+        $post_data = [
+            'title' => $post->post_title,
+            'content' => $post->post_content,
+            'tags' => $tags,
+            'beneficiaries' => $beneficiaries,
+            'excerpt' => $excerpt,
+            'featured_image' => $featured_image_url
+        ];
+        
+        // Prepare data with Hive API
+        $hive_api = new WP_Dapp_Hive_API();
+        $prepared_data = $hive_api->prepare_post_data($post_data);
+        
+        if (is_wp_error($prepared_data)) {
+            wp_send_json_error($prepared_data->get_error_message());
+        }
+        
+        // Mark post as processed
+        update_post_meta($post_id, '_wpdapp_processed', 1);
+        
+        wp_send_json_success($prepared_data);
+    }
+    
+    /**
+     * AJAX handler to update post meta after successful Hive publication.
+     */
+    public function ajax_update_post_meta() {
+        // Check nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'wpdapp_publish')) {
+            wp_send_json_error('Invalid security token');
+        }
+        
+        // Get post ID and Hive data
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        $hive_data = isset($_POST['hive_data']) ? $_POST['hive_data'] : [];
+        
+        if (!$post_id || empty($hive_data)) {
+            wp_send_json_error('Invalid data');
+        }
+        
+        // Check if current user can edit this post
+        if (!current_user_can('edit_post', $post_id)) {
+            wp_send_json_error('Permission denied');
+        }
+        
+        // Save Hive publication data
+        update_post_meta($post_id, '_wpdapp_hive_published', 1);
+        update_post_meta($post_id, '_wpdapp_hive_author', sanitize_text_field($hive_data['author']));
+        update_post_meta($post_id, '_wpdapp_hive_permlink', sanitize_text_field($hive_data['permlink']));
+        
+        if (!empty($hive_data['transaction_id'])) {
+            update_post_meta($post_id, '_wpdapp_hive_transaction_id', sanitize_text_field($hive_data['transaction_id']));
+        }
+        
+        // Clear any previous errors
+        delete_post_meta($post_id, '_wpdapp_hive_error');
+        
+        wp_send_json_success([
+            'message' => 'Post meta updated successfully'
+        ]);
     }
 } 

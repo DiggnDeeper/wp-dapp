@@ -1,206 +1,142 @@
 # WP-Dapp User Guide
 
-## Introduction
+## Overview
 
-WP-Dapp is a WordPress plugin that enables you to automatically publish your WordPress content to the Hive blockchain. This integration creates a bridge between your WordPress site and the Hive ecosystem, allowing you to reach new audiences and potentially earn cryptocurrency rewards.
+WP-Dapp is a WordPress plugin that allows you to publish your WordPress content to the Hive blockchain with a single click using Hive Keychain.
 
-## Table of Contents
+**Version: 0.7.0**
 
-1. [Installation](#installation)
-2. [Configuration](#configuration)
-3. [Publishing to Hive](#publishing-to-hive)
-4. [Tag Management](#tag-management)
-5. [Beneficiaries](#beneficiaries)
-6. [Verifying Publication Status](#verifying-publication-status)
-7. [Troubleshooting](#troubleshooting)
-8. [Security Information](#security-information)
-9. [Frequently Asked Questions](#frequently-asked-questions)
+## Getting Started with Hive Keychain
 
-## Installation
+### What is Hive Keychain?
 
-1. Download the latest release from the [GitHub repository](https://github.com/DiggnDeeper/wp-dapp)
-2. In your WordPress admin dashboard, go to **Plugins > Add New > Upload Plugin**
-3. Choose the downloaded ZIP file and click **Install Now**
-4. After installation, click **Activate Plugin**
+Hive Keychain is a browser extension that allows you to interact with the Hive blockchain securely without exposing your private keys. It acts as a secure bridge between your browser and the Hive blockchain.
 
-## Configuration
+### Installing Hive Keychain
 
-### Setting Up Your Hive Account
+1. Visit the Hive Keychain website: [https://hive-keychain.com/](https://hive-keychain.com/)
+2. Click on "Download" for your browser (Chrome, Firefox, Brave, or Edge)
+3. Follow the installation instructions for your browser
+4. Once installed, you'll see the Keychain icon in your browser toolbar
+5. Click the icon and follow the setup instructions to add your Hive account
 
-1. Go to **Settings > WP-Dapp** in your WordPress admin dashboard
-2. Enter your Hive account name (username)
-3. Enter your Hive private posting key
-   - This key is used to sign transactions on your behalf
-   - The plugin securely encrypts this key in your WordPress database
-4. Click the **Verify Credentials** button to ensure your credentials are valid
-5. Click **Save Changes**
+## Setting Up WP-Dapp
 
-### Publishing Options
+1. **Navigate to Settings**: In your WordPress admin dashboard, go to Settings > WP-Dapp
 
-1. **Default Tags**: Set default tags that will be added to all Hive posts
-2. **Enable Custom Tags**: Toggle whether default tags should be used
-3. **Default Beneficiary**: Set up a default beneficiary for your posts
-   - By default, diggndeeper.com receives 1% as the plugin developer
-   - You can adjust or disable this in the settings
+2. **Account Setup**:
+   - Enter your Hive username (without the @ symbol)
+   - Click the "Verify with Keychain" button
+   - Approve the verification request in the Keychain popup
 
-### Advanced Settings
+3. **Beneficiary Settings** (Optional):
+   - Enable Default Beneficiary: Toggle on to automatically add a beneficiary to all posts
+   - Default Beneficiary Account: Enter the Hive username of the beneficiary
+   - Default Beneficiary Percentage: Set the percentage of rewards (1-10%)
 
-1. **Secure Storage**: Encrypts your private key (recommended)
-2. **Delete Data on Uninstall**: Choose whether to remove all data when uninstalling
+4. **Post Settings** (Optional):
+   - Default Tags: Enter comma-separated tags to include in all posts
+   - Auto-Publish: Toggle on to show a reminder to publish to Hive after publishing to WordPress
+
+5. **Advanced Settings** (Optional):
+   - Hive API Node: Enter a custom Hive API node URL if desired (advanced users only)
+
+6. **Save Changes**: Click "Save Changes" to store your settings
 
 ## Publishing to Hive
 
-When you publish a WordPress post, it will automatically be published to Hive if:
+### Publishing a New Post
 
-1. You have properly configured your Hive credentials
-2. The post is set to "Publish to Hive" in the post's meta box
-3. The post has at least one valid tag (WordPress category, tag, or custom tag)
+1. **Create a WordPress Post**: Write your post in WordPress as usual
+2. **Add WordPress Categories/Tags**: These will be converted to Hive tags
+3. **Publish to WordPress**: Click "Publish" to publish your post to WordPress
+4. **Publish to Hive**: In the post editor, locate the "Publish to Hive" meta box on the right side
+5. **Add Beneficiaries** (Optional): Add accounts to receive a share of the post rewards
+6. **Click "Publish to Hive with Keychain"**: This prepares your post for Hive
+7. **Approve in Keychain**: A Keychain popup will appear - review and confirm the transaction
+8. **View on Hive**: After successful publication, click the "View on Hive" link to see your post
 
-### Per-Post Settings
+### Managing Beneficiaries
 
-Each post has a **Hive Publishing Settings** meta box with the following options:
+Beneficiaries receive a percentage of the rewards generated by your post on Hive.
 
-1. **Publish to Hive**: Toggle whether this specific post should be published to Hive
-2. **Custom Tags**: Add Hive-specific tags for this post (comma-separated)
-3. **Beneficiaries**: Add additional beneficiaries for this specific post
-4. **Publication Status**: Shows whether the post has been published to Hive
+**Setting Default Beneficiaries**:
+1. Go to Settings > WP-Dapp
+2. Enable the "Default Beneficiary" option
+3. Enter the beneficiary account name
+4. Set the percentage (1-10%)
+5. Save changes
 
-## Tag Management
+**Adding Post-Specific Beneficiaries**:
+1. When editing a post, locate the "Publish to Hive" meta box
+2. Under "Beneficiaries," click "Add Beneficiary"
+3. Enter the account name and percentage
+4. You can add multiple beneficiaries (up to 8)
 
-Tags are crucial for Hive as they determine how your content is categorized and discovered.
+## How Tags Work
 
-### Tag Sources
+Tags help categorize your content on Hive and make it discoverable.
 
-WP-Dapp combines tags from multiple sources:
+**Tag Sources**:
+1. WordPress Categories: Automatically converted to Hive tags
+2. WordPress Tags: Automatically converted to Hive tags
+3. Default Tags: From plugin settings, added to all posts
 
-1. **WordPress Categories**: Automatically converted to Hive tags
-2. **WordPress Tags**: Automatically converted to Hive tags
-3. **Custom Tags**: Added per post in the Hive Publishing Settings meta box
-4. **Default Tags**: Global tags set in the plugin settings
-
-### Tag Limitations
-
-Hive has specific tag requirements:
-
-- Maximum of 5 tags per post
+**Tag Rules**:
+- Maximum 5 tags per post (Hive limitation)
 - Tags must be lowercase letters, numbers, or hyphens
 - No spaces or special characters allowed
-- At least 1 tag is required
-
-The plugin automatically handles these limitations by:
-- Combining all tag sources
-- Removing duplicates
-- Limiting to 5 tags maximum
-- Converting tags to valid Hive format
-- Using 'blog' as a default tag if none are provided
-
-### Tag Priority
-
-When limiting to 5 tags, the plugin prioritizes in this order:
-1. WordPress Categories
-2. WordPress Tags
-3. Custom Tags from meta box
-4. Default tags from settings
-
-## Beneficiaries
-
-Beneficiaries receive a percentage of the rewards earned by your posts on Hive.
-
-### Default Beneficiary
-
-The plugin settings include a default beneficiary:
-- **diggndeeper.com**: Plugin developer (default 1%)
-- You can adjust or disable this in the settings
-
-### Per-Post Beneficiaries
-
-For each post, you can:
-1. Add custom beneficiaries in the Hive Publishing Settings meta box
-2. Specify the account name and percentage for each beneficiary
-3. Add multiple beneficiaries as needed
+- If no tags are available, 'blog' is used as default
 
 ## Verifying Publication Status
 
-There are several ways to verify if your content was published to Hive:
+After publishing, you can verify the status:
 
-### Post Meta Box
-
-The Hive Publishing Settings meta box shows the publication status:
-- **Published**: Shows a success message with a link to view on Hive
-- **Error**: Shows an error message explaining what went wrong
-
-### Publication Verification Tool
-
-The plugin includes a verification tool:
-1. Go to **Settings > WP-Dapp**
-2. Scroll to the **Publishing Verification** section
-3. Click **Check Hive Publication Status**
-4. View a list of posts with their Hive publication status
+1. In the post editor, check the "Publish to Hive" meta box
+2. Successfully published posts will show "✓ Published to Hive" with a link
+3. If there was an error, an error message will be displayed
 
 ## Troubleshooting
 
-### Common Issues
+### Keychain Not Detected
+- Make sure you have installed the Hive Keychain browser extension
+- Try refreshing the page after installing
+- Ensure you're using a supported browser
 
-**Post Not Publishing to Hive**
+### Authentication Failed
+- Check that you've entered the correct Hive username
+- Ensure Keychain is unlocked (click the Keychain icon in your browser)
+- Try refreshing the page and authenticating again
 
-1. **Check Credentials**: Verify your Hive account and private key are correct
-2. **Check Post Settings**: Ensure "Publish to Hive" is enabled for the post
-3. **Check Tags**: Make sure the post has at least one valid tag
-4. **Check Error Messages**: Look for error messages in the Hive Status section
+### Publishing Failed
+- Check the error message for details
+- Common issues:
+  - Title or content too short
+  - Invalid tags
+  - Network connection issues
+  - Keychain timeout (try again)
 
-**Tag Issues**
+## FAQ
 
-1. **Not Enough Tags**: Add WordPress categories, tags, or custom tags
-2. **Too Many Tags**: Only the first 5 tags will be used
-3. **Invalid Tags**: Tags are automatically converted to valid format
+**Q: Is my private key stored in WordPress?**  
+A: No. With Hive Keychain integration, your private keys never leave your browser and are never stored by the plugin.
 
-**Beneficiary Issues**
+**Q: Can I edit a post after publishing to Hive?**  
+A: Yes, you can edit your WordPress post, but you'll need to publish a new post on Hive as the blockchain doesn't allow editing.
 
-1. **Invalid Account**: Ensure beneficiary accounts exist on Hive
-2. **Invalid Percentage**: Percentages must be between 1% and 100%
+**Q: What happens to images in my post?**  
+A: Images hosted on your WordPress site are referenced by URL in the Hive post.
 
-### Forcing Re-Publication
+**Q: Can I schedule posts to Hive?**  
+A: You can schedule posts in WordPress, but publishing to Hive requires manual approval through Keychain.
 
-To force a post to be re-published to Hive:
+**Q: How many beneficiaries can I add?**  
+A: You can add up to 8 beneficiaries per post on Hive.
 
-1. Edit the post in WordPress
-2. Delete these meta fields (using a custom fields plugin or developer tools):
-   - `_hive_published`
-   - `_hive_permlink`
-   - `_hive_author`
-   - `_hive_publish_error`
-3. Make sure "Publish to Hive" is checked
-4. Update the post to trigger the publishing process again
+## Getting Help
 
-## Security Information
+If you encounter issues not covered in this guide:
 
-WP-Dapp takes security seriously:
-
-1. **Private Key Encryption**: Your Hive private key is encrypted before storage
-2. **Minimal Permissions**: The plugin only requires your posting key, not active or owner keys
-3. **No External Services**: Your keys are never sent to external services
-4. **WordPress Security**: Follow standard WordPress security best practices
-
-## Frequently Asked Questions
-
-**Q: Is my private key secure?**
-A: Yes, when secure storage is enabled, your private key is encrypted before being stored in the WordPress database.
-
-**Q: Do I need a Hive account?**
-A: Yes, you need a Hive account and its private posting key to use this plugin.
-
-**Q: Will my WordPress content be exactly the same on Hive?**
-A: The plugin formats your content for Hive and adds a footer with attribution to your WordPress site.
-
-**Q: Can I earn cryptocurrency from my posts?**
-A: Yes, content on Hive can earn HIVE tokens through upvotes from other users.
-
-**Q: What happens if I update a post on WordPress?**
-A: Currently, the plugin only publishes new posts, it doesn't update existing posts on Hive.
-
-**Q: Can I disable the default beneficiary?**
-A: Yes, you can disable the default beneficiary in the plugin settings.
-
----
-
-For more information, visit [diggndeeper.com/wp-dapp](https://diggndeeper.com/wp-dapp/) or the [GitHub repository](https://github.com/DiggnDeeper/wp-dapp). 
+1. Check the [README.md](README.md) file for additional documentation
+2. Visit the [GitHub repository](https://github.com/DiggnDeeper/wp-dapp) to report issues
+3. Contact the developer at [DiggnDeeper.com](https://diggndeeper.com) 

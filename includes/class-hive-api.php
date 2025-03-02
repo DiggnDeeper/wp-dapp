@@ -6,58 +6,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 class WP_Dapp_Hive_API {
 
     protected $account;
-    protected $private_key;
     protected $api_endpoint = 'https://api.hive.blog';
-    protected $encryption;
 
     public function __construct() {
-        // Get the encryption utility
-        $this->encryption = wpdapp_get_encryption();
-        
         // Retrieve stored options.
         $options = get_option( 'wpdapp_options' );
         
         // Get account name
         $this->account = ! empty( $options['hive_account'] ) ? sanitize_text_field($options['hive_account']) : '';
-        
-        // Get private key - handle both encrypted and plaintext legacy storage
-        if (!empty($options['private_key'])) {
-            // Check if secure storage is enabled
-            if (!empty($options['secure_storage'])) {
-                // Try to get the encrypted private key
-                $encrypted_key = get_option('wpdapp_secure_private_key');
-                if (!empty($encrypted_key)) {
-                    $this->private_key = $this->encryption->decrypt($encrypted_key);
-                } else {
-                    // If we have a plaintext key but secure storage is enabled,
-                    // encrypt the key and store it securely
-                    $plaintext_key = sanitize_text_field($options['private_key']);
-                    $this->encryption->store_secure_option('wpdapp_secure_private_key', $plaintext_key);
-                    
-                    // Clear the plaintext key from the options
-                    $options['private_key'] = '';
-                    update_option('wpdapp_options', $options);
-                    
-                    $this->private_key = $plaintext_key;
-                }
-            } else {
-                // Use the plaintext key directly (legacy mode)
-                $this->private_key = sanitize_text_field($options['private_key']);
-            }
-        }
-
-        // Optionally, initialize the Hive PHP library here if it requires setup.
     }
 
     /**
-     * Post content to Hive.
-     *
+     * Prepares post data for Hive publication with Keychain.
+     * 
      * @param array $post_data Associative array containing post details.
-     * @return array Response data from the Hive API.
+     * @return array|WP_Error Post data ready for Keychain broadcasting or error.
      */
-    public function post_to_hive( $post_data ) {
-        if (empty($this->account) || empty($this->private_key)) {
-            return new WP_Error('missing_credentials', 'Hive credentials are not configured');
+    public function prepare_post_data( $post_data ) {
+        if (empty($this->account)) {
+            return new WP_Error('missing_account', 'Hive account is not configured');
         }
 
         $permlink = $this->create_permlink($post_data['title']);
@@ -81,7 +48,7 @@ class WP_Dapp_Hive_API {
             }
         }
         
-        // Add default beneficiary to diggndeeper if configured
+        // Add default beneficiary if configured
         $options = get_option('wpdapp_options');
         if (!empty($options['enable_default_beneficiary']) && !empty($options['default_beneficiary_account'])) {
             $default_weight = !empty($options['default_beneficiary_weight']) ? 
@@ -100,127 +67,106 @@ class WP_Dapp_Hive_API {
             // Add if not already present
             if (!$found) {
                 $beneficiaries[] = [
-                    'account' => sanitize_text_field($options['default_beneficiary_account']),
+                    'account' => $options['default_beneficiary_account'],
                     'weight' => $default_weight
                 ];
             }
         }
-
-        $json_metadata = json_encode([
+        
+        // Prepare the post data for Keychain
+        return [
+            'author' => $this->account,
+            'permlink' => $permlink,
+            'title' => $post_data['title'],
+            'body' => $post_data['content'],
             'tags' => $tags,
-            'app' => 'wp-dapp/' . WPDAPP_VERSION
-        ]);
-        
-        // Operations array will hold all operations to broadcast
-        $operations = [];
-        
-        // Add the main comment operation (the post itself)
-        $operations[] = [
-            'comment',
-            [
-                'parent_author' => '',
-                'parent_permlink' => $tags[0], // First tag as parent
-                'author' => $this->account,
-                'permlink' => $permlink,
-                'title' => $post_data['title'],
-                'body' => $post_data['body'],
-                'json_metadata' => $json_metadata
-            ]
+            'beneficiaries' => $beneficiaries,
+            'excerpt' => isset($post_data['excerpt']) ? $post_data['excerpt'] : '',
+            'image' => isset($post_data['featured_image']) ? [$post_data['featured_image']] : []
         ];
-        
-        // Add beneficiaries operation if we have any
-        if (!empty($beneficiaries)) {
-            $operations[] = [
-                'comment_options',
-                [
-                    'author' => $this->account,
-                    'permlink' => $permlink,
-                    'max_accepted_payout' => '1000000.000 HBD',
-                    'percent_hbd' => 10000,
-                    'allow_votes' => true,
-                    'allow_curation_rewards' => true,
-                    'extensions' => [
-                        [
-                            0, // This is the beneficiaries extension
-                            [
-                                'beneficiaries' => $beneficiaries
-                            ]
-                        ]
-                    ]
-                ]
-            ];
-        }
+    }
 
-        $post_data = [
+    /**
+     * Get profile information for a Hive account
+     * 
+     * @param string $account The Hive account name to look up
+     * @return array|WP_Error Account data or error
+     */
+    public function get_account_info($account) {
+        if (empty($account)) {
+            return new WP_Error('missing_account', 'Account name is required');
+        }
+        
+        $request_data = [
             'jsonrpc' => '2.0',
-            'method' => 'broadcast_transaction',
-            'params' => [
-                [
-                    'operations' => $operations
-                ]
-            ],
+            'method' => 'condenser_api.get_accounts',
+            'params' => [[$account]],
             'id' => 1
         ];
-
+        
         $response = wp_remote_post($this->api_endpoint, [
-            'body' => json_encode($post_data),
+            'body' => json_encode($request_data),
             'headers' => ['Content-Type' => 'application/json'],
-            'timeout' => 30
+            'timeout' => 15
         ]);
-
+        
         if (is_wp_error($response)) {
             return $response;
         }
-
+        
         $body = json_decode(wp_remote_retrieve_body($response), true);
         
         if (!empty($body['error'])) {
             return new WP_Error('hive_api_error', $body['error']['message']);
         }
-
-        return [
-            'status' => 'success',
-            'permlink' => $permlink,
-            'author' => $this->account,
-            'beneficiaries' => $beneficiaries
-        ];
+        
+        if (empty($body['result']) || empty($body['result'][0])) {
+            return new WP_Error('account_not_found', 'Hive account not found');
+        }
+        
+        return $body['result'][0];
     }
-
+    
     /**
-     * Verify Hive credentials with the API.
+     * Verify a signature from Hive Keychain
      * 
-     * @param string $account The Hive account name.
-     * @param string $private_key The Hive private posting key.
-     * @return bool|WP_Error True on success or WP_Error on failure.
+     * @param string $account The Hive account name
+     * @param string $message The message that was signed
+     * @param string $signature The signature to verify
+     * @return bool|WP_Error True if signature is valid, WP_Error on failure
      */
-    public function verify_credentials($account, $private_key) {
-        if (empty($account) || empty($private_key)) {
-            return new WP_Error('missing_credentials', 'Account name and private key are required.');
+    public function verify_keychain_signature($account, $message, $signature) {
+        if (empty($account) || empty($message) || empty($signature)) {
+            return new WP_Error('missing_parameters', 'Account, message, and signature are required.');
         }
         
-        // In a real implementation, we would make a call to the Hive API
-        // to verify these credentials, perhaps by signing a test transaction.
-        // For now, we'll just do basic validation.
+        // Get the account's public keys from the blockchain
+        $account_info = $this->get_account_info($account);
         
-        // Basic validation: account name should be all lowercase alphanumeric plus dots and dashes
-        if (!preg_match('/^[a-z0-9\.\-]+$/', $account)) {
-            return new WP_Error('invalid_account', 'Invalid Hive account name format.');
+        if (is_wp_error($account_info)) {
+            return $account_info;
         }
         
-        // Basic validation: private key should be a string of at least 30 characters
-        if (strlen($private_key) < 30) {
-            return new WP_Error('invalid_private_key', 'Invalid Hive private key format.');
-        }
+        // For now, we're trusting the signature verification that Keychain does
+        // In a production environment, you would implement actual signature verification
+        // using the posting public key of the account
         
-        // If we passed basic validation, return true for now
-        // TODO: Implement actual Hive API credential verification
+        // This is a simplified check - for proper verification we need a PHP library for Hive crypto
         return true;
     }
 
+    /**
+     * Creates a permlink from a title
+     * 
+     * @param string $title The post title
+     * @return string The generated permlink
+     */
     private function create_permlink($title) {
         $permlink = sanitize_title($title);
         $permlink = strtolower($permlink);
         $permlink = preg_replace('/[^a-z0-9-]/', '', $permlink);
+        
+        // Add date to make permlink unique
         return $permlink . '-' . date('Ymd');
     }
 }

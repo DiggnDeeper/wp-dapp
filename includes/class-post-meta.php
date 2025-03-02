@@ -15,6 +15,7 @@ class WP_Dapp_Post_Meta {
         add_action('add_meta_boxes', [$this, 'add_meta_boxes']);
         add_action('save_post', [$this, 'save_meta_box_data']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
+        add_action('admin_enqueue_scripts', [$this, 'enqueue_editor_scripts']);
     }
 
     /**
@@ -60,88 +61,170 @@ class WP_Dapp_Post_Meta {
      * Render the meta box.
      */
     public function render_meta_box($post) {
-        // Add nonce for security
-        wp_nonce_field('wpdapp_save_meta_box_data', 'wpdapp_meta_box_nonce');
-
-        // Get saved values
-        $publish_to_hive = get_post_meta($post->ID, '_wpdapp_publish_to_hive', true);
-        $custom_tags = get_post_meta($post->ID, '_wpdapp_custom_tags', true);
-        $beneficiaries = get_post_meta($post->ID, '_wpdapp_beneficiaries', true);
-
-        // Default values
-        if (empty($publish_to_hive)) {
-            $publish_to_hive = '1'; // Default to yes
-        }
-
-        ?>
-        <div class="wpdapp-meta-box">
-            <p>
-                <label for="wpdapp_publish_to_hive">
-                    <input type="checkbox" name="wpdapp_publish_to_hive" id="wpdapp_publish_to_hive" value="1" <?php checked('1', $publish_to_hive); ?>>
-                    Publish to Hive when post is published
-                </label>
-            </p>
-
-            <p>
-                <label for="wpdapp_custom_tags">Custom Tags:</label>
-                <input type="text" name="wpdapp_custom_tags" id="wpdapp_custom_tags" value="<?php echo esc_attr($custom_tags); ?>" class="widefat">
-                <span class="description">Comma-separated. These will be used in addition to WordPress categories and tags.</span>
-            </p>
-
-            <div class="wpdapp-beneficiaries">
-                <p><strong>Beneficiaries:</strong> <a href="#" class="add-beneficiary button button-small">Add</a></p>
-                
-                <div class="beneficiary-list">
-                    <?php
-                    if (!empty($beneficiaries) && is_array($beneficiaries)) {
-                        foreach ($beneficiaries as $index => $beneficiary) {
-                            $account = isset($beneficiary['account']) ? $beneficiary['account'] : '';
-                            $weight = isset($beneficiary['weight']) ? $beneficiary['weight'] / 100 : ''; // Convert to percentage
-                            ?>
-                            <div class="beneficiary-item">
-                                <input type="text" name="wpdapp_beneficiaries[<?php echo $index; ?>][account]" 
-                                       placeholder="Hive account" value="<?php echo esc_attr($account); ?>" class="widefat">
-                                <input type="number" name="wpdapp_beneficiaries[<?php echo $index; ?>][weight]" 
-                                       placeholder="%" min="1" max="100" value="<?php echo esc_attr($weight); ?>" class="small-text">
-                                <a href="#" class="remove-beneficiary dashicons dashicons-no-alt"></a>
-                            </div>
-                            <?php
-                        }
-                    }
-                    ?>
-                </div>
-                
-                <div class="beneficiary-template" style="display:none;">
-                    <div class="beneficiary-item">
-                        <input type="text" name="wpdapp_beneficiaries[INDEX][account]" placeholder="Hive account" class="widefat">
-                        <input type="number" name="wpdapp_beneficiaries[INDEX][weight]" placeholder="%" min="1" max="100" class="small-text">
-                        <a href="#" class="remove-beneficiary dashicons dashicons-no-alt"></a>
-                    </div>
-                </div>
+        // Get Hive publishing status
+        $hive_published = get_post_meta($post->ID, '_wpdapp_hive_published', true);
+        $hive_author = get_post_meta($post->ID, '_wpdapp_hive_author', true);
+        $hive_permlink = get_post_meta($post->ID, '_wpdapp_hive_permlink', true);
+        $hive_error = get_post_meta($post->ID, '_wpdapp_hive_error', true);
+        
+        // Get options
+        $options = get_option('wpdapp_options', []);
+        $hive_account = isset($options['hive_account']) ? $options['hive_account'] : '';
+        
+        if (empty($hive_account)) {
+            ?>
+            <div class="wpdapp-notice-error">
+                <p>
+                    <strong>Hive account not configured</strong><br>
+                    Please configure your Hive account in the 
+                    <a href="<?php echo admin_url('options-general.php?page=wpdapp-settings'); ?>">WP-Dapp Settings</a> 
+                    before publishing to Hive.
+                </p>
             </div>
-
             <?php
-            // Display Hive publication status if already published
-            $hive_published = get_post_meta($post->ID, '_hive_published', true);
-            $hive_permlink = get_post_meta($post->ID, '_hive_permlink', true);
-            $hive_author = get_post_meta($post->ID, '_hive_author', true);
-            $hive_publish_error = get_post_meta($post->ID, '_hive_publish_error', true);
-
-            if ($hive_published && $hive_permlink && $hive_author) {
-                echo '<div class="hive-status success">';
-                echo '<p><strong>Hive Status:</strong> Published</p>';
-                echo '<p><a href="https://hive.blog/@' . esc_attr($hive_author) . '/' . esc_attr($hive_permlink) . '" target="_blank">';
-                echo 'View on Hive <span class="dashicons dashicons-external"></span></a></p>';
-                echo '</div>';
-            } elseif ($hive_publish_error) {
-                echo '<div class="hive-status error">';
-                echo '<p><strong>Hive Status:</strong> Error</p>';
-                echo '<p>' . esc_html($hive_publish_error) . '</p>';
-                echo '</div>';
+            return;
+        }
+        
+        // Show publishing form if not published, or status if published
+        if (!$hive_published) {
+            if (!empty($hive_error)) {
+                ?>
+                <div class="wpdapp-notice-error">
+                    <p><strong>Publishing Error:</strong> <?php echo esc_html($hive_error); ?></p>
+                </div>
+                <?php
             }
             ?>
-        </div>
-        <?php
+            <div id="wpdapp-hive-publish">
+                <div id="wpdapp-keychain-status"></div>
+                
+                <div class="wpdapp-publishing-options">
+                    <h4>Beneficiaries</h4>
+                    <p class="description">Users who will receive a share of this post's rewards.</p>
+                    
+                    <div class="wpdapp-beneficiaries">
+                        <table class="wpdapp-beneficiaries-table">
+                            <thead>
+                                <tr>
+                                    <th>Account</th>
+                                    <th>Weight (%)</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                $beneficiaries = get_post_meta($post->ID, '_wpdapp_beneficiaries', true);
+                                if (!is_array($beneficiaries)) {
+                                    $beneficiaries = [];
+                                }
+                                
+                                if (empty($beneficiaries)) {
+                                    echo '<tr id="wpdapp-no-beneficiaries"><td colspan="3">No beneficiaries added</td></tr>';
+                                } else {
+                                    foreach ($beneficiaries as $index => $beneficiary) {
+                                        ?>
+                                        <tr>
+                                            <td>
+                                                <input type="text" 
+                                                       name="wpdapp_beneficiaries[<?php echo $index; ?>][account]" 
+                                                       value="<?php echo esc_attr($beneficiary['account']); ?>" />
+                                            </td>
+                                            <td>
+                                                <input type="number" 
+                                                       name="wpdapp_beneficiaries[<?php echo $index; ?>][weight]" 
+                                                       value="<?php echo esc_attr($beneficiary['weight'] / 100); ?>" 
+                                                       min="0.01" max="100" step="0.01" />
+                                            </td>
+                                            <td>
+                                                <button type="button" class="button wpdapp-remove-beneficiary">Remove</button>
+                                            </td>
+                                        </tr>
+                                        <?php
+                                    }
+                                }
+                                ?>
+                            </tbody>
+                        </table>
+                        
+                        <button type="button" class="button wpdapp-add-beneficiary">Add Beneficiary</button>
+                    </div>
+                </div>
+                
+                <div class="wpdapp-publish-actions" style="margin-top: 15px;">
+                    <button type="button" id="wpdapp-publish-button" class="button button-primary">
+                        Publish to Hive with Keychain
+                    </button>
+                    <div id="wpdapp-publish-status"></div>
+                </div>
+                
+                <?php wp_nonce_field('wpdapp_post_meta', 'wpdapp_nonce'); ?>
+            </div>
+            
+            <script>
+                // Add this inline script to localize data for the Keychain publish script
+                var wpdapp_publish = {
+                    ajax_url: '<?php echo admin_url('admin-ajax.php'); ?>',
+                    nonce: '<?php echo wp_create_nonce('wpdapp_publish'); ?>',
+                    post_id: <?php echo $post->ID; ?>,
+                    hive_account: '<?php echo esc_js($hive_account); ?>'
+                };
+            </script>
+            <?php
+        } else {
+            // Show published status
+            ?>
+            <div class="wpdapp-published-info">
+                <p>
+                    <strong class="wpdapp-status-ok">✓ Published to Hive</strong>
+                </p>
+                
+                <p>
+                    <strong>Author:</strong> <?php echo esc_html($hive_author); ?><br>
+                    <strong>Link:</strong> 
+                    <a href="https://hive.blog/@<?php echo esc_attr($hive_author); ?>/<?php echo esc_attr($hive_permlink); ?>" target="_blank">
+                        View on Hive
+                    </a>
+                </p>
+            </div>
+            <?php
+        }
+    }
+
+    /**
+     * Enqueue scripts and styles for the post editor.
+     */
+    public function enqueue_editor_scripts($hook) {
+        global $post;
+        
+        if (!$post || ($hook != 'post.php' && $hook != 'post-new.php')) {
+            return;
+        }
+        
+        // Enqueue Keychain script
+        wp_enqueue_script(
+            'hive-keychain',
+            'https://cdn.jsdelivr.net/npm/hive-keychain-browser@1.0.4/index.min.js',
+            [],
+            '1.0.4',
+            false
+        );
+        
+        // Enqueue Keychain publish script
+        wp_enqueue_script(
+            'wpdapp-keychain-publish',
+            WPDAPP_PLUGIN_URL . 'assets/js/keychain-publish.js',
+            ['jquery', 'hive-keychain'],
+            WPDAPP_VERSION,
+            true
+        );
+        
+        // Enqueue admin styles
+        wp_enqueue_style(
+            'wpdapp-admin-styles',
+            WPDAPP_PLUGIN_URL . 'assets/css/admin-styles.css',
+            [],
+            WPDAPP_VERSION
+        );
     }
 
     /**
@@ -149,7 +232,7 @@ class WP_Dapp_Post_Meta {
      */
     public function save_meta_box_data($post_id) {
         // Check if our nonce is set and verify it
-        if (!isset($_POST['wpdapp_meta_box_nonce']) || !wp_verify_nonce($_POST['wpdapp_meta_box_nonce'], 'wpdapp_save_meta_box_data')) {
+        if (!isset($_POST['wpdapp_nonce']) || !wp_verify_nonce($_POST['wpdapp_nonce'], 'wpdapp_post_meta')) {
             return;
         }
 
@@ -161,15 +244,6 @@ class WP_Dapp_Post_Meta {
         // Check the user's permissions
         if (!current_user_can('edit_post', $post_id)) {
             return;
-        }
-
-        // Save the publish to Hive option
-        $publish_to_hive = isset($_POST['wpdapp_publish_to_hive']) ? '1' : '0';
-        update_post_meta($post_id, '_wpdapp_publish_to_hive', $publish_to_hive);
-
-        // Save custom tags
-        if (isset($_POST['wpdapp_custom_tags'])) {
-            update_post_meta($post_id, '_wpdapp_custom_tags', sanitize_text_field($_POST['wpdapp_custom_tags']));
         }
 
         // Save beneficiaries

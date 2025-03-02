@@ -1,0 +1,115 @@
+/**
+ * WP-Dapp Admin Styles
+ */
+
+/* Status styles */
+.wpdapp-status-ok {
+    color: #46b450;
+    font-weight: bold;
+    display: inline-block;
+}
+
+.wpdapp-status-error {
+    color: #dc3232;
+    font-weight: bold;
+    display: inline-block;
+}
+
+.wpdapp-status-warning {
+    color: #ffb900;
+    font-weight: bold;
+    display: inline-block;
+}
+
+.wpdapp-status-pending {
+    color: #00a0d2;
+    font-weight: bold;
+    display: inline-block;
+}
+
+/* Button styles */
+button.loading {
+    opacity: 0.7;
+    position: relative;
+    padding-left: 25px !important;
+}
+
+button.loading::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    width: 10px;
+    height: 10px;
+    margin-top: -5px;
+    border-radius: 50%;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-top-color: #0073aa;
+    animation: wpdapp-spin 1s infinite linear;
+}
+
+@keyframes wpdapp-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Publication meta box */
+#wpdapp-hive-publish {
+    background: #f9f9f9;
+    padding: 10px;
+    border: 1px solid #e5e5e5;
+    margin-top: 10px;
+}
+
+#wpdapp-hive-publish h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+#wpdapp-keychain-status {
+    margin-bottom: 10px;
+}
+
+#wpdapp-publish-status {
+    margin-top: 10px;
+    padding: 8px;
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 3px;
+}
+
+/* Beneficiary table */
+.wpdapp-beneficiaries-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+}
+
+.wpdapp-beneficiaries-table th,
+.wpdapp-beneficiaries-table td {
+    padding: 6px;
+    text-align: left;
+    border: 1px solid #e5e5e5;
+}
+
+.wpdapp-beneficiaries-table th {
+    background: #f1f1f1;
+    font-weight: bold;
+}
+
+/* Settings page */
+.wpdapp-settings-info {
+    background: #fff;
+    border-left: 4px solid #00a0d2;
+    padding: 10px;
+    margin: 20px 0;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.wpdapp-settings-info h3 {
+    margin-top: 0;
+} 
