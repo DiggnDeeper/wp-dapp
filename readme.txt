@@ -3,7 +3,7 @@ Contributors: diggndeeper.com
 Tags: hive, blockchain, publishing, crypto, social
 Requires at least: 5.0
 Tested up to: 6.4
-Stable tag: 0.7.1
+Stable tag: 0.7.2
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -52,6 +52,10 @@ Yes. Each post has publishing options that allow you to control whether it gets 
 The plugin includes a simple update checker that will notify you when a new version is available on GitHub. Follow the link in the notification to download the latest version.
 
 == Changelog ==
+
+= 0.7.2 =
+* Fixed: Removed WordPress Gutenberg block comments (<!-- wp:paragraph --> etc.) from Hive published content
+* Improved content formatting for Hive posts to ensure cleaner appearance
 
 = 0.7.1 =
 * Fixed Hive Keychain detection issue with more robust detection
