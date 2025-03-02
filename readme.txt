@@ -3,7 +3,7 @@ Contributors: diggndeeper
 Tags: hive, blockchain, publishing, crypto, social
 Requires at least: 5.0
 Tested up to: 6.4
-Stable tag: 0.6.0
+Stable tag: 0.6.1
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -43,6 +43,17 @@ Yes. Each post has publishing options that allow you to control whether it gets 
 The plugin includes a simple update checker that will notify you when a new version is available on GitHub. Follow the link in the notification to download the latest version.
 
 == Changelog ==
+
+= 0.6.1 =
+* Fixed credentials error in Publication Verification feature
+* Improved error messaging for credential verification
+* Enhanced user experience with better error feedback
+
+= 0.6.0 =
+* Added Publication Verification feature to check post publishing status
+* Created comprehensive USER_GUIDE.md documentation
+* Added detailed tag system documentation
+* Improved error handling and user feedback
 
 = 0.5.0 =
 * Replaced complex GitHub updater with a simplified update notification system
