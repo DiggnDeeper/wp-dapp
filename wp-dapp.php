@@ -2,7 +2,7 @@
 /**
  * Plugin Name: WP-Dapp: Hive Integration
  * Description: A plugin to post content from WordPress to Hive with support for beneficiaries, tags, and more.
- * Version: 0.4.1
+ * Version: 0.4.2
  * Author: DiggnDeeper
  * Author URI: https://diggndeeper.com
  * License: MIT
@@ -16,16 +16,40 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Define plugin constants
 define( 'WPDAPP_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WPDAPP_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'WPDAPP_VERSION', '0.4.1' );
+define( 'WPDAPP_VERSION', '0.4.2' );
 
-// Include required files
-require_once WPDAPP_PLUGIN_DIR . 'includes/class-encryption-utility.php';
-require_once WPDAPP_PLUGIN_DIR . 'includes/class-hive-api.php';
-require_once WPDAPP_PLUGIN_DIR . 'includes/class-publish-handler.php';
-require_once WPDAPP_PLUGIN_DIR . 'includes/class-settings-page.php';
-require_once WPDAPP_PLUGIN_DIR . 'includes/class-post-meta.php';
-require_once WPDAPP_PLUGIN_DIR . 'includes/class-ajax-handler.php';
-require_once WPDAPP_PLUGIN_DIR . 'includes/class-github-updater.php';
+/**
+ * Safely include a file with error handling
+ * 
+ * @param string $file File path to include
+ * @return bool True if successful, false otherwise
+ */
+function wpdapp_safe_include($file) {
+    if (!file_exists($file)) {
+        return false;
+    }
+    
+    try {
+        include_once $file;
+        return true;
+    } catch (Exception $e) {
+        // Log the error or handle it silently
+        return false;
+    }
+}
+
+// Include required core files
+wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-encryption-utility.php');
+wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-hive-api.php');
+wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-publish-handler.php');
+wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-settings-page.php');
+wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-post-meta.php');
+wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-ajax-handler.php');
+
+// During activation, don't load the GitHub updater
+if (!defined('WP_INSTALLING') || !WP_INSTALLING) {
+    wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-github-updater.php');
+}
 
 /**
  * Initialize the plugin functionality.
