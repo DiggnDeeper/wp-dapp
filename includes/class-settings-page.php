@@ -6,7 +6,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 class WP_Dapp_Settings_Page {
 
     private $options;
-    private $encryption;
     private $hive_api;
 
     public function __construct() {
@@ -14,7 +13,6 @@ class WP_Dapp_Settings_Page {
         add_action('admin_init', [$this, 'register_settings']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
         
-        $this->encryption = wpdapp_get_encryption();
         $this->hive_api = new WP_Dapp_Hive_API();
     }
 
@@ -214,10 +212,7 @@ class WP_Dapp_Settings_Page {
     }
 
     /**
-     * Sanitize each setting field as needed.
-     *
-     * @param array $input Contains all settings fields as array keys.
-     * @return array Sanitized settings.
+     * Sanitize options before saving.
      */
     public function sanitize_options($options) {
         $sanitized = [];
@@ -227,28 +222,6 @@ class WP_Dapp_Settings_Page {
         
         // Account settings
         $sanitized['hive_account'] = sanitize_text_field($options['hive_account']);
-        
-        // Handle private key based on secure storage setting
-        $sanitized['secure_storage'] = isset($options['secure_storage']) ? 1 : 0;
-        
-        if (!empty($options['private_key'])) {
-            $private_key = sanitize_text_field($options['private_key']);
-            
-            // If secure storage is enabled, store the key securely
-            if ($sanitized['secure_storage']) {
-                $this->encryption->store_secure_option('wpdapp_secure_private_key', $private_key);
-                $sanitized['private_key'] = ''; // Don't store in plaintext
-            } else {
-                $sanitized['private_key'] = $private_key; // Store in plaintext (not recommended)
-            }
-        } else {
-            // If no new key provided, keep the existing one
-            if ($existing_options['secure_storage']) {
-                $sanitized['private_key'] = '';
-            } else {
-                $sanitized['private_key'] = isset($existing_options['private_key']) ? $existing_options['private_key'] : '';
-            }
-        }
         
         // Beneficiary settings
         $sanitized['enable_default_beneficiary'] = isset($options['enable_default_beneficiary']) ? 1 : 0;
@@ -260,36 +233,8 @@ class WP_Dapp_Settings_Page {
         $sanitized['default_tags'] = sanitize_text_field($options['default_tags']);
         
         // Advanced settings
+        $sanitized['custom_api_node'] = sanitize_text_field($options['custom_api_node']);
         $sanitized['delete_data_on_uninstall'] = isset($options['delete_data_on_uninstall']) ? 1 : 0;
-        
-        // Add validation notice if credentials are provided
-        if (!empty($sanitized['hive_account']) && 
-            (!empty($sanitized['private_key']) || !empty($options['private_key']))) {
-            
-            // Get the private key (either from plaintext or encrypted)
-            $private_key = !empty($options['private_key']) ? 
-                sanitize_text_field($options['private_key']) : 
-                $this->encryption->get_secure_option('wpdapp_secure_private_key');
-                
-            // Verify credentials
-            $result = $this->hive_api->verify_credentials($sanitized['hive_account'], $private_key);
-            
-            if (is_wp_error($result)) {
-                add_settings_error(
-                    'wpdapp_options',
-                    'invalid_credentials',
-                    'Hive API Error: ' . $result->get_error_message(),
-                    'error'
-                );
-            } else {
-                add_settings_error(
-                    'wpdapp_options',
-                    'valid_credentials',
-                    'Hive credentials verified successfully.',
-                    'success'
-                );
-            }
-        }
         
         return $sanitized;
     }
@@ -325,18 +270,30 @@ class WP_Dapp_Settings_Page {
     }
 
     /**
-     * Render the Keychain status field.
+     * Render Keychain status field.
      */
     public function render_keychain_status() {
-        echo '<div id="wpdapp-keychain-status"></div>';
+        ?>
+        <div id="wpdapp-keychain-status" class="wpdapp-status-pending">
+            <span>Checking for Hive Keychain...</span>
+        </div>
+        <?php
     }
 
     /**
-     * Render the verify button.
+     * Render verify button field.
      */
     public function render_verify_button() {
-        echo '<button id="wpdapp-verify-account" class="button">Verify with Keychain</button>';
-        echo '<div id="wpdapp-credential-status" style="margin-top: 8px;"></div>';
+        $options = get_option('wpdapp_options');
+        $account = isset($options['hive_account']) ? $options['hive_account'] : '';
+        $disabled = empty($account) ? 'disabled' : '';
+        ?>
+        <button type="button" id="wpdapp-verify-account" class="button button-secondary" <?php echo $disabled; ?>>
+            Verify with Keychain
+        </button>
+        <div id="wpdapp-verify-result"></div>
+        <p class="description">Click this button to verify your Hive account with Keychain.</p>
+        <?php
     }
 
     /**
@@ -347,17 +304,6 @@ class WP_Dapp_Settings_Page {
         $field = $args['field'];
         $type = isset($args['type']) ? $args['type'] : 'text';
         $value = isset($options[$field]) ? $options[$field] : '';
-        
-        // Special handling for private_key field with secure storage
-        if ($field === 'private_key' && !empty($options['secure_storage']) && empty($value)) {
-            $has_secure_key = !empty($this->encryption->get_secure_option('wpdapp_secure_private_key'));
-            if ($has_secure_key) {
-                echo '<div class="wpdapp-secure-key-notice">';
-                echo '<span class="dashicons dashicons-lock"></span> ';
-                echo '<em>Your key is securely stored.</em>';
-                echo '</div>';
-            }
-        }
         
         // Handle different field types
         switch ($type) {
@@ -408,14 +354,13 @@ class WP_Dapp_Settings_Page {
                 break;
         }
         
-        // Display description if provided
-        if (isset($args['description'])) {
-            printf('<p class="description">%s</p>', esc_html($args['description']));
+        if (!empty($args['description'])) {
+            printf('<p class="description">%s</p>', $args['description']);
         }
     }
 
     /**
-     * Render the settings page.
+     * Render the main settings page.
      */
     public function render_settings_page() {
         ?>
@@ -423,7 +368,7 @@ class WP_Dapp_Settings_Page {
             <h1>WP-Dapp Settings</h1>
             
             <div class="wpdapp-settings-intro">
-                <p>Configure your WordPress to Hive integration settings below. For security, your private posting key is stored with encryption.</p>
+                <p>Configure your WordPress to Hive integration settings below. Securely authenticate with Hive Keychain.</p>
             </div>
             
             <form method="post" action="options.php">
@@ -436,48 +381,11 @@ class WP_Dapp_Settings_Page {
             
             <div class="wpdapp-settings-footer">
                 <h3>About WP-Dapp</h3>
-                <p>WP-Dapp is a WordPress plugin that enables publishing content to the Hive blockchain directly from your WordPress dashboard.</p>
+                <p>WP-Dapp is a WordPress plugin that enables publishing content to the Hive blockchain directly from your WordPress dashboard using Hive Keychain.</p>
                 <p>Version: <?php echo WPDAPP_VERSION; ?></p>
                 <p><a href="https://diggndeeper.com/wp-dapp/" target="_blank">Plugin Website</a> | <a href="https://github.com/DiggnDeeper/wp-dapp" target="_blank">GitHub Repository</a></p>
             </div>
         </div>
-        
-        <style>
-            .wpdapp-settings-intro {
-                background: #fff;
-                border-left: 4px solid #46b450;
-                box-shadow: 0 1px 1px 0 rgba(0,0,0,.1);
-                margin: 20px 0;
-                padding: 1px 12px;
-            }
-            .wpdapp-settings-footer {
-                margin-top: 30px;
-                padding-top: 20px;
-                border-top: 1px solid #ddd;
-            }
-            .wpdapp-secure-key-notice {
-                background: #f8f8f8;
-                padding: 5px 10px;
-                margin-bottom: 10px;
-                display: inline-block;
-                border-radius: 4px;
-                color: #464646;
-            }
-            .wpdapp-secure-key-notice .dashicons {
-                color: #46b450;
-                vertical-align: middle;
-            }
-            .wpdapp-credential-error {
-                background: #fff8f7;
-                border-left: 4px solid #dc3232;
-                box-shadow: 0 1px 1px 0 rgba(0,0,0,.1);
-                padding: 1px 12px;
-                margin-bottom: 10px;
-            }
-            .wpdapp-credential-error a {
-                font-weight: bold;
-            }
-        </style>
         <?php
     }
 }
