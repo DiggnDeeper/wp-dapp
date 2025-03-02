@@ -32,28 +32,101 @@ class WP_Dapp_Hive_API {
 
         $permlink = $this->create_permlink($post_data['title']);
         
+        // Build the tags array
+        $tags = isset($post_data['tags']) ? array_map('sanitize_text_field', $post_data['tags']) : [];
+        if (empty($tags)) {
+            $tags[] = 'blog'; // Default tag if none provided
+        }
+        
+        // Process beneficiaries if present
+        $beneficiaries = [];
+        if (!empty($post_data['beneficiaries'])) {
+            foreach ($post_data['beneficiaries'] as $beneficiary) {
+                if (!empty($beneficiary['account']) && isset($beneficiary['weight']) && $beneficiary['weight'] > 0) {
+                    $beneficiaries[] = [
+                        'account' => sanitize_text_field($beneficiary['account']),
+                        'weight' => min(10000, max(1, intval($beneficiary['weight']))) // Between 1 and 10000 (0.01% to 100%)
+                    ];
+                }
+            }
+        }
+        
+        // Add default beneficiary to diggndeeper if configured
+        $options = get_option('wpdapp_options');
+        if (!empty($options['enable_default_beneficiary']) && !empty($options['default_beneficiary_account'])) {
+            $default_weight = !empty($options['default_beneficiary_weight']) ? 
+                min(1000, max(1, intval($options['default_beneficiary_weight']))) : 
+                100; // Default to 1% if not specified
+                
+            // Check if this beneficiary is already set
+            $found = false;
+            foreach ($beneficiaries as $ben) {
+                if ($ben['account'] === $options['default_beneficiary_account']) {
+                    $found = true;
+                    break;
+                }
+            }
+            
+            // Add if not already present
+            if (!$found) {
+                $beneficiaries[] = [
+                    'account' => sanitize_text_field($options['default_beneficiary_account']),
+                    'weight' => $default_weight
+                ];
+            }
+        }
+
         $json_metadata = json_encode([
-            'tags' => isset($post_data['tags']) ? array_map('sanitize_text_field', $post_data['tags']) : [],
+            'tags' => $tags,
             'app' => 'wp-dapp/0.1'
         ]);
+        
+        // Operations array will hold all operations to broadcast
+        $operations = [];
+        
+        // Add the main comment operation (the post itself)
+        $operations[] = [
+            'comment',
+            [
+                'parent_author' => '',
+                'parent_permlink' => $tags[0], // First tag as parent
+                'author' => $this->account,
+                'permlink' => $permlink,
+                'title' => $post_data['title'],
+                'body' => $post_data['body'],
+                'json_metadata' => $json_metadata
+            ]
+        ];
+        
+        // Add beneficiaries operation if we have any
+        if (!empty($beneficiaries)) {
+            $operations[] = [
+                'comment_options',
+                [
+                    'author' => $this->account,
+                    'permlink' => $permlink,
+                    'max_accepted_payout' => '1000000.000 HBD',
+                    'percent_hbd' => 10000,
+                    'allow_votes' => true,
+                    'allow_curation_rewards' => true,
+                    'extensions' => [
+                        [
+                            0, // This is the beneficiaries extension
+                            [
+                                'beneficiaries' => $beneficiaries
+                            ]
+                        ]
+                    ]
+                ]
+            ];
+        }
 
         $post_data = [
             'jsonrpc' => '2.0',
             'method' => 'broadcast_transaction',
             'params' => [
                 [
-                    'operations' => [[
-                        'comment',
-                        [
-                            'parent_author' => '',
-                            'parent_permlink' => isset($post_data['tags'][0]) ? $post_data['tags'][0] : 'blog',
-                            'author' => $this->account,
-                            'permlink' => $permlink,
-                            'title' => $post_data['title'],
-                            'body' => $post_data['body'],
-                            'json_metadata' => $json_metadata
-                        ]
-                    ]]
+                    'operations' => $operations
                 ]
             ],
             'id' => 1
@@ -78,7 +151,8 @@ class WP_Dapp_Hive_API {
         return [
             'status' => 'success',
             'permlink' => $permlink,
-            'author' => $this->account
+            'author' => $this->account,
+            'beneficiaries' => $beneficiaries
         ];
     }
 
