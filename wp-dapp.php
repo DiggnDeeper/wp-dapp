@@ -2,11 +2,10 @@
 /**
  * Plugin Name: WP-Dapp: Hive Integration
  * Description: A plugin to post content from WordPress to Hive with support for beneficiaries, tags, and more.
- * Version: 0.4.4
+ * Version: 0.5.0
  * Author: DiggnDeeper
  * Author URI: https://diggndeeper.com
  * License: MIT
- * GitHub Plugin URI: https://github.com/DiggnDeeper/wp-dapp
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,7 +15,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Define plugin constants
 define( 'WPDAPP_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WPDAPP_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'WPDAPP_VERSION', '0.4.4' );
+define( 'WPDAPP_VERSION', '0.5.0' );
+define( 'WPDAPP_REPO_URL', 'https://github.com/DiggnDeeper/wp-dapp' );
 
 /**
  * Safely include a file with error handling
@@ -45,11 +45,7 @@ wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-publish-handler.php');
 wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-settings-page.php');
 wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-post-meta.php');
 wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-ajax-handler.php');
-
-// During activation, don't load the GitHub updater
-if (!defined('WP_INSTALLING') || !WP_INSTALLING) {
-    wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-github-updater.php');
-}
+wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-update-checker.php');
 
 /**
  * Initialize the plugin functionality.
@@ -61,6 +57,11 @@ function wpdapp_init() {
     $settings_page = new WP_Dapp_Settings_Page();
     $post_meta = new WP_Dapp_Post_Meta();
     $ajax_handler = new WP_Dapp_Ajax_Handler();
+    
+    // Initialize the simple update checker if it exists
+    if (class_exists('WP_Dapp_Update_Checker')) {
+        $update_checker = new WP_Dapp_Update_Checker();
+    }
     
     add_action('publish_post', array($publish_handler, 'on_publish_post'), 10, 2);
     

@@ -3,7 +3,7 @@ Contributors: diggndeeper
 Tags: hive, blockchain, publishing, crypto, social
 Requires at least: 5.0
 Tested up to: 6.4
-Stable tag: 0.4.4
+Stable tag: 0.5.0
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -38,7 +38,17 @@ Yes. By default, your private posting key is stored securely using WordPress's e
 
 Yes. Each post has publishing options that allow you to control whether it gets published to Hive.
 
+= How do I update the plugin? =
+
+The plugin includes a simple update checker that will notify you when a new version is available on GitHub. Follow the link in the notification to download the latest version.
+
 == Changelog ==
+
+= 0.5.0 =
+* Replaced complex GitHub updater with a simplified update notification system
+* Improved plugin stability and compatibility with various hosting environments
+* Removed dependency on external libraries for update checking
+* Added clear admin notices when updates are available
 
 = 0.4.4 =
 * Fixed "PUC does not support updates for plugins hosted on GitHub" error
@@ -73,5 +83,5 @@ Yes. Each post has publishing options that allow you to control whether it gets 
 
 == Upgrade Notice ==
 
-= 0.4 =
-This update adds automatic updates functionality and fixes the duplicate settings menu issue. 
+= 0.5.0 =
+This update removes the complex GitHub updater component and replaces it with a simpler notification system, improving stability across different hosting environments. 
