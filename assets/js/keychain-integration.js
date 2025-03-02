@@ -6,7 +6,7 @@ jQuery(document).ready(function($) {
     
     // Check if Keychain is available
     const isKeychainAvailable = () => {
-        return typeof hive_keychain !== 'undefined';
+        return typeof hive_keychain !== 'undefined' && hive_keychain;
     };
     
     // Show or hide Keychain status message
@@ -24,6 +24,19 @@ jQuery(document).ready(function($) {
     // Initialize
     updateKeychainStatus();
     
+    // Check periodically for Keychain - sometimes extensions load after page is ready
+    let checkCount = 0;
+    const maxChecks = 10; // Check up to 10 times (5 seconds)
+    
+    const periodicCheck = setInterval(function() {
+        if (isKeychainAvailable()) {
+            updateKeychainStatus();
+            clearInterval(periodicCheck);
+        } else if (++checkCount >= maxChecks) {
+            clearInterval(periodicCheck);
+        }
+    }, 500); // Check every 500ms
+    
     // Handle account verification button click
     $('#wpdapp-verify-account').on('click', function() {
         const $button = $(this);
@@ -38,7 +51,15 @@ jQuery(document).ready(function($) {
         
         // Check if Keychain is available
         if (!isKeychainAvailable()) {
-            $status.html('<span class="wpdapp-status-error">Hive Keychain extension not detected</span>');
+            // Try to detect one more time in case it's just loaded
+            setTimeout(function() {
+                if (isKeychainAvailable()) {
+                    updateKeychainStatus();
+                    $status.html('<span class="wpdapp-status-ok">Keychain detected. Please try again.</span>');
+                } else {
+                    $status.html('<span class="wpdapp-status-error">Hive Keychain extension not detected</span>');
+                }
+            }, 100);
             return;
         }
         

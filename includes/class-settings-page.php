@@ -153,6 +153,9 @@ class WP_Dapp_Settings_Page {
             [
                 'field' => 'default_beneficiary_weight', 
                 'type' => 'number',
+                'min' => 1,
+                'max' => 10,
+                'step' => 0.01,
                 'description' => 'Percentage of rewards (1-10). Default is 1%.'
             ]
         );
@@ -319,6 +322,7 @@ class WP_Dapp_Settings_Page {
             case 'number':
                 $min = isset($args['min']) ? $args['min'] : '';
                 $max = isset($args['max']) ? $args['max'] : '';
+                $step = isset($args['step']) ? $args['step'] : '';
                 
                 // Convert weight from internal storage (0-10000) to percentage (0-100)
                 if ($field === 'default_beneficiary_weight' && !empty($value)) {
@@ -326,12 +330,13 @@ class WP_Dapp_Settings_Page {
                 }
                 
                 printf(
-                    '<input type="number" id="%s" name="wpdapp_options[%s]" value="%s" class="small-text" %s %s>',
+                    '<input type="number" id="%s" name="wpdapp_options[%s]" value="%s" class="small-text" %s %s %s>',
                     esc_attr($field),
                     esc_attr($field),
                     esc_attr($value),
                     !empty($min) ? "min=\"{$min}\"" : "",
-                    !empty($max) ? "max=\"{$max}\"" : ""
+                    !empty($max) ? "max=\"{$max}\"" : "",
+                    !empty($step) ? "step=\"{$step}\"" : ""
                 );
                 break;
                 
