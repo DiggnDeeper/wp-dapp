@@ -96,7 +96,7 @@ function wpdapp_activate() {
             'hive_account' => '',
             'private_key' => '',
             'enable_default_beneficiary' => 1,
-            'default_beneficiary_account' => 'diggndeeper',
+            'default_beneficiary_account' => 'diggndeeper.com',
             'default_beneficiary_weight' => 100,  // 1%
             'enable_custom_tags' => 0,
             'default_tags' => 'wordpress,hive,wpdapp',

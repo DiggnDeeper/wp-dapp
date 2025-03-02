@@ -40,7 +40,7 @@ WP-Dapp is a WordPress plugin that enables you to automatically publish your Wor
 1. **Default Tags**: Set default tags that will be added to all Hive posts
 2. **Enable Custom Tags**: Toggle whether default tags should be used
 3. **Default Beneficiary**: Set up a default beneficiary for your posts
-   - By default, diggndeeper receives 1% as the plugin developer
+   - By default, diggndeeper.com receives 1% as the plugin developer
    - You can adjust or disable this in the settings
 
 ### Advanced Settings
@@ -109,7 +109,7 @@ Beneficiaries receive a percentage of the rewards earned by your posts on Hive.
 ### Default Beneficiary
 
 The plugin settings include a default beneficiary:
-- **diggndeeper**: Plugin developer (default 1%)
+- **diggndeeper.com**: Plugin developer (default 1%)
 - You can adjust or disable this in the settings
 
 ### Per-Post Beneficiaries
