@@ -107,9 +107,9 @@ class WP_Dapp_GitHub_Updater {
         $required_files = array(
             'plugin-update-checker.php',
             'load-v5p5.php',
-            'Puc/v5p5/Autoloader.php',
-            'Puc/v5p5/PucFactory.php',
-            'Puc/v5/PucFactory.php'
+            'Puc/v5p5/Vcs/GitHubApi.php',
+            'Puc/v5p5/Vcs/PluginUpdateChecker.php',
+            'Puc/v5p5/Plugin/UpdateChecker.php'
         );
         
         // Check each file
@@ -150,35 +150,93 @@ class WP_Dapp_GitHub_Updater {
                     return;
                 }
                 
-                // Initialize the update checker
-                $this->update_checker = $factory::buildUpdateChecker(
-                    'https://github.com/' . $this->github_owner . '/' . $this->github_repo . '/',
-                    WPDAPP_PLUGIN_DIR . 'wp-dapp.php',
-                    'wp-dapp'
-                );
-    
-                // Set the branch that contains the stable release
-                $this->update_checker->setBranch('main');
-    
-                // Try to use release assets if the method exists
-                if (method_exists($this->update_checker, 'getVcsApi') && 
-                    method_exists($this->update_checker->getVcsApi(), 'enableReleaseAssets')) {
-                    $this->update_checker->getVcsApi()->enableReleaseAssets();
+                // Make sure the Vcs components are loaded
+                $this->ensure_vcs_loaded();
+                
+                // Initialize the update checker with direct instantiation to avoid factory issues
+                $repo_url = 'https://github.com/' . $this->github_owner . '/' . $this->github_repo . '/';
+                
+                if (class_exists('YahnisElsts\\PluginUpdateChecker\\v5p5\\Vcs\\GitHubApi')) {
+                    // Use namespaced classes if available
+                    $plugin_file = WPDAPP_PLUGIN_DIR . 'wp-dapp.php';
+                    $github_api = new YahnisElsts\PluginUpdateChecker\v5p5\Vcs\GitHubApi($repo_url);
+                    $this->update_checker = new YahnisElsts\PluginUpdateChecker\v5p5\Vcs\PluginUpdateChecker(
+                        $github_api,
+                        $plugin_file,
+                        'wp-dapp'
+                    );
+                } elseif (class_exists('Puc_v5p5_Vcs_GitHubApi')) {
+                    // Fall back to non-namespaced classes
+                    $plugin_file = WPDAPP_PLUGIN_DIR . 'wp-dapp.php';
+                    $github_api = new Puc_v5p5_Vcs_GitHubApi($repo_url);
+                    $this->update_checker = new Puc_v5p5_Vcs_PluginUpdateChecker(
+                        $github_api,
+                        $plugin_file,
+                        'wp-dapp'
+                    );
+                } else {
+                    // Last resort: try using the factory method
+                    $this->update_checker = $factory::buildUpdateChecker(
+                        $repo_url,
+                        WPDAPP_PLUGIN_DIR . 'wp-dapp.php',
+                        'wp-dapp'
+                    );
                 }
-    
-                // Add filters to modify update checking behavior if the hook exists
-                $filter_name = 'puc_pre_inject_update-wp-dapp';
-                if (!has_action($filter_name)) {
-                    add_filter($filter_name, array($this, 'filter_update_info'), 10, 2);
+                
+                if ($this->update_checker) {
+                    // Set the branch that contains the stable release
+                    if (method_exists($this->update_checker, 'setBranch')) {
+                        $this->update_checker->setBranch('main');
+                    }
+        
+                    // Try to use release assets if the method exists
+                    if (method_exists($this->update_checker, 'getVcsApi') && 
+                        method_exists($this->update_checker->getVcsApi(), 'enableReleaseAssets')) {
+                        $this->update_checker->getVcsApi()->enableReleaseAssets();
+                    }
+        
+                    // Add filters to modify update checking behavior if the hook exists
+                    $filter_name = 'puc_pre_inject_update-wp-dapp';
+                    if (!has_action($filter_name)) {
+                        add_filter($filter_name, array($this, 'filter_update_info'), 10, 2);
+                    }
+                } else {
+                    $this->is_active = false;
+                    add_action('admin_notices', array($this, 'updater_init_failed_notice'));
                 }
             } catch (Exception $e) {
                 // Silently fail, but record that we're not active
                 $this->is_active = false;
+                // Store the error message for debugging
+                $this->error_message = $e->getMessage();
+                add_action('admin_notices', array($this, 'updater_exception_notice'));
             }
         } else {
             // File doesn't exist, add admin notice
             $this->is_active = false;
             add_action('admin_notices', array($this, 'updater_missing_notice'));
+        }
+    }
+    
+    /**
+     * Ensure all VCS components are loaded
+     */
+    private function ensure_vcs_loaded() {
+        $puc_dir = WPDAPP_PLUGIN_DIR . 'includes/plugin-update-checker/Puc/v5p5/';
+        
+        // Try to include important VCS files directly to ensure they're available
+        $vcs_files = array(
+            'Vcs/BaseChecker.php',
+            'Vcs/Api.php', 
+            'Vcs/PluginUpdateChecker.php',
+            'Vcs/GitHubApi.php',
+            'Vcs/Reference.php'
+        );
+        
+        foreach ($vcs_files as $file) {
+            if (file_exists($puc_dir . $file)) {
+                include_once $puc_dir . $file;
+            }
         }
     }
     
@@ -189,8 +247,10 @@ class WP_Dapp_GitHub_Updater {
      */
     private function get_factory_class() {
         $factory_classes = array(
+            '\YahnisElsts\PluginUpdateChecker\v5p5\PucFactory',
             'Puc_v5p5_Factory',
             '\YahnisElsts\PluginUpdateChecker\v5\PucFactory',
+            'Puc_v5_Factory',
             'Puc_v4_Factory',
             'PucFactory'
         );
@@ -238,6 +298,32 @@ class WP_Dapp_GitHub_Updater {
         ?>
         <div class="notice notice-warning">
             <p><?php _e('WP-Dapp: GitHub updater factory class not found. Plugin will still function, but automatic updates will not work.', 'wpdapp'); ?></p>
+        </div>
+        <?php
+    }
+    
+    /**
+     * Display admin notice if the updater initialization failed.
+     *
+     * @return void
+     */
+    public function updater_init_failed_notice() {
+        ?>
+        <div class="notice notice-warning">
+            <p><?php _e('WP-Dapp: GitHub updater initialization failed. Plugin will still function, but automatic updates will not work.', 'wpdapp'); ?></p>
+        </div>
+        <?php
+    }
+    
+    /**
+     * Display admin notice if there was an exception.
+     *
+     * @return void
+     */
+    public function updater_exception_notice() {
+        ?>
+        <div class="notice notice-warning">
+            <p><?php _e('WP-Dapp: GitHub updater encountered an error: ', 'wpdapp'); ?> <?php echo isset($this->error_message) ? esc_html($this->error_message) : 'Unknown error'; ?></p>
         </div>
         <?php
     }
