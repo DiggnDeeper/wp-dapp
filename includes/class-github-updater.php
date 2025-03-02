@@ -24,7 +24,7 @@ class WP_Dapp_GitHub_Updater {
     /**
      * Plugin Update Checker instance
      *
-     * @var Puc_v4_Factory
+     * @var object
      */
     private $update_checker;
 
@@ -60,7 +60,7 @@ class WP_Dapp_GitHub_Updater {
      * Sets up the GitHub updater.
      */
     public function __construct() {
-        // Only set up the updater if the library exists and we're in admin
+        // Only set up the updater if we're in admin
         if (is_admin()) {
             $this->setup_updater();
         }
@@ -72,15 +72,30 @@ class WP_Dapp_GitHub_Updater {
      * @return void
      */
     private function setup_updater() {
-        // Include the library if it's not already included
-        if (!class_exists('Puc_v4_Factory')) {
-            require_once WPDAPP_PLUGIN_DIR . 'includes/plugin-update-checker/plugin-update-checker.php';
-        }
+        // Check if the plugin update checker file exists
+        $puc_file = WPDAPP_PLUGIN_DIR . 'includes/plugin-update-checker/plugin-update-checker.php';
         
-        // Make sure the library was loaded successfully
-        if (class_exists('Puc_v4_Factory')) {
+        if (file_exists($puc_file)) {
+            // Include the library
+            require_once $puc_file;
+            
+            // The library might use either Puc_v4_Factory or PucFactory depending on version
+            if (class_exists('Puc_v4_Factory')) {
+                $factory = 'Puc_v4_Factory';
+            } elseif (class_exists('\YahnisElsts\PluginUpdateChecker\v5\PucFactory')) {
+                $factory = '\YahnisElsts\PluginUpdateChecker\v5\PucFactory';
+            } elseif (class_exists('Puc_v5p5_Factory')) {
+                $factory = 'Puc_v5p5_Factory';
+            } elseif (class_exists('PucFactory')) {
+                $factory = 'PucFactory';
+            } else {
+                // Factory class not found, add admin notice
+                add_action('admin_notices', array($this, 'updater_class_missing_notice'));
+                return;
+            }
+            
             // Initialize the update checker
-            $this->update_checker = Puc_v4_Factory::buildUpdateChecker(
+            $this->update_checker = $factory::buildUpdateChecker(
                 'https://github.com/' . $this->github_owner . '/' . $this->github_repo . '/',
                 WPDAPP_PLUGIN_DIR . 'wp-dapp.php',
                 'wp-dapp'
@@ -92,13 +107,19 @@ class WP_Dapp_GitHub_Updater {
             // Optional: Set authentication to increase API rate limit
             // $this->update_checker->setAuthentication('your-github-personal-token');
 
-            // Use the zip archive as the download package
-            $this->update_checker->getVcsApi()->enableReleaseAssets();
+            // Try to use release assets if the method exists
+            if (method_exists($this->update_checker, 'getVcsApi') && 
+                method_exists($this->update_checker->getVcsApi(), 'enableReleaseAssets')) {
+                $this->update_checker->getVcsApi()->enableReleaseAssets();
+            }
 
-            // Add filters to modify update checking behavior if needed
-            add_filter('puc_pre_inject_update-wp-dapp', array($this, 'filter_update_info'), 10, 2);
+            // Add filters to modify update checking behavior if the hook exists
+            $filter_name = 'puc_pre_inject_update-wp-dapp';
+            if (has_filter($filter_name) || !has_action($filter_name)) {
+                add_filter($filter_name, array($this, 'filter_update_info'), 10, 2);
+            }
         } else {
-            // Log error or notify admin that the updater library couldn't be loaded
+            // File doesn't exist, add admin notice
             add_action('admin_notices', array($this, 'updater_missing_notice'));
         }
     }
@@ -123,7 +144,20 @@ class WP_Dapp_GitHub_Updater {
     public function updater_missing_notice() {
         ?>
         <div class="notice notice-error">
-            <p><?php _e('WP-Dapp: GitHub updater library is missing. Plugin updates will not work correctly.', 'wpdapp'); ?></p>
+            <p><?php _e('WP-Dapp: GitHub updater library is missing. Plugin updates will not work correctly. Please reinstall the plugin or contact support.', 'wpdapp'); ?></p>
+        </div>
+        <?php
+    }
+    
+    /**
+     * Display admin notice if the updater class is missing.
+     *
+     * @return void
+     */
+    public function updater_class_missing_notice() {
+        ?>
+        <div class="notice notice-error">
+            <p><?php _e('WP-Dapp: GitHub updater factory class not found. Plugin updates will not work correctly. Please reinstall the plugin or contact support.', 'wpdapp'); ?></p>
         </div>
         <?php
     }

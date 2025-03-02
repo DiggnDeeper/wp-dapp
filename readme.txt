@@ -3,7 +3,7 @@ Contributors: diggndeeper
 Tags: hive, blockchain, publishing, crypto, social
 Requires at least: 5.0
 Tested up to: 6.4
-Stable tag: 0.4
+Stable tag: 0.4.1
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -39,6 +39,10 @@ Yes. By default, your private posting key is stored securely using WordPress's e
 Yes. Each post has publishing options that allow you to control whether it gets published to Hive.
 
 == Changelog ==
+
+= 0.4.1 =
+* Fixed GitHub updater compatibility issues
+* Improved error handling for updater
 
 = 0.4 =
 * Added GitHub-based automatic updates
