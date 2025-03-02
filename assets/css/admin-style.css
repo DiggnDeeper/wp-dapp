@@ -1,0 +1,77 @@
+/**
+ * WP-Dapp Admin Styles
+ */
+
+/* Meta Box Styles */
+.wpdapp-meta-box {
+    margin-bottom: 10px;
+}
+
+.wpdapp-meta-box .description {
+    font-style: italic;
+    font-size: 0.9em;
+    color: #666;
+    margin-top: 2px;
+}
+
+/* Beneficiary Styles */
+.wpdapp-beneficiaries {
+    margin-top: 10px;
+}
+
+.beneficiary-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    gap: 5px;
+}
+
+.beneficiary-item input[type="text"] {
+    flex: 1;
+}
+
+.beneficiary-item input[type="number"] {
+    width: 60px;
+}
+
+.remove-beneficiary {
+    cursor: pointer;
+    color: #cc0000;
+    text-decoration: none;
+}
+
+.remove-beneficiary:hover {
+    color: #990000;
+}
+
+/* Hive Status */
+.hive-status {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.hive-status.success {
+    background-color: #f0f9eb;
+    border: 1px solid #dfefd1;
+    color: #7ab557;
+}
+
+.hive-status.error {
+    background-color: #fff5f5;
+    border: 1px solid #ffdfdf;
+    color: #cc0000;
+}
+
+.hive-status a {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+}
+
+.hive-status a .dashicons {
+    font-size: 16px;
+    height: 16px;
+    width: 16px;
+    margin-left: 3px;
+} 
