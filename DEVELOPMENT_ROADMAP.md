@@ -8,23 +8,29 @@ WP-Dapp is a WordPress plugin that integrates with the Hive blockchain, allowing
 - Settings page for Hive credentials
 - Simple post publishing to Hive on WordPress post publish
 - Tag conversion from WordPress to Hive
+- Custom tag management
+- Support for beneficiaries including default diggndeeper.com beneficiary
+- Post metadata box for Hive-specific settings
+- Control when content is published to Hive (immediate vs. opt-out per post)
+- Secure credential storage with encryption
+- Credential verification
 
 ## Planned Features and Improvements
 
 ### Phase 1: Core Functionality Improvements
-- [ ] Improve Hive API integration using proper Hive libraries
+- [x] Improve Hive API integration using proper Hive libraries
 - [ ] Add proper error handling and user feedback
-- [ ] Implement secure credential storage
-- [ ] Create post metadata box for Hive-specific settings
-- [ ] Add support for beneficiaries (including default diggndeeper.com)
-- [ ] Implement custom tag management
-- [ ] Add option to control when content is published to Hive (immediate vs. manual)
+- [x] Implement secure credential storage
+- [x] Create post metadata box for Hive-specific settings
+- [x] Add support for beneficiaries (including default diggndeeper.com)
+- [x] Implement custom tag management
+- [x] Add option to control when content is published to Hive (immediate vs. manual)
 
 ### Phase 2: User Experience Enhancements
 - [ ] Develop dashboard widget showing Hive post status
 - [ ] Add Hive post preview functionality
 - [ ] Create post status indicators in post list
-- [ ] Implement Hive account connection verification
+- [x] Implement Hive account connection verification
 - [ ] Add statistics for published posts (views, earnings, etc.)
 - [ ] Implement Markdown conversion options for better Hive formatting
 

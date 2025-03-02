@@ -2,7 +2,7 @@
 /**
  * Plugin Name: WP-Dapp: Hive Integration
  * Description: A plugin to post content from WordPress to Hive with support for beneficiaries, tags, and more.
- * Version: 0.2
+ * Version: 0.3
  * Author: DiggnDeeper
  * Author URI: https://diggndeeper.com
  * License: MIT
@@ -15,25 +15,48 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Define plugin constants
 define( 'WPDAPP_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WPDAPP_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'WPDAPP_VERSION', '0.2' );
+define( 'WPDAPP_VERSION', '0.3' );
 
 // Include required files
+require_once WPDAPP_PLUGIN_DIR . 'includes/class-encryption-utility.php';
 require_once WPDAPP_PLUGIN_DIR . 'includes/class-hive-api.php';
 require_once WPDAPP_PLUGIN_DIR . 'includes/class-publish-handler.php';
 require_once WPDAPP_PLUGIN_DIR . 'includes/class-settings-page.php';
 require_once WPDAPP_PLUGIN_DIR . 'includes/class-post-meta.php';
+require_once WPDAPP_PLUGIN_DIR . 'includes/class-ajax-handler.php';
 
 /**
  * Initialize the plugin functionality.
  */
 function wpdapp_init() {
+    $encryption_utility = new WP_Dapp_Encryption_Utility();
     $publish_handler = new WP_Dapp_Publish_Handler();
     $settings_page = new WP_Dapp_Settings_Page();
     $post_meta = new WP_Dapp_Post_Meta();
+    $ajax_handler = new WP_Dapp_Ajax_Handler();
     
     add_action('publish_post', array($publish_handler, 'on_publish_post'), 10, 2);
+    
+    // Make the encryption utility available globally
+    global $wpdapp_encryption;
+    $wpdapp_encryption = $encryption_utility;
 }
 add_action('plugins_loaded', 'wpdapp_init');
+
+/**
+ * Get the encryption utility instance.
+ * 
+ * @return WP_Dapp_Encryption_Utility The encryption utility instance.
+ */
+function wpdapp_get_encryption() {
+    global $wpdapp_encryption;
+    
+    if (!isset($wpdapp_encryption)) {
+        $wpdapp_encryption = new WP_Dapp_Encryption_Utility();
+    }
+    
+    return $wpdapp_encryption;
+}
 
 // Add activation hook
 register_activation_hook(__FILE__, 'wpdapp_activate');
@@ -48,8 +71,19 @@ function wpdapp_activate() {
             'default_beneficiary_account' => 'diggndeeper',
             'default_beneficiary_weight' => 100,  // 1%
             'enable_custom_tags' => 0,
-            'default_tags' => 'wordpress,hive,wpdapp'
+            'default_tags' => 'wordpress,hive,wpdapp',
+            'secure_storage' => 1,  // Enable secure storage by default
+            'delete_data_on_uninstall' => 0
         ]);
+    }
+    
+    // Generate encryption key if needed
+    $encryption = new WP_Dapp_Encryption_Utility();
+    
+    // Add capabilities
+    if (is_admin()) {
+        // Flush rewrite rules
+        flush_rewrite_rules();
     }
 }
 
@@ -57,10 +91,11 @@ function wpdapp_activate() {
 register_deactivation_hook(__FILE__, 'wpdapp_deactivate');
 
 function wpdapp_deactivate() {
-    // Cleanup tasks if needed
+    // Flush rewrite rules
+    flush_rewrite_rules();
 }
 
-// Add uninstall hook - defined in a separate file
+// Add uninstall hook
 register_uninstall_hook(__FILE__, 'wpdapp_uninstall');
 
 function wpdapp_uninstall() {
@@ -68,6 +103,8 @@ function wpdapp_uninstall() {
     $options = get_option('wpdapp_options');
     if (!empty($options['delete_data_on_uninstall'])) {
         delete_option('wpdapp_options');
+        delete_option('wpdapp_encryption_key');
+        delete_option('wpdapp_secure_private_key');
         
         // Delete post meta
         global $wpdb;

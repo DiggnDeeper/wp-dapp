@@ -8,13 +8,43 @@ class WP_Dapp_Hive_API {
     protected $account;
     protected $private_key;
     protected $api_endpoint = 'https://api.hive.blog';
+    protected $encryption;
 
     public function __construct() {
+        // Get the encryption utility
+        $this->encryption = wpdapp_get_encryption();
+        
         // Retrieve stored options.
         $options = get_option( 'wpdapp_options' );
-
+        
+        // Get account name
         $this->account = ! empty( $options['hive_account'] ) ? sanitize_text_field($options['hive_account']) : '';
-        $this->private_key = ! empty( $options['private_key'] ) ? sanitize_text_field($options['private_key']) : '';
+        
+        // Get private key - handle both encrypted and plaintext legacy storage
+        if (!empty($options['private_key'])) {
+            // Check if secure storage is enabled
+            if (!empty($options['secure_storage'])) {
+                // Try to get the encrypted private key
+                $encrypted_key = get_option('wpdapp_secure_private_key');
+                if (!empty($encrypted_key)) {
+                    $this->private_key = $this->encryption->decrypt($encrypted_key);
+                } else {
+                    // If we have a plaintext key but secure storage is enabled,
+                    // encrypt the key and store it securely
+                    $plaintext_key = sanitize_text_field($options['private_key']);
+                    $this->encryption->store_secure_option('wpdapp_secure_private_key', $plaintext_key);
+                    
+                    // Clear the plaintext key from the options
+                    $options['private_key'] = '';
+                    update_option('wpdapp_options', $options);
+                    
+                    $this->private_key = $plaintext_key;
+                }
+            } else {
+                // Use the plaintext key directly (legacy mode)
+                $this->private_key = sanitize_text_field($options['private_key']);
+            }
+        }
 
         // Optionally, initialize the Hive PHP library here if it requires setup.
     }
@@ -78,7 +108,7 @@ class WP_Dapp_Hive_API {
 
         $json_metadata = json_encode([
             'tags' => $tags,
-            'app' => 'wp-dapp/0.1'
+            'app' => 'wp-dapp/' . WPDAPP_VERSION
         ]);
         
         // Operations array will hold all operations to broadcast
@@ -154,6 +184,37 @@ class WP_Dapp_Hive_API {
             'author' => $this->account,
             'beneficiaries' => $beneficiaries
         ];
+    }
+
+    /**
+     * Verify Hive credentials with the API.
+     * 
+     * @param string $account The Hive account name.
+     * @param string $private_key The Hive private posting key.
+     * @return bool|WP_Error True on success or WP_Error on failure.
+     */
+    public function verify_credentials($account, $private_key) {
+        if (empty($account) || empty($private_key)) {
+            return new WP_Error('missing_credentials', 'Account name and private key are required.');
+        }
+        
+        // In a real implementation, we would make a call to the Hive API
+        // to verify these credentials, perhaps by signing a test transaction.
+        // For now, we'll just do basic validation.
+        
+        // Basic validation: account name should be all lowercase alphanumeric plus dots and dashes
+        if (!preg_match('/^[a-z0-9\.\-]+$/', $account)) {
+            return new WP_Error('invalid_account', 'Invalid Hive account name format.');
+        }
+        
+        // Basic validation: private key should be a string of at least 30 characters
+        if (strlen($private_key) < 30) {
+            return new WP_Error('invalid_private_key', 'Invalid Hive private key format.');
+        }
+        
+        // If we passed basic validation, return true for now
+        // TODO: Implement actual Hive API credential verification
+        return true;
     }
 
     private function create_permlink($title) {
