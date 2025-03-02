@@ -3,23 +3,32 @@ Contributors: diggndeeper.com
 Tags: hive, blockchain, publishing, crypto, social
 Requires at least: 5.0
 Tested up to: 6.4
-Stable tag: 0.6.1
+Stable tag: 0.7.0
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
-A WordPress plugin to publish content to the Hive blockchain with support for beneficiaries, tags, and more.
+A WordPress plugin to publish content to the Hive blockchain with Hive Keychain support for secure authentication and transactions.
 
 == Description ==
 
-WP-Dapp is a WordPress plugin that enables publishing content to the Hive blockchain directly from your WordPress dashboard.
+WP-Dapp is a WordPress plugin that enables publishing content to the Hive blockchain directly from your WordPress dashboard using the secure Hive Keychain browser extension.
 
 **Key Features:**
 
+* Secure authentication with Hive Keychain (no private keys stored in WordPress)
 * Publish WordPress posts automatically to Hive
 * Set up default or custom beneficiaries for each post
 * Assign tags to your content
-* Secure storage of your Hive private posting key
 * Simple, intuitive settings interface
+
+**Hive Keychain Integration:**
+
+This plugin integrates with the Hive Keychain browser extension to provide enhanced security and ease of use:
+
+* Your private keys never leave your browser and are never stored by the plugin
+* One-click verification of your Hive account
+* Review and approve each publication to Hive with a simple popup
+* No need to enter passwords or keys when publishing
 
 == Installation ==
 
@@ -32,7 +41,7 @@ WP-Dapp is a WordPress plugin that enables publishing content to the Hive blockc
 
 = Is my private key secure? =
 
-Yes. By default, your private posting key is stored securely using WordPress's encryption system.
+Yes. With Hive Keychain integration, your private keys never leave your browser and are never stored by the plugin. Keychain securely handles all blockchain operations without exposing your keys.
 
 = Can I choose which posts are published to Hive? =
 
@@ -43,6 +52,13 @@ Yes. Each post has publishing options that allow you to control whether it gets 
 The plugin includes a simple update checker that will notify you when a new version is available on GitHub. Follow the link in the notification to download the latest version.
 
 == Changelog ==
+
+= 0.7.0 =
+* Added full Hive Keychain integration for enhanced security
+* Removed dependency on stored private keys
+* Improved authentication and transaction signing process
+* Enhanced error handling for Keychain interactions
+* Updated documentation with comprehensive Keychain integration instructions
 
 = 0.6.1 =
 * Fixed credentials error in Publication Verification feature
@@ -93,6 +109,9 @@ The plugin includes a simple update checker that will notify you when a new vers
 * Post meta box for Hive publishing options
 
 == Upgrade Notice ==
+
+= 0.7.0 =
+Major security enhancement: This update adds full Hive Keychain integration, eliminating the need to store private keys in WordPress. For the best security, please install the Hive Keychain browser extension after upgrading.
 
 = 0.5.0 =
 This update removes the complex GitHub updater component and replaces it with a simpler notification system, improving stability across different hosting environments. 
