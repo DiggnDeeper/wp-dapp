@@ -373,7 +373,7 @@ class WP_Dapp_Settings_Page {
             
             <form method="post" action="options.php">
                 <?php
-                settings_fields('wpdapp_options');
+                settings_fields('wpdapp_options_group');
                 do_settings_sections('wpdapp-settings');
                 submit_button();
                 ?>
