@@ -198,10 +198,14 @@ class WP_Dapp_Ajax_Handler {
             }
         }
         
+        // Format content for Hive (strip Gutenberg blocks, etc.)
+        $publish_handler = new WP_Dapp_Publish_Handler();
+        $formatted_content = $publish_handler->format_content_for_hive($post->post_content, $post_id);
+        
         // Prepare post data for Hive API
         $post_data = [
             'title' => $post->post_title,
-            'content' => $post->post_content,
+            'content' => $formatted_content,
             'tags' => $tags,
             'beneficiaries' => $beneficiaries,
             'excerpt' => $excerpt,

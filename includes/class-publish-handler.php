@@ -94,6 +94,10 @@ class WP_Dapp_Publish_Handler {
         // Strip shortcodes
         $content = strip_shortcodes($content);
         
+        // Strip Gutenberg block comments (<!-- wp:paragraph --> and <!-- /wp:paragraph -->)
+        $content = preg_replace('/<!--\s+wp:(.*?)\s+-->/', '', $content);
+        $content = preg_replace('/<!--\s+\/wp:(.*?)\s+-->/', '', $content);
+        
         // Process images if needed
         $content = $this->process_images($content);
         
