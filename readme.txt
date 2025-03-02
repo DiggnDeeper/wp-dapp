@@ -3,7 +3,7 @@ Contributors: diggndeeper.com
 Tags: hive, blockchain, publishing, crypto, social
 Requires at least: 5.0
 Tested up to: 6.4
-Stable tag: 0.7.0
+Stable tag: 0.7.1
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -53,7 +53,14 @@ The plugin includes a simple update checker that will notify you when a new vers
 
 == Changelog ==
 
+= 0.7.1 =
+* Fixed Hive Keychain detection issue with more robust detection
+* Fixed beneficiary percentage validation to properly support decimal values
+* Improved input validation for beneficiary percentages
+* Added better error handling when Keychain is installed but not detected immediately
+
 = 0.7.0 =
+* Initial release on dapp.diggndeeper.com
 * Added full Hive Keychain integration for enhanced security
 * Removed dependency on stored private keys
 * Improved authentication and transaction signing process
