@@ -93,6 +93,23 @@ class WP_Dapp_Ajax_Handler {
             wp_send_json_error('Invalid security token');
         }
         
+        // Check if Hive credentials are configured
+        $options = get_option('wpdapp_options', []);
+        $hive_account = !empty($options['hive_account']) ? $options['hive_account'] : '';
+        $has_key = false;
+        
+        // Check for key in either secure storage or plaintext
+        if (!empty($options['secure_storage'])) {
+            $encryption = wpdapp_get_encryption();
+            $has_key = !empty($encryption->get_secure_option('wpdapp_secure_private_key'));
+        } else {
+            $has_key = !empty($options['private_key']);
+        }
+        
+        if (empty($hive_account) || !$has_key) {
+            wp_send_json_error('Hive credentials are not configured. Please configure your Hive account and private key in the settings.');
+        }
+        
         // Get posts with Hive metadata
         $args = [
             'post_type' => 'post',

@@ -509,6 +509,16 @@ class WP_Dapp_Settings_Page {
                 color: #46b450;
                 vertical-align: middle;
             }
+            .wpdapp-credential-error {
+                background: #fff8f7;
+                border-left: 4px solid #dc3232;
+                box-shadow: 0 1px 1px 0 rgba(0,0,0,.1);
+                padding: 1px 12px;
+                margin-bottom: 10px;
+            }
+            .wpdapp-credential-error a {
+                font-weight: bold;
+            }
         </style>
         <?php
     }

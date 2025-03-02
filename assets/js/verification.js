@@ -26,7 +26,17 @@ jQuery(document).ready(function($) {
             },
             success: function(response) {
                 if (!response.success) {
-                    $tbody.html(`<tr><td colspan="4">${response.data || wpdappVerification.error_text}</td></tr>`);
+                    let errorMsg = response.data || wpdappVerification.error_text;
+                    
+                    // Check if it's a credentials error
+                    if (errorMsg.includes('credentials are not configured')) {
+                        errorMsg = `<div class="wpdapp-credential-error">
+                            <p><strong>Credentials Error:</strong> ${errorMsg}</p>
+                            <p>Please go to the <a href="#wpdapp_account_section">Hive Account Settings</a> section at the top of this page to configure your credentials.</p>
+                        </div>`;
+                    }
+                    
+                    $tbody.html(`<tr><td colspan="4">${errorMsg}</td></tr>`);
                     return;
                 }
                 
