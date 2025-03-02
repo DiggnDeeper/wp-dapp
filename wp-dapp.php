@@ -149,3 +149,46 @@ function wpdapp_plugin_action_links($links) {
     array_unshift($links, $settings_link);
     return $links;
 }
+
+/**
+ * WP-Dapp Tag System Documentation
+ * 
+ * This plugin handles tags from multiple sources and manages them for Hive publishing.
+ * 
+ * Tag Sources:
+ * 1. WordPress Categories: Automatically converted to Hive tags
+ * 2. WordPress Tags: Automatically converted to Hive tags 
+ * 3. Custom Tags: Added per post in the Hive Publishing Settings meta box
+ * 4. Default Tags: Global tags set in the plugin settings
+ * 
+ * Tag Processing:
+ * - All tags from the different sources are combined
+ * - Duplicates are removed (array_unique)
+ * - Tags are limited to 5 (Hive's maximum) using array_slice
+ * - The first tag becomes the "parent_permlink" in Hive (main category)
+ * - If no tags are available, 'blog' is used as a default
+ * 
+ * Hive Tag Requirements:
+ * - Tags must be lowercase letters, numbers, or hyphens
+ * - No spaces or special characters allowed
+ * - The plugin automatically converts tags to meet these requirements
+ * - Maximum of 5 tags per post
+ * - At least 1 tag is required
+ * 
+ * Tag Priority (when limiting to 5):
+ * 1. WordPress Categories
+ * 2. WordPress Tags
+ * 3. Custom Tags from meta box
+ * 4. Default tags from settings
+ * 
+ * To verify tag functionality:
+ * 1. Check if post has WordPress categories or tags
+ * 2. Verify custom tags in the post meta box
+ * 3. Confirm default tags in plugin settings
+ * 4. Check Hive publication status in post meta box
+ * 
+ * Troubleshooting:
+ * - If post isn't published to Hive, check for error messages
+ * - Verify at least one valid tag exists
+ * - Check that "Publish to Hive" is enabled for the post
+ */

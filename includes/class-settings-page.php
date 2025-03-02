@@ -47,14 +47,23 @@ class WP_Dapp_Settings_Page {
             WPDAPP_VERSION,
             true
         );
-
-        wp_localize_script('wpdapp-admin-settings', 'wpdapp_settings', [
+        
+        // Add verification script
+        wp_enqueue_script(
+            'wpdapp-verification',
+            WPDAPP_PLUGIN_URL . 'assets/js/verification.js',
+            ['jquery'],
+            WPDAPP_VERSION,
+            true
+        );
+        
+        // Add localized data for the verification script
+        wp_localize_script('wpdapp-verification', 'wpdappVerification', [
             'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('wpdapp_verify_credentials'),
-            'verify_text' => __('Verify Credentials', 'wpdapp'),
-            'verifying_text' => __('Verifying...', 'wpdapp'),
-            'success_text' => __('Valid Credentials', 'wpdapp'),
-            'error_text' => __('Invalid Credentials', 'wpdapp')
+            'nonce' => wp_create_nonce('wpdapp_verification'),
+            'checking_text' => 'Checking publication status...',
+            'error_text' => 'An error occurred while checking publication status.',
+            'no_posts_text' => 'No posts found with Hive publication data.'
         ]);
     }
 
@@ -204,6 +213,14 @@ class WP_Dapp_Settings_Page {
                 'type' => 'checkbox',
                 'description' => 'Delete all plugin data when uninstalling the plugin'
             ]
+        );
+
+        // Add verification section
+        add_settings_section(
+            'wpdapp_section_verification',
+            'Publishing Verification',
+            [$this, 'render_section_verification'],
+            'wpdapp-settings'
         );
     }
 
@@ -402,6 +419,41 @@ class WP_Dapp_Settings_Page {
         if (isset($args['description'])) {
             printf('<p class="description">%s</p>', esc_html($args['description']));
         }
+    }
+
+    /**
+     * Render the verification section.
+     */
+    public function render_section_verification() {
+        ?>
+        <p>
+            Use this section to verify the Hive publishing status of your posts.
+            This can help you identify any posts that may have failed to publish to Hive.
+        </p>
+        
+        <div class="wpdapp-verification">
+            <button type="button" id="wpdapp-verify-posts" class="button button-secondary">
+                Check Hive Publication Status
+            </button>
+            
+            <div id="wpdapp-verification-results" style="display:none; margin-top:10px; padding:10px; border:1px solid #ccc; background:#f9f9f9;">
+                <h3>Publication Status</h3>
+                <table class="widefat" id="wpdapp-verified-posts">
+                    <thead>
+                        <tr>
+                            <th>Post ID</th>
+                            <th>Title</th>
+                            <th>Status</th>
+                            <th>Hive Link</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Results will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <?php
     }
 
     /**

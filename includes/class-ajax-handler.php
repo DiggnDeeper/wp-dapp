@@ -16,6 +16,7 @@ class WP_Dapp_Ajax_Handler {
     public function __construct() {
         // Register AJAX actions
         add_action('wp_ajax_wpdapp_verify_credentials', [$this, 'ajax_verify_credentials']);
+        add_action('wp_ajax_wpdapp_verify_posts', [$this, 'ajax_verify_posts']);
     }
 
     /**
@@ -81,5 +82,63 @@ class WP_Dapp_Ajax_Handler {
         wp_send_json_success([
             'message' => 'Credentials verified successfully'
         ]);
+    }
+
+    /**
+     * AJAX handler to verify post publishing status.
+     */
+    public function ajax_verify_posts() {
+        // Check nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'wpdapp_verification')) {
+            wp_send_json_error('Invalid security token');
+        }
+        
+        // Get posts with Hive metadata
+        $args = [
+            'post_type' => 'post',
+            'post_status' => 'publish',
+            'posts_per_page' => -1,
+            'meta_query' => [
+                'relation' => 'OR',
+                [
+                    'key' => '_hive_published',
+                    'compare' => 'EXISTS',
+                ],
+                [
+                    'key' => '_hive_publish_error',
+                    'compare' => 'EXISTS',
+                ],
+                [
+                    'key' => '_wpdapp_publish_to_hive',
+                    'compare' => 'EXISTS',
+                ]
+            ]
+        ];
+        
+        $query = new WP_Query($args);
+        
+        $result = [];
+        
+        if ($query->have_posts()) {
+            while ($query->have_posts()) {
+                $query->the_post();
+                $post_id = get_the_ID();
+                
+                $result[] = [
+                    'ID' => $post_id,
+                    'title' => get_the_title(),
+                    'edit_url' => get_edit_post_link($post_id, ''),
+                    'hive_published' => get_post_meta($post_id, '_hive_published', true),
+                    'hive_permlink' => get_post_meta($post_id, '_hive_permlink', true),
+                    'hive_author' => get_post_meta($post_id, '_hive_author', true),
+                    'hive_publish_error' => get_post_meta($post_id, '_hive_publish_error', true),
+                    'wpdapp_publish_to_hive' => get_post_meta($post_id, '_wpdapp_publish_to_hive', true)
+                ];
+            }
+            
+            wp_reset_postdata();
+        }
+        
+        wp_send_json_success($result);
     }
 } 
