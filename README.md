@@ -12,6 +12,7 @@ WP-Dapp is a WordPress plugin that enables WordPress users to seamlessly publish
 - **Tag Management**: Convert WordPress categories and tags to Hive tags
 - **Beneficiary Support**: Easily set beneficiaries for your Hive posts
 - **Customizable Options**: Control how and when your content is published to Hive
+- **Automatic Updates**: Get plugin updates directly through WordPress when new versions are released on GitHub
 
 ## Why Use WP-Dapp?
 
@@ -26,6 +27,10 @@ WP-Dapp is a WordPress plugin that enables WordPress users to seamlessly publish
 2. Upload the plugin files to the `/wp-content/plugins/wp-dapp` directory
 3. Activate the plugin through the 'Plugins' menu in WordPress
 4. Configure your Hive account settings under "Settings > WP-Dapp"
+
+### Automatic Updates
+
+WP-Dapp includes an automatic update feature that checks for new versions on GitHub. When updates are available, you'll receive a notification in your WordPress dashboard just like with plugins from the WordPress.org repository.
 
 ## Requirements
 
@@ -54,3 +59,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Developed by [DiggnDeeper.com](https://diggndeeper.com)
 - Special thanks to the Hive community
 - Built with love for WordPress content creators
+- Uses [Plugin Update Checker](https://github.com/YahnisElsts/plugin-update-checker) for GitHub integration

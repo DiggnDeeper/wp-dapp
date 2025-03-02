@@ -2,10 +2,11 @@
 /**
  * Plugin Name: WP-Dapp: Hive Integration
  * Description: A plugin to post content from WordPress to Hive with support for beneficiaries, tags, and more.
- * Version: 0.3
+ * Version: 0.4
  * Author: DiggnDeeper
  * Author URI: https://diggndeeper.com
  * License: MIT
+ * GitHub Plugin URI: https://github.com/DiggnDeeper/wp-dapp
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -15,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Define plugin constants
 define( 'WPDAPP_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WPDAPP_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'WPDAPP_VERSION', '0.3' );
+define( 'WPDAPP_VERSION', '0.4' );
 
 // Include required files
 require_once WPDAPP_PLUGIN_DIR . 'includes/class-encryption-utility.php';
@@ -24,6 +25,7 @@ require_once WPDAPP_PLUGIN_DIR . 'includes/class-publish-handler.php';
 require_once WPDAPP_PLUGIN_DIR . 'includes/class-settings-page.php';
 require_once WPDAPP_PLUGIN_DIR . 'includes/class-post-meta.php';
 require_once WPDAPP_PLUGIN_DIR . 'includes/class-ajax-handler.php';
+require_once WPDAPP_PLUGIN_DIR . 'includes/class-github-updater.php';
 
 /**
  * Initialize the plugin functionality.
@@ -31,6 +33,7 @@ require_once WPDAPP_PLUGIN_DIR . 'includes/class-ajax-handler.php';
 function wpdapp_init() {
     $encryption_utility = new WP_Dapp_Encryption_Utility();
     $publish_handler = new WP_Dapp_Publish_Handler();
+    // Initialize the settings page (this is the only place it should be initialized)
     $settings_page = new WP_Dapp_Settings_Page();
     $post_meta = new WP_Dapp_Post_Meta();
     $ajax_handler = new WP_Dapp_Ajax_Handler();

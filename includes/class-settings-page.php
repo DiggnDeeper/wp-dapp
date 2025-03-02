@@ -461,6 +461,3 @@ class WP_Dapp_Settings_Page {
         <?php
     }
 }
-
-// Initialize the settings page.
-new WP_Dapp_Settings_Page();
