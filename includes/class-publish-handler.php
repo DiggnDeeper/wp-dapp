@@ -94,9 +94,14 @@ class WP_Dapp_Publish_Handler {
         // Strip shortcodes
         $content = strip_shortcodes($content);
         
-        // Strip Gutenberg block comments (<!-- wp:paragraph --> and <!-- /wp:paragraph -->)
-        $content = preg_replace('/<!--\s+wp:(.*?)\s+-->/', '', $content);
-        $content = preg_replace('/<!--\s+\/wp:(.*?)\s+-->/', '', $content);
+        // Strip Gutenberg block comments
+        // Original regex was limited - this improved version handles all variations:
+        // - Works with or without whitespace
+        // - Handles multiline comments
+        // - Catches both opening and closing tags in one pass
+        // - Uses the s (PCRE_DOTALL) modifier to make dot match newlines
+        $content = preg_replace('/<!--\s*wp:.*?(?:-->|\/-->)/s', '', $content); // Opening tags
+        $content = preg_replace('/<!--\s*\/wp:.*?(?:-->|\/-->)/s', '', $content); // Closing tags
         
         // Process images if needed
         $content = $this->process_images($content);
