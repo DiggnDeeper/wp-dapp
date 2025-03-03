@@ -2,7 +2,7 @@
 
 A WordPress plugin that seamlessly integrates with the Hive blockchain, allowing you to publish content from WordPress to Hive directly using Hive Keychain.
 
-**Version: 0.7.0**
+**Version: 0.7.2**
 
 ## Features
 
