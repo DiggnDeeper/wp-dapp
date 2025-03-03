@@ -4,7 +4,7 @@
 
 WP-Dapp is a WordPress plugin that allows you to publish your WordPress content to the Hive blockchain with a single click using Hive Keychain.
 
-**Version: 0.7.0**
+**Version: 0.7.2**
 
 ## Getting Started with Hive Keychain
 
