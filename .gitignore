@@ -48,4 +48,9 @@ debug.log
 # Ignore OS files
 .DS_Store
 ehthumbs.db
-Thumbs.db 
+Thumbs.db
+
+# Distribution files
+*.zip
+*.tar.gz
+*.rar 
