@@ -147,6 +147,26 @@ class WP_Dapp_Post_Meta {
                         </table>
                         
                         <button type="button" class="button wpdapp-add-beneficiary">Add Beneficiary</button>
+                        
+                        <!-- Template for adding new beneficiaries (hidden) -->
+                        <script type="text/html" class="beneficiary-template">
+                            <tr>
+                                <td>
+                                    <input type="text" 
+                                           name="wpdapp_beneficiaries[INDEX][account]" 
+                                           value="" />
+                                </td>
+                                <td>
+                                    <input type="number" 
+                                           name="wpdapp_beneficiaries[INDEX][weight]" 
+                                           value="10" 
+                                           min="0.01" max="100" step="0.01" />
+                                </td>
+                                <td>
+                                    <button type="button" class="button wpdapp-remove-beneficiary">Remove</button>
+                                </td>
+                            </tr>
+                        </script>
                     </div>
                 </div>
                 
