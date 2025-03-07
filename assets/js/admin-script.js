@@ -3,12 +3,21 @@
  */
 jQuery(document).ready(function($) {
     
+    console.log('WP-Dapp admin script loaded');
+    
     // Handle adding beneficiaries
-    $('#wpdapp-hive-publish').on('click', '.wpdapp-add-beneficiary', function(e) {
+    $(document).on('click', '.wpdapp-add-beneficiary', function(e) {
         e.preventDefault();
+        console.log('Add beneficiary button clicked');
         
         // Get the template
         var template = $('.beneficiary-template').html();
+        console.log('Template found:', template ? 'Yes' : 'No');
+        
+        if (!template) {
+            console.error('Beneficiary template not found');
+            return;
+        }
         
         // Generate a unique index
         var index = new Date().getTime();
@@ -16,14 +25,16 @@ jQuery(document).ready(function($) {
         
         // Add to the table body
         $('.wpdapp-beneficiaries-table tbody').append(template);
+        console.log('Added new beneficiary row');
 
         // Remove the "No beneficiaries added" row if it exists
         $('#wpdapp-no-beneficiaries').remove();
     });
     
     // Handle removing beneficiaries
-    $('#wpdapp-hive-publish').on('click', '.wpdapp-remove-beneficiary', function(e) {
+    $(document).on('click', '.wpdapp-remove-beneficiary', function(e) {
         e.preventDefault();
+        console.log('Remove beneficiary button clicked');
         $(this).closest('tr').remove();
         
         // If no beneficiaries left, add the "No beneficiaries" message back
@@ -32,4 +43,9 @@ jQuery(document).ready(function($) {
         }
     });
     
+    // Debug helper
+    console.log('Beneficiary elements on page:');
+    console.log('- Add button:', $('.wpdapp-add-beneficiary').length);
+    console.log('- Template:', $('.beneficiary-template').length);
+    console.log('- Table:', $('.wpdapp-beneficiaries-table').length);
 }); 
