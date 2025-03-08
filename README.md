@@ -113,6 +113,9 @@ This plugin is licensed under the MIT License.
 
 ## Recent Updates
 
+- Improved beneficiary management UX with smooth animations and better feedback
+- Fixed the "Remove" button functionality with proper event handling
+- Fixed Hive Keychain script loading issues with official source
 - Fixed the "Add Beneficiary" button functionality in the post editor
 - Improved JavaScript event handling for better reliability
 - Added better error handling and debugging support
