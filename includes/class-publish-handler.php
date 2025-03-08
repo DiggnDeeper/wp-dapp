@@ -11,14 +11,17 @@ class WP_Dapp_Publish_Handler {
         // Initialize the Hive API wrapper
         $this->hive_api = new WP_Dapp_Hive_API();
         
-        // Register hooks for post meta box
-        add_action('add_meta_boxes', [$this, 'add_hive_publish_meta_box']);
+        // Register hooks for post meta box - DISABLED to prevent duplicate meta boxes
+        // add_action('add_meta_boxes', [$this, 'add_hive_publish_meta_box']);
     }
 
     /**
      * Add Hive publish meta box to post editor
+     * DISABLED: This functionality is now handled by the WP_Dapp_Post_Meta class
      */
     public function add_hive_publish_meta_box() {
+        // Disabled to prevent duplicate meta boxes
+        /*
         add_meta_box(
             'wpdapp_hive_publish_box',
             'Publish to Hive',
@@ -27,6 +30,7 @@ class WP_Dapp_Publish_Handler {
             'side',
             'default'
         );
+        */
     }
     
     /**
