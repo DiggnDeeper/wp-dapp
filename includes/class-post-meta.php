@@ -41,6 +41,8 @@ class WP_Dapp_Post_Meta {
             return;
         }
 
+        wp_enqueue_style('dashicons');
+
         wp_enqueue_script(
             'wpdapp-admin-script',
             WPDAPP_PLUGIN_URL . 'assets/js/admin-script.js',
@@ -103,73 +105,44 @@ class WP_Dapp_Post_Meta {
                     <p class="description">Users who will receive a share of this post's rewards.</p>
                     
                     <div class="wpdapp-beneficiaries">
-                        <table class="wpdapp-beneficiaries-table">
-                            <thead>
-                                <tr>
-                                    <th>Account</th>
-                                    <th>Weight (%)</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php
-                                $beneficiaries = get_post_meta($post->ID, '_wpdapp_beneficiaries', true);
-                                if (!is_array($beneficiaries)) {
-                                    $beneficiaries = [];
-                                }
-                                
-                                if (empty($beneficiaries)) {
-                                    echo '<tr id="wpdapp-no-beneficiaries"><td colspan="3">No beneficiaries added</td></tr>';
-                                } else {
-                                    foreach ($beneficiaries as $index => $beneficiary) {
-                                        $row_id = 'beneficiary-row-' . esc_attr($index);
-                                        ?>
-                                        <tr id="<?php echo $row_id; ?>">
-                                            <td>
-                                                <input type="text" 
-                                                       name="wpdapp_beneficiaries[<?php echo $index; ?>][account]" 
-                                                       value="<?php echo esc_attr($beneficiary['account']); ?>" />
-                                            </td>
-                                            <td>
-                                                <input type="number" 
-                                                       name="wpdapp_beneficiaries[<?php echo $index; ?>][weight]" 
-                                                       value="<?php echo esc_attr($beneficiary['weight'] / 100); ?>" 
-                                                       min="0.01" max="100" step="0.01" />
-                                            </td>
-                                            <td>
-                                                <button type="button" class="button wpdapp-remove-beneficiary" 
-                                                        data-row-id="<?php echo $row_id; ?>">Remove</button>
-                                            </td>
-                                        </tr>
-                                        <?php
-                                    }
-                                }
-                                ?>
-                            </tbody>
-                        </table>
+                        <!-- Use a simple table with direct form fields -->
+                        <?php
+                        // Get existing beneficiaries
+                        $beneficiaries = get_post_meta($post->ID, '_wpdapp_beneficiaries', true);
+                        if (!is_array($beneficiaries)) {
+                            $beneficiaries = [];
+                        }
                         
-                        <button type="button" class="button wpdapp-add-beneficiary">Add Beneficiary</button>
+                        // Add a dummy empty entry if none exist to show at least one row
+                        if (empty($beneficiaries)) {
+                            $beneficiaries = [['account' => '', 'weight' => 1000]]; // 10%
+                        }
+                        ?>
                         
-                        <!-- Template for adding new beneficiaries (hidden) -->
-                        <div id="beneficiary-template" class="beneficiary-template" style="display:none;">
-                            <tr id="beneficiary-row-INDEX">
-                                <td>
+                        <div id="wpdapp-beneficiaries-container">
+                            <?php foreach ($beneficiaries as $index => $beneficiary): ?>
+                                <div class="wpdapp-beneficiary-row">
                                     <input type="text" 
-                                           name="wpdapp_beneficiaries[INDEX][account]" 
-                                           value="" />
-                                </td>
-                                <td>
+                                           name="wpdapp_beneficiaries[<?php echo $index; ?>][account]" 
+                                           placeholder="Hive Username"
+                                           value="<?php echo esc_attr($beneficiary['account']); ?>" />
+                                    
                                     <input type="number" 
-                                           name="wpdapp_beneficiaries[INDEX][weight]" 
-                                           value="10" 
+                                           name="wpdapp_beneficiaries[<?php echo $index; ?>][weight]" 
+                                           placeholder="Weight (%)"
+                                           value="<?php echo esc_attr($beneficiary['weight'] / 100); ?>" 
                                            min="0.01" max="100" step="0.01" />
-                                </td>
-                                <td>
-                                    <button type="button" class="button wpdapp-remove-beneficiary"
-                                            data-row-id="beneficiary-row-INDEX">Remove</button>
-                                </td>
-                            </tr>
+                                    
+                                    <button type="button" class="button wpdapp-remove-beneficiary">
+                                        <span class="dashicons dashicons-trash"></span>
+                                    </button>
+                                </div>
+                            <?php endforeach; ?>
                         </div>
+                        
+                        <button type="button" id="wpdapp-add-beneficiary" class="button">
+                            Add Beneficiary
+                        </button>
                     </div>
                 </div>
                 

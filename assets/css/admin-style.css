@@ -14,55 +14,57 @@
     margin-top: 2px;
 }
 
-/* Beneficiary Styles */
+/* Beneficiary Styles - New Implementation */
 .wpdapp-beneficiaries {
     margin-top: 10px;
+    padding: 10px;
+    background-color: #fcfcfc;
+    border-radius: 3px;
 }
 
-.wpdapp-beneficiaries-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 10px;
+#wpdapp-beneficiaries-container {
+    margin-bottom: 15px;
 }
 
-.wpdapp-beneficiaries-table th,
-.wpdapp-beneficiaries-table td {
-    padding: 6px 8px;
-    text-align: left;
-    border-bottom: 1px solid #f0f0f0;
+.wpdapp-beneficiary-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 4px;
+    border-radius: 3px;
+    transition: background-color 0.2s;
 }
 
-.wpdapp-beneficiaries-table th {
-    font-weight: 600;
-    border-bottom: 1px solid #ddd;
+.wpdapp-beneficiary-row:hover {
+    background-color: #f8f8f8;
 }
 
-.wpdapp-beneficiaries-table td input[type="text"],
-.wpdapp-beneficiaries-table td input[type="number"] {
-    width: 100%;
+.wpdapp-beneficiary-row input[type="text"] {
+    flex: 2;
+    margin-right: 8px;
 }
 
-.wpdapp-beneficiaries-table tr {
-    transition: background-color 0.3s ease;
-}
-
-.wpdapp-beneficiaries-table tr:hover {
-    background-color: #f9f9f9;
-}
-
-#wpdapp-no-beneficiaries {
-    color: #888;
-    font-style: italic;
-}
-
-.wpdapp-add-beneficiary {
-    margin-top: 5px !important;
+.wpdapp-beneficiary-row input[type="number"] {
+    flex: 1;
+    margin-right: 8px;
+    max-width: 80px;
 }
 
 .wpdapp-remove-beneficiary {
     background-color: #f0f0f0 !important;
-    color: #cc0000 !important;
-    border-color: #ddd !important;
+    padding: 0 !important;
+    height: 30px !important;
+    width: 30px !important;
+    text-align: center !important;
+    line-height: 28px !important;
+}
+
+.wpdapp-remove-beneficiary .dashicons {
+    font-size: 16px;
+    height: 16px;
+    width: 16px;
+    vertical-align: middle;
+    color: #cc0000;
 }
 
 .wpdapp-remove-beneficiary:hover {
@@ -70,29 +72,15 @@
     border-color: #ffb8b8 !important;
 }
 
-.beneficiary-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 8px;
-    gap: 5px;
+#wpdapp-add-beneficiary {
+    margin-top: 5px;
+    background-color: #f8f8f8;
+    border-color: #ddd;
 }
 
-.beneficiary-item input[type="text"] {
-    flex: 1;
-}
-
-.beneficiary-item input[type="number"] {
-    width: 60px;
-}
-
-.remove-beneficiary {
-    cursor: pointer;
-    color: #cc0000;
-    text-decoration: none;
-}
-
-.remove-beneficiary:hover {
-    color: #990000;
+#wpdapp-add-beneficiary:hover {
+    background-color: #f0f0f0;
+    border-color: #ccc;
 }
 
 /* Hive Status */
