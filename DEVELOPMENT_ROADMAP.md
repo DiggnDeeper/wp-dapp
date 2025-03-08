@@ -14,12 +14,13 @@ WP-Dapp is a WordPress plugin that integrates with the Hive blockchain, allowing
 - Control when content is published to Hive (immediate vs. opt-out per post)
 - Secure credential storage with encryption
 - Credential verification
+- Enhanced UX for beneficiary management with visual feedback
 
 ## Planned Features and Improvements
 
 ### Phase 1: Core Functionality Improvements
 - [x] Improve Hive API integration using proper Hive libraries
-- [ ] Add proper error handling and user feedback
+- [x] Add proper error handling and user feedback
 - [x] Implement secure credential storage
 - [x] Create post metadata box for Hive-specific settings
 - [x] Add support for beneficiaries (including default diggndeeper.com)
@@ -33,6 +34,10 @@ WP-Dapp is a WordPress plugin that integrates with the Hive blockchain, allowing
 - [x] Implement Hive account connection verification
 - [ ] Add statistics for published posts (views, earnings, etc.)
 - [ ] Implement Markdown conversion options for better Hive formatting
+- [x] Enhance beneficiary management UI with better visual feedback
+- [ ] Add inline validation for beneficiary accounts
+- [ ] Implement sortable beneficiary list
+- [ ] Add beneficiary templates for quick reuse across posts
 
 ### Phase 3: Advanced Features
 - [ ] Add support for Hive communities
@@ -41,6 +46,9 @@ WP-Dapp is a WordPress plugin that integrates with the Hive blockchain, allowing
 - [ ] Support for Hive Power delegation
 - [ ] Implement Web3 wallet integration options
 - [ ] Add scheduling features for optimal posting times
+- [ ] Support for featured images and media synchronization
+- [ ] Add option to retroactively publish old WordPress posts to Hive
+- [ ] Implement batch operations for multiple posts
 
 ## Technical Stack
 - PHP for WordPress integration
@@ -48,9 +56,11 @@ WP-Dapp is a WordPress plugin that integrates with the Hive blockchain, allowing
 - Hive-js or similar libraries for blockchain interaction
 - WordPress Settings API for configuration
 - WordPress Metadata API for post-specific settings
+- jQuery for DOM manipulation and animation
+- CSS for UI styling and visual feedback
 
 ## Git Workflow
-We'll follow the GitHub Flow methodology:
+We follow the GitHub Flow methodology:
 1. Create feature branches from main
 2. Commit changes with descriptive messages
 3. Push branches to GitHub
@@ -64,9 +74,17 @@ We'll follow the GitHub Flow methodology:
 - User documentation in the WordPress admin interface
 - Code documentation using PHPDoc standards
 - Inline comments for complex logic
+- Detailed change logs for upgrades
+
+## Next Development Focus
+1. **Enhanced Validation**: Add beneficiary account validation against Hive API
+2. **UX Improvements**: Implement sorting and template functionality for beneficiaries
+3. **Dashboard Integration**: Develop better post status indicators and dashboard widget
 
 ## Learning Resources for Development
 - [WordPress Plugin Developer Handbook](https://developer.wordpress.org/plugins/)
 - [Hive Developer Portal](https://developers.hive.io/)
 - [PHP Programming](https://www.php.net/manual/en/)
-- [Git & GitHub Basics](https://guides.github.com/introduction/git-handbook/) 
+- [Git & GitHub Basics](https://guides.github.com/introduction/git-handbook/)
+- [jQuery Documentation](https://api.jquery.com/)
+- [Modern CSS Techniques](https://developer.mozilla.org/en-US/docs/Web/CSS) 
