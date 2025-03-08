@@ -20,10 +20,10 @@ jQuery(document).ready(function($) {
             var html = 
                 '<div class="wpdapp-beneficiary-row">' +
                     '<div class="wpdapp-beneficiary-inputs">' +
-                        '<input type="text" name="wpdapp_beneficiaries[' + index + '][account]" placeholder="Hive Username" value="" />' +
-                        '<input type="number" name="wpdapp_beneficiaries[' + index + '][weight]" placeholder="Weight (%)" value="10" min="0.01" max="100" step="0.01" />' +
+                        '<input type="text" name="wpdapp_beneficiaries[' + index + '][account]" placeholder="Username" value="" />' +
+                        '<input type="number" name="wpdapp_beneficiaries[' + index + '][weight]" placeholder="%" value="10" min="0.01" max="100" step="0.01" />' +
                     '</div>' +
-                    '<button type="button" class="button wpdapp-remove-beneficiary" onclick="wpdappRemoveBeneficiary(this); return false;">' +
+                    '<button type="button" class="button wpdapp-remove-beneficiary" onclick="wpdappRemoveBeneficiary(this); return false;" title="Remove beneficiary">' +
                         '<span class="dashicons dashicons-trash"></span>' +
                     '</button>' +
                 '</div>';
@@ -44,10 +44,10 @@ jQuery(document).ready(function($) {
                     div.className = 'wpdapp-beneficiary-row';
                     div.innerHTML = 
                         '<div class="wpdapp-beneficiary-inputs">' +
-                            '<input type="text" name="wpdapp_beneficiaries[backup' + counter + '][account]" placeholder="Hive Username" value="" />' +
-                            '<input type="number" name="wpdapp_beneficiaries[backup' + counter + '][weight]" placeholder="Weight (%)" value="10" min="0.01" max="100" step="0.01" />' +
+                            '<input type="text" name="wpdapp_beneficiaries[backup' + counter + '][account]" placeholder="Username" value="" />' +
+                            '<input type="number" name="wpdapp_beneficiaries[backup' + counter + '][weight]" placeholder="%" value="10" min="0.01" max="100" step="0.01" />' +
                         '</div>' +
-                        '<button type="button" class="button wpdapp-remove-beneficiary" onclick="wpdappRemoveBeneficiary(this); return false;">' +
+                        '<button type="button" class="button wpdapp-remove-beneficiary" onclick="wpdappRemoveBeneficiary(this); return false;" title="Remove beneficiary">' +
                             '<span class="dashicons dashicons-trash"></span>' +
                         '</button>';
                     

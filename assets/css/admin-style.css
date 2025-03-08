@@ -17,24 +17,28 @@
 /* Beneficiary Styles - New Implementation */
 .wpdapp-beneficiaries {
     margin-top: 10px;
-    padding: 10px;
+    padding: 8px;
     background-color: #fcfcfc;
     border-radius: 3px;
 }
 
 #wpdapp-beneficiaries-container {
-    margin-bottom: 15px;
+    margin-bottom: 10px;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .wpdapp-beneficiary-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 8px;
-    padding: 6px;
+    margin-bottom: 6px;
+    padding: 4px;
     border-radius: 3px;
     transition: background-color 0.2s;
     border: 1px solid #f0f0f0;
+    flex-wrap: wrap;
+    max-width: 100%;
 }
 
 .wpdapp-beneficiary-row:hover {
@@ -44,34 +48,40 @@
 .wpdapp-beneficiary-inputs {
     display: flex;
     flex: 1;
-    margin-right: 8px;
+    margin-right: 5px;
+    max-width: calc(100% - 35px);
+    min-width: 0; /* Important for flex items to shrink below content size */
 }
 
 .wpdapp-beneficiary-row input[type="text"] {
     flex: 2;
-    margin-right: 8px;
+    margin-right: 5px;
+    min-width: 0; /* Important for flex items */
+    font-size: 12px;
 }
 
 .wpdapp-beneficiary-row input[type="number"] {
     flex: 1;
-    margin-right: 8px;
-    max-width: 80px;
+    margin-right: 5px;
+    max-width: 55px;
+    min-width: 45px;
+    font-size: 12px;
 }
 
 .wpdapp-remove-beneficiary {
     flex: 0 0 auto;
     background-color: #f0f0f0 !important;
     padding: 0 !important;
-    height: 30px !important;
-    width: 30px !important;
+    height: 26px !important;
+    width: 26px !important;
     text-align: center !important;
-    line-height: 28px !important;
+    line-height: 24px !important;
 }
 
 .wpdapp-remove-beneficiary .dashicons {
-    font-size: 16px;
-    height: 16px;
-    width: 16px;
+    font-size: 14px;
+    height: 14px;
+    width: 14px;
     vertical-align: middle;
     color: #cc0000;
 }
@@ -87,15 +97,51 @@
     border-color: #ddd;
     display: inline-flex;
     align-items: center;
+    font-size: 12px;
+    height: 28px;
 }
 
 #wpdapp-add-beneficiary .dashicons {
     margin-right: 4px;
+    font-size: 14px;
+    height: 14px;
+    width: 14px;
 }
 
 #wpdapp-add-beneficiary:hover {
     background-color: #f0f0f0;
     border-color: #ccc;
+}
+
+/* Meta box specific styles */
+#wpdapp_hive_settings {
+    overflow: hidden;
+}
+
+/* WordPress sidebar specific adjustments */
+.postbox-container .wpdapp-beneficiaries {
+    padding: 6px;
+}
+
+.postbox-container .wpdapp-beneficiary-row {
+    padding: 3px;
+}
+
+@media screen and (max-width: 782px) {
+    .wpdapp-beneficiary-inputs {
+        flex-wrap: wrap;
+        margin-bottom: 5px;
+    }
+    
+    .wpdapp-beneficiary-row input[type="text"] {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 5px;
+    }
+    
+    .wpdapp-beneficiary-row {
+        padding: 6px;
+    }
 }
 
 /* Hive Status */

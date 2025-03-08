@@ -124,7 +124,7 @@ class WP_Dapp_Post_Meta {
                 
                 <div class="wpdapp-publishing-options">
                     <h4>Beneficiaries</h4>
-                    <p class="description">Users who will receive a share of this post's rewards.</p>
+                    <p class="description">Users who will receive a share of rewards.</p>
                     
                     <div class="wpdapp-beneficiaries">
                         <!-- Use a simple table with direct form fields -->
@@ -147,26 +147,27 @@ class WP_Dapp_Post_Meta {
                                     <div class="wpdapp-beneficiary-inputs">
                                         <input type="text" 
                                                name="wpdapp_beneficiaries[<?php echo $index; ?>][account]" 
-                                               placeholder="Hive Username"
+                                               placeholder="Username"
                                                value="<?php echo esc_attr($beneficiary['account']); ?>" />
                                         
                                         <input type="number" 
                                                name="wpdapp_beneficiaries[<?php echo $index; ?>][weight]" 
-                                               placeholder="Weight (%)"
+                                               placeholder="%"
                                                value="<?php echo esc_attr($beneficiary['weight'] / 100); ?>" 
                                                min="0.01" max="100" step="0.01" />
                                     </div>
                                     
                                     <button type="button" class="button wpdapp-remove-beneficiary" 
-                                            onclick="wpdappRemoveBeneficiary(this); return false;">
+                                            onclick="wpdappRemoveBeneficiary(this); return false;"
+                                            title="Remove beneficiary">
                                         <span class="dashicons dashicons-trash"></span>
                                     </button>
                                 </div>
                             <?php endforeach; ?>
                         </div>
                         
-                        <button type="button" id="wpdapp-add-beneficiary" class="button">
-                            <span class="dashicons dashicons-plus-alt"></span> Add Beneficiary
+                        <button type="button" id="wpdapp-add-beneficiary" class="button" title="Add new beneficiary">
+                            <span class="dashicons dashicons-plus-alt"></span> Add
                         </button>
                     </div>
                 </div>
