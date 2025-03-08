@@ -110,3 +110,9 @@ Please report bugs or suggest features through the [GitHub repository](https://g
 ## License
 
 This plugin is licensed under the MIT License.
+
+## Recent Updates
+
+- Fixed the "Add Beneficiary" button functionality in the post editor
+- Improved JavaScript event handling for better reliability
+- Added better error handling and debugging support
