@@ -223,7 +223,7 @@ class WP_Dapp_Post_Meta {
         // Enqueue Keychain script
         wp_enqueue_script(
             'hive-keychain',
-            'https://cdn.jsdelivr.net/npm/hive-keychain-browser@1.0.4/index.min.js',
+            'https://unpkg.com/hive-keychain-browser@latest/dist/hive-keychain-browser.min.js',
             [],
             '1.0.4',
             false
