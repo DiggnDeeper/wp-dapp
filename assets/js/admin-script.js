@@ -5,28 +5,25 @@ jQuery(document).ready(function($) {
     
     console.log('WP-Dapp admin script loaded');
     
-    // Function to update the beneficiaries UI state
-    function updateBeneficiariesUI() {
-        console.log('Updating beneficiaries UI');
-        
-        // Count visible rows (excluding the no-beneficiaries message row)
+    // Function to check if we need to show or hide the "No beneficiaries" message
+    function updateNoBeneficiariesMessage() {
         var visibleRows = $('.wpdapp-beneficiaries-table tbody tr').not('#wpdapp-no-beneficiaries').length;
-        console.log('Visible beneficiary rows:', visibleRows);
         
-        // If no visible rows, show the no-beneficiaries message
         if (visibleRows === 0) {
-            // Only add if not already present
+            // Show the message if no rows exist
             if ($('#wpdapp-no-beneficiaries').length === 0) {
-                $('.wpdapp-beneficiaries-table tbody').append('<tr id="wpdapp-no-beneficiaries"><td colspan="3">No beneficiaries added</td></tr>');
+                $('.wpdapp-beneficiaries-table tbody').append(
+                    '<tr id="wpdapp-no-beneficiaries"><td colspan="3">No beneficiaries added</td></tr>'
+                );
             }
         } else {
-            // If we have rows, make sure the message is gone
+            // Hide the message if rows exist
             $('#wpdapp-no-beneficiaries').remove();
         }
     }
     
-    // Initial UI update
-    updateBeneficiariesUI();
+    // Initial check
+    updateNoBeneficiariesMessage();
     
     // Handle adding beneficiaries
     $(document).on('click', '.wpdapp-add-beneficiary', function(e) {
@@ -35,7 +32,6 @@ jQuery(document).ready(function($) {
         
         // Get the template
         var template = $('#beneficiary-template').html();
-        console.log('Template found:', template ? 'Yes' : 'No');
         
         if (!template) {
             console.error('Beneficiary template not found');
@@ -48,24 +44,17 @@ jQuery(document).ready(function($) {
         
         // Add to the table body
         $('.wpdapp-beneficiaries-table tbody').append(template);
-        console.log('Added new beneficiary row');
-
-        // Update UI
-        updateBeneficiariesUI();
+        
+        // Update the message
+        updateNoBeneficiariesMessage();
     });
     
-    // Handle removing beneficiaries - both existing and dynamically added
-    $(document).on('click', '.wpdapp-remove-beneficiary', function(e) {
-        e.preventDefault();
-        console.log('Remove beneficiary button clicked');
-        
-        // Find the row and remove it
-        var $row = $(this).closest('tr');
-        $row.fadeOut(300, function() {
-            $(this).remove();
-            // Update UI after animation completes
-            updateBeneficiariesUI();
-        });
+    // Add a global callback to handle when any beneficiary row is removed
+    // This uses event delegation via the document to catch all removals
+    $(document).on('click', '.wpdapp-remove-beneficiary', function() {
+        // The row is already removed by the inline onclick handler
+        // We just need to update the message after a short delay
+        setTimeout(updateNoBeneficiariesMessage, 100);
     });
     
     // Debug helper

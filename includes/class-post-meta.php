@@ -136,7 +136,7 @@ class WP_Dapp_Post_Meta {
                                                        min="0.01" max="100" step="0.01" />
                                             </td>
                                             <td>
-                                                <button type="button" class="button wpdapp-remove-beneficiary">Remove</button>
+                                                <button type="button" class="button wpdapp-remove-beneficiary" onclick="jQuery(this).closest('tr').remove();">Remove</button>
                                             </td>
                                         </tr>
                                         <?php
@@ -163,7 +163,7 @@ class WP_Dapp_Post_Meta {
                                            min="0.01" max="100" step="0.01" />
                                 </td>
                                 <td>
-                                    <button type="button" class="button wpdapp-remove-beneficiary">Remove</button>
+                                    <button type="button" class="button wpdapp-remove-beneficiary" onclick="jQuery(this).closest('tr').remove();">Remove</button>
                                 </td>
                             </tr>
                         </div>
