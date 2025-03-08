@@ -230,7 +230,11 @@ class WP_Dapp_Settings_Page {
         // Beneficiary settings
         $sanitized['enable_default_beneficiary'] = isset($options['enable_default_beneficiary']) ? 1 : 0;
         $sanitized['default_beneficiary_account'] = sanitize_text_field($options['default_beneficiary_account']);
-        $sanitized['default_beneficiary_weight'] = min(1000, max(1, intval($options['default_beneficiary_weight'] * 100)));
+        
+        // Ensure the beneficiary weight is properly formatted and within valid range
+        $weight = isset($options['default_beneficiary_weight']) ? floatval($options['default_beneficiary_weight']) : 1.0;
+        $weight = max(0.1, min(10, $weight)); // Ensure value is between 0.1 and 10
+        $sanitized['default_beneficiary_weight'] = intval($weight * 100); // Store as integer (1% = 100)
         
         // Publishing settings
         $sanitized['enable_custom_tags'] = isset($options['enable_custom_tags']) ? 1 : 0;
@@ -345,9 +349,14 @@ class WP_Dapp_Settings_Page {
                 $step = isset($args['step']) ? $args['step'] : '';
                 $input_class = !empty($class) ? $class : 'small-text';
                 
-                // Convert weight from internal storage (0-10000) to percentage (0-100)
+                // Convert weight from internal storage (0-1000) to percentage (0-10)
                 if ($field === 'default_beneficiary_weight' && !empty($value)) {
-                    $value = $value / 100; // Convert to percentage
+                    // Handle case where the value is already in the 0-1000 range (stored as integer)
+                    if ($value > 10) {
+                        $value = number_format($value / 100, 1); // Format to 1 decimal place
+                    } else {
+                        $value = number_format($value, 1); // Already a percentage, just format
+                    }
                 }
                 
                 // For percentage field, add a wrapper with the % symbol
