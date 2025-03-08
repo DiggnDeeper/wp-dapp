@@ -41,9 +41,9 @@ class WP_Dapp_Settings_Page {
         // Enqueue the Keychain API script from CDN
         wp_enqueue_script(
             'hive-keychain',
-            'https://unpkg.com/hive-keychain-browser@latest/dist/hive-keychain-browser.min.js',
+            'https://hive-keychain.github.io/keychain-sdk/dist/keychain.js',
             [],
-            '1.0.4',
+            '1.0.0',
             false
         );
 

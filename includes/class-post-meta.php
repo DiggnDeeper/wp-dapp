@@ -149,7 +149,7 @@ class WP_Dapp_Post_Meta {
                         <button type="button" class="button wpdapp-add-beneficiary">Add Beneficiary</button>
                         
                         <!-- Template for adding new beneficiaries (hidden) -->
-                        <script type="text/html" class="beneficiary-template">
+                        <div id="beneficiary-template" class="beneficiary-template" style="display:none;">
                             <tr>
                                 <td>
                                     <input type="text" 
@@ -166,7 +166,7 @@ class WP_Dapp_Post_Meta {
                                     <button type="button" class="button wpdapp-remove-beneficiary">Remove</button>
                                 </td>
                             </tr>
-                        </script>
+                        </div>
                     </div>
                 </div>
                 
@@ -223,9 +223,9 @@ class WP_Dapp_Post_Meta {
         // Enqueue Keychain script
         wp_enqueue_script(
             'hive-keychain',
-            'https://unpkg.com/hive-keychain-browser@latest/dist/hive-keychain-browser.min.js',
+            'https://hive-keychain.github.io/keychain-sdk/dist/keychain.js',
             [],
-            '1.0.4',
+            '1.0.0',
             false
         );
         

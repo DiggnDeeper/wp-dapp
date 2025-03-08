@@ -11,7 +11,7 @@ jQuery(document).ready(function($) {
         console.log('Add beneficiary button clicked');
         
         // Get the template
-        var template = $('.beneficiary-template').html();
+        var template = $('#beneficiary-template').html();
         console.log('Template found:', template ? 'Yes' : 'No');
         
         if (!template) {
@@ -46,6 +46,6 @@ jQuery(document).ready(function($) {
     // Debug helper
     console.log('Beneficiary elements on page:');
     console.log('- Add button:', $('.wpdapp-add-beneficiary').length);
-    console.log('- Template:', $('.beneficiary-template').length);
+    console.log('- Template:', $('#beneficiary-template').length);
     console.log('- Table:', $('.wpdapp-beneficiaries-table').length);
 }); 
