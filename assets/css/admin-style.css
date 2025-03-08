@@ -19,6 +19,57 @@
     margin-top: 10px;
 }
 
+.wpdapp-beneficiaries-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+}
+
+.wpdapp-beneficiaries-table th,
+.wpdapp-beneficiaries-table td {
+    padding: 6px 8px;
+    text-align: left;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.wpdapp-beneficiaries-table th {
+    font-weight: 600;
+    border-bottom: 1px solid #ddd;
+}
+
+.wpdapp-beneficiaries-table td input[type="text"],
+.wpdapp-beneficiaries-table td input[type="number"] {
+    width: 100%;
+}
+
+.wpdapp-beneficiaries-table tr {
+    transition: background-color 0.3s ease;
+}
+
+.wpdapp-beneficiaries-table tr:hover {
+    background-color: #f9f9f9;
+}
+
+#wpdapp-no-beneficiaries {
+    color: #888;
+    font-style: italic;
+}
+
+.wpdapp-add-beneficiary {
+    margin-top: 5px !important;
+}
+
+.wpdapp-remove-beneficiary {
+    background-color: #f0f0f0 !important;
+    color: #cc0000 !important;
+    border-color: #ddd !important;
+}
+
+.wpdapp-remove-beneficiary:hover {
+    background-color: #ffecec !important;
+    border-color: #ffb8b8 !important;
+}
+
 .beneficiary-item {
     display: flex;
     align-items: center;

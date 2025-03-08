@@ -122,8 +122,9 @@ class WP_Dapp_Post_Meta {
                                     echo '<tr id="wpdapp-no-beneficiaries"><td colspan="3">No beneficiaries added</td></tr>';
                                 } else {
                                     foreach ($beneficiaries as $index => $beneficiary) {
+                                        $row_id = 'beneficiary-row-' . esc_attr($index);
                                         ?>
-                                        <tr>
+                                        <tr id="<?php echo $row_id; ?>">
                                             <td>
                                                 <input type="text" 
                                                        name="wpdapp_beneficiaries[<?php echo $index; ?>][account]" 
@@ -136,7 +137,8 @@ class WP_Dapp_Post_Meta {
                                                        min="0.01" max="100" step="0.01" />
                                             </td>
                                             <td>
-                                                <button type="button" class="button wpdapp-remove-beneficiary" onclick="jQuery(this).closest('tr').remove();">Remove</button>
+                                                <button type="button" class="button wpdapp-remove-beneficiary" 
+                                                        data-row-id="<?php echo $row_id; ?>">Remove</button>
                                             </td>
                                         </tr>
                                         <?php
@@ -150,7 +152,7 @@ class WP_Dapp_Post_Meta {
                         
                         <!-- Template for adding new beneficiaries (hidden) -->
                         <div id="beneficiary-template" class="beneficiary-template" style="display:none;">
-                            <tr>
+                            <tr id="beneficiary-row-INDEX">
                                 <td>
                                     <input type="text" 
                                            name="wpdapp_beneficiaries[INDEX][account]" 
@@ -163,7 +165,8 @@ class WP_Dapp_Post_Meta {
                                            min="0.01" max="100" step="0.01" />
                                 </td>
                                 <td>
-                                    <button type="button" class="button wpdapp-remove-beneficiary" onclick="jQuery(this).closest('tr').remove();">Remove</button>
+                                    <button type="button" class="button wpdapp-remove-beneficiary"
+                                            data-row-id="beneficiary-row-INDEX">Remove</button>
                                 </td>
                             </tr>
                         </div>
