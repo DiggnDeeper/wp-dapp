@@ -12,42 +12,12 @@
     font-size: 0.9em;
     color: #666;
     margin-top: 2px;
+    margin-bottom: 8px;
 }
 
-/* Section Styles */
-.wpdapp-section {
+/* Status Styles */
+.wpdapp-keychain-status {
     margin-bottom: 15px;
-    border: 1px solid #e5e5e5;
-    border-radius: 3px;
-    overflow: hidden;
-}
-
-.wpdapp-section:last-child {
-    margin-bottom: 0;
-}
-
-.wpdapp-section-title {
-    margin: 0;
-    padding: 8px 10px;
-    background-color: #f6f7f7;
-    border-bottom: 1px solid #e5e5e5;
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 1.4;
-    display: flex;
-    align-items: center;
-}
-
-.wpdapp-section-title .dashicons {
-    margin-right: 5px;
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
-}
-
-.wpdapp-section-content {
-    padding: 10px;
-    background-color: #ffffff;
 }
 
 .wpdapp-status-ok {
@@ -60,12 +30,42 @@
     font-weight: 600;
 }
 
-/* Beneficiary Styles - New Implementation */
+.wpdapp-status-checking {
+    color: #777;
+}
+
+.wpdapp-status-checking .dashicons {
+    animation: wpdapp-spin 2s linear infinite;
+}
+
+@keyframes wpdapp-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Section Headings */
+#wpdapp-hive-publish h4 {
+    margin-top: 0;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+}
+
+#wpdapp-hive-publish h4 .dashicons {
+    margin-right: 5px;
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+/* Beneficiary Styles */
 .wpdapp-beneficiaries {
-    margin-top: 10px;
+    margin-top: 5px;
+    margin-bottom: 15px;
     padding: 8px;
-    background-color: #fcfcfc;
+    background-color: #fbfbfb;
     border-radius: 3px;
+    border: 1px solid #eee;
 }
 
 #wpdapp-beneficiaries-container {
@@ -161,7 +161,7 @@
 
 /* Publish Actions */
 .wpdapp-publish-actions {
-    margin-top: 10px;
+    margin-top: 15px;
 }
 
 #wpdapp-publish-button {
@@ -180,9 +180,25 @@
     text-align: center;
 }
 
-/* Meta box specific styles */
-#wpdapp_hive_settings {
-    overflow: hidden;
+/* Published Info */
+.wpdapp-published-info {
+    padding: 10px;
+    background-color: #f8fff8;
+    border: 1px solid #e0f0e0;
+    border-radius: 3px;
+}
+
+.wpdapp-published-info a {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.wpdapp-published-info .dashicons {
+    margin-left: 3px;
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
 }
 
 /* WordPress sidebar specific adjustments */
