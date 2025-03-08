@@ -3,10 +3,32 @@
 This file documents all notable changes to the WP-Dapp WordPress plugin.
 
 ## [Unreleased]
+### Added
+- Multiple failsafe mechanisms for beneficiary management
+
+### Changed
+- Complete UI overhaul for Hive publishing interface
+- Improved settings page UI/UX with enhanced styling and interaction
+- Optimized beneficiary UI for sidebar meta box
+- Complete rebuild of beneficiary UI for maximum simplicity and reliability
+- Simplified UI and resolved duplicate meta box issues
+- Improved Hive meta box UI organization and clarity
+
 ### Fixed
+- Fixed Default Beneficiary Percentage display issue in settings UI
+- Fixed beneficiary row targeting and add button issues
+- Fixed Remove button with direct inline handlers
+- Fixed Add Beneficiary button functionality in post meta box
+- Fixed Hive Keychain script loading issues
+- Now using official Hive Keychain script for better compatibility
 - Improved the regex pattern in `format_content_for_hive()` function to properly strip all Gutenberg block comments from content when publishing to Hive.
   - Previous regex only matched comments with specific spacing
   - New regex handles all variations including multiline comments
+
+### Documentation
+- Updated README with beneficiary UX improvements
+- Updated README with recent bugfix information
+- Updated development roadmap with recent progress
 
 ## [0.7.2] - (Original Version)
 - Plugin as provided by the original author
@@ -25,11 +47,14 @@ When updating the plugin from the original source, follow these steps to preserv
 
 3. **Key modified files:**
    - `includes/class-publish-handler.php` - Modified regex for Gutenberg block comment stripping
+   - `includes/class-settings-page.php` - Fixed beneficiary percentage display and improved UI
+   - `includes/class-post-meta.php` - Improved beneficiary management and UI
 
 4. **Testing after updates:**
    - Always test content publishing after re-applying changes
    - Verify that Gutenberg block comments are properly stripped
    - Test with various content formats (paragraphs, lists, images, etc.)
+   - Verify beneficiary management works correctly
 
 ## Additional Recommendations
 
