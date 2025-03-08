@@ -153,10 +153,11 @@ class WP_Dapp_Settings_Page {
             [
                 'field' => 'default_beneficiary_weight', 
                 'type' => 'number',
-                'min' => 1,
+                'min' => 0.1,
                 'max' => 10,
-                'step' => 0.01,
-                'description' => 'Percentage of rewards (1-10). Default is 1%.'
+                'step' => 0.1,
+                'description' => 'Percentage of rewards (0.1-10%). Default is 1%.',
+                'class' => 'wpdapp-percentage-field'
             ]
         );
         
@@ -243,59 +244,72 @@ class WP_Dapp_Settings_Page {
     }
 
     /**
-     * Print the Account Section text.
+     * Print the Section text.
      */
     public function account_section_callback() {
-        echo '<p>Connect your plugin to the Hive blockchain by verifying your Hive account using Hive Keychain.</p>';
-        echo '<p>You will need to have the <a href="https://hive-keychain.com/" target="_blank">Hive Keychain browser extension</a> installed to use this plugin.</p>';
+        echo '<div class="wpdapp-settings-section-description">';
+        echo '<p>Configure your Hive account settings for publishing to the Hive blockchain.</p>';
+        echo '</div>';
     }
     
     /**
      * Print the Beneficiary Section text.
      */
     public function beneficiary_section_callback() {
+        echo '<div class="wpdapp-settings-section-description">';
         echo '<p>Configure beneficiaries for your Hive posts. Beneficiaries receive a percentage of post rewards.</p>';
         echo '<p><em>Note: A small percentage can be automatically set to support the WP-Dapp plugin development.</em></p>';
+        echo '</div>';
     }
     
     /**
      * Print the Post Section text.
      */
     public function post_section_callback() {
+        echo '<div class="wpdapp-settings-section-description">';
         echo '<p>Configure post settings for your Hive posts.</p>';
+        echo '</div>';
     }
     
     /**
      * Print the Advanced Section text.
      */
     public function advanced_section_callback() {
+        echo '<div class="wpdapp-settings-section-description">';
         echo '<p>Advanced settings for the WP-Dapp plugin.</p>';
+        echo '</div>';
     }
 
     /**
-     * Render Keychain status field.
+     * Render the Keychain status.
      */
     public function render_keychain_status() {
         ?>
-        <div id="wpdapp-keychain-status" class="wpdapp-status-pending">
-            <span>Checking for Hive Keychain...</span>
+        <div class="wpdapp-keychain-status">
+            <p id="wpdapp-keychain-detection">
+                <span class="wpdapp-status-checking">
+                    <span class="dashicons dashicons-update"></span> Checking for Hive Keychain...
+                </span>
+            </p>
         </div>
         <?php
     }
 
     /**
-     * Render verify button field.
+     * Render the verify button.
      */
     public function render_verify_button() {
         $options = get_option('wpdapp_options');
-        $account = isset($options['hive_account']) ? $options['hive_account'] : '';
-        $disabled = empty($account) ? 'disabled' : '';
+        $hive_account = isset($options['hive_account']) ? $options['hive_account'] : '';
+        
         ?>
-        <button type="button" id="wpdapp-verify-account" class="button button-secondary" <?php echo $disabled; ?>>
-            Verify with Keychain
-        </button>
-        <div id="wpdapp-verify-result"></div>
-        <p class="description">Click this button to verify your Hive account with Keychain.</p>
+        <div class="wpdapp-verify-button-container">
+            <button type="button" id="wpdapp-verify-button" class="button" <?php echo empty($hive_account) ? 'disabled' : ''; ?>>
+                <span class="dashicons dashicons-yes"></span> Verify with Keychain
+            </button>
+            <div id="wpdapp-verify-status"></div>
+            <p class="description">Click this button to verify your Hive account with Keychain.</p>
+        </div>
         <?php
     }
 
@@ -307,15 +321,21 @@ class WP_Dapp_Settings_Page {
         $field = $args['field'];
         $type = isset($args['type']) ? $args['type'] : 'text';
         $value = isset($options[$field]) ? $options[$field] : '';
+        $class = isset($args['class']) ? $args['class'] : '';
+        $description = isset($args['description']) ? $args['description'] : '';
+        
+        echo '<div class="wpdapp-settings-field">';
         
         // Handle different field types
         switch ($type) {
             case 'checkbox':
                 printf(
-                    '<input type="checkbox" id="%s" name="wpdapp_options[%s]" value="1" %s>',
+                    '<label for="%s"><input type="checkbox" id="%s" name="wpdapp_options[%s]" value="1" %s> %s</label>',
                     esc_attr($field),
                     esc_attr($field),
-                    checked(1, $value, false)
+                    esc_attr($field),
+                    checked(1, $value, false),
+                    isset($args['label']) ? esc_html($args['label']) : ''
                 );
                 break;
                 
@@ -323,21 +343,40 @@ class WP_Dapp_Settings_Page {
                 $min = isset($args['min']) ? $args['min'] : '';
                 $max = isset($args['max']) ? $args['max'] : '';
                 $step = isset($args['step']) ? $args['step'] : '';
+                $input_class = !empty($class) ? $class : 'small-text';
                 
                 // Convert weight from internal storage (0-10000) to percentage (0-100)
                 if ($field === 'default_beneficiary_weight' && !empty($value)) {
                     $value = $value / 100; // Convert to percentage
                 }
                 
-                printf(
-                    '<input type="number" id="%s" name="wpdapp_options[%s]" value="%s" class="small-text" %s %s %s>',
-                    esc_attr($field),
-                    esc_attr($field),
-                    esc_attr($value),
-                    !empty($min) ? "min=\"{$min}\"" : "",
-                    !empty($max) ? "max=\"{$max}\"" : "",
-                    !empty($step) ? "step=\"{$step}\"" : ""
-                );
+                // For percentage field, add a wrapper with the % symbol
+                if ($field === 'default_beneficiary_weight') {
+                    echo '<div class="wpdapp-input-with-suffix">';
+                    printf(
+                        '<input type="number" id="%s" name="wpdapp_options[%s]" value="%s" class="%s" %s %s %s>',
+                        esc_attr($field),
+                        esc_attr($field),
+                        esc_attr($value),
+                        esc_attr($input_class),
+                        !empty($min) ? "min=\"{$min}\"" : "",
+                        !empty($max) ? "max=\"{$max}\"" : "",
+                        !empty($step) ? "step=\"{$step}\"" : ""
+                    );
+                    echo '<span class="wpdapp-input-suffix">%</span>';
+                    echo '</div>';
+                } else {
+                    printf(
+                        '<input type="number" id="%s" name="wpdapp_options[%s]" value="%s" class="%s" %s %s %s>',
+                        esc_attr($field),
+                        esc_attr($field),
+                        esc_attr($value),
+                        esc_attr($input_class),
+                        !empty($min) ? "min=\"{$min}\"" : "",
+                        !empty($max) ? "max=\"{$max}\"" : "",
+                        !empty($step) ? "step=\"{$step}\"" : ""
+                    );
+                }
                 break;
                 
             case 'password':
@@ -359,29 +398,32 @@ class WP_Dapp_Settings_Page {
                 break;
         }
         
-        if (!empty($args['description'])) {
-            printf('<p class="description">%s</p>', $args['description']);
+        // Add description if provided
+        if (!empty($description)) {
+            printf('<p class="description">%s</p>', esc_html($description));
         }
+        
+        echo '</div>';
     }
 
     /**
-     * Render the main settings page.
+     * Render the settings page.
      */
     public function render_settings_page() {
         ?>
-        <div class="wrap">
-            <h1>WP-Dapp Settings</h1>
+        <div class="wrap wpdapp-settings-wrap">
+            <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
             
-            <div class="wpdapp-settings-intro">
-                <p>Configure your WordPress to Hive integration settings below. Securely authenticate with Hive Keychain.</p>
-            </div>
-            
-            <form method="post" action="options.php">
+            <form method="post" action="options.php" class="wpdapp-settings-form">
                 <?php
                 settings_fields('wpdapp_options_group');
-                do_settings_sections('wpdapp-settings');
-                submit_button();
                 ?>
+                
+                <div class="wpdapp-settings-container">
+                    <?php do_settings_sections('wpdapp-settings'); ?>
+                </div>
+                
+                <?php submit_button('Save Settings'); ?>
             </form>
             
             <div class="wpdapp-settings-footer">

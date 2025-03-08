@@ -11,13 +11,15 @@ jQuery(document).ready(function($) {
     
     // Show or hide Keychain status message
     const updateKeychainStatus = () => {
-        const $status = $('#wpdapp-keychain-status');
+        const $status = $('#wpdapp-keychain-detection');
         
         if (isKeychainAvailable()) {
-            $status.html('<span class="wpdapp-status-ok">✓ Hive Keychain detected</span>');
+            $status.html('<span class="wpdapp-status-ok"><span class="dashicons dashicons-yes"></span> Hive Keychain detected</span>');
+            $('#wpdapp-verify-button').prop('disabled', false);
         } else {
-            $status.html('<span class="wpdapp-status-error">✗ Hive Keychain not detected</span>' +
-                '<p class="description">Please install the <a href="https://hive-keychain.com/" target="_blank">Hive Keychain browser extension</a> to use this plugin.</p>');
+            $status.html('<span class="wpdapp-status-error"><span class="dashicons dashicons-no"></span> Hive Keychain not detected</span>' +
+                '<br><small>Please install the <a href="https://hive-keychain.com/" target="_blank">Hive Keychain browser extension</a> to use this plugin.</small>');
+            $('#wpdapp-verify-button').prop('disabled', true);
         }
     };
     
@@ -38,14 +40,14 @@ jQuery(document).ready(function($) {
     }, 500); // Check every 500ms
     
     // Handle account verification button click
-    $('#wpdapp-verify-account').on('click', function() {
+    $('#wpdapp-verify-button').on('click', function() {
         const $button = $(this);
-        const $status = $('#wpdapp-credential-status');
+        const $status = $('#wpdapp-verify-status');
         const account = $('#hive_account').val();
         
         // Basic validation
         if (!account) {
-            $status.html('<span class="wpdapp-status-error">Please enter your Hive account name</span>');
+            $status.html('<div class="wpdapp-status-error"><span class="dashicons dashicons-warning"></span> Please enter your Hive account name</div>');
             return;
         }
         
@@ -55,17 +57,17 @@ jQuery(document).ready(function($) {
             setTimeout(function() {
                 if (isKeychainAvailable()) {
                     updateKeychainStatus();
-                    $status.html('<span class="wpdapp-status-ok">Keychain detected. Please try again.</span>');
+                    $status.html('<div class="wpdapp-status-ok"><span class="dashicons dashicons-yes"></span> Keychain detected. Please try again.</div>');
                 } else {
-                    $status.html('<span class="wpdapp-status-error">Hive Keychain extension not detected</span>');
+                    $status.html('<div class="wpdapp-status-error"><span class="dashicons dashicons-no"></span> Hive Keychain extension not detected</div>');
                 }
             }, 100);
             return;
         }
         
         // Set button state to loading
-        $button.prop('disabled', true).text(wpdapp_settings.verifying_text);
-        $status.html('<span class="wpdapp-status-pending">Verifying...</span>');
+        $button.prop('disabled', true).html('<span class="dashicons dashicons-update"></span> ' + wpdapp_settings.verifying_text);
+        $status.html('<div class="wpdapp-status-checking"><span class="dashicons dashicons-update"></span> Verifying...</div>');
         
         // Request a simple verification from Keychain
         // This will prompt the user to approve a test message signing
@@ -88,22 +90,22 @@ jQuery(document).ready(function($) {
                         },
                         success: function(serverResponse) {
                             if (serverResponse.success) {
-                                $status.html('<span class="wpdapp-status-ok">' + wpdapp_settings.success_text + '</span>');
+                                $status.html('<div class="wpdapp-status-ok"><span class="dashicons dashicons-yes"></span> ' + wpdapp_settings.success_text + '</div>');
                             } else {
-                                $status.html('<span class="wpdapp-status-error">' + (serverResponse.data || wpdapp_settings.error_text) + '</span>');
+                                $status.html('<div class="wpdapp-status-error"><span class="dashicons dashicons-no"></span> ' + (serverResponse.data || wpdapp_settings.error_text) + '</div>');
                             }
                         },
                         error: function() {
-                            $status.html('<span class="wpdapp-status-error">Error: Could not connect to server</span>');
+                            $status.html('<div class="wpdapp-status-error"><span class="dashicons dashicons-no"></span> Error: Could not connect to server</div>');
                         },
                         complete: function() {
                             // Reset button state
-                            $button.prop('disabled', false).text(wpdapp_settings.verify_text);
+                            $button.prop('disabled', false).html('<span class="dashicons dashicons-yes"></span> ' + wpdapp_settings.verify_text);
                         }
                     });
                 } else {
-                    $status.html('<span class="wpdapp-status-error">' + response.message + '</span>');
-                    $button.prop('disabled', false).text(wpdapp_settings.verify_text);
+                    $status.html('<div class="wpdapp-status-error"><span class="dashicons dashicons-no"></span> ' + response.message + '</div>');
+                    $button.prop('disabled', false).html('<span class="dashicons dashicons-yes"></span> ' + wpdapp_settings.verify_text);
                 }
             }
         );
