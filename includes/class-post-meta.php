@@ -73,6 +73,20 @@ class WP_Dapp_Post_Meta {
         $options = get_option('wpdapp_options', []);
         $hive_account = isset($options['hive_account']) ? $options['hive_account'] : '';
         
+        // Add direct vanilla JavaScript for removing beneficiaries
+        ?>
+        <script type="text/javascript">
+            function wpdappRemoveBeneficiary(button) {
+                // Get the parent row and remove it
+                var row = button.parentNode;
+                if (row) {
+                    row.parentNode.removeChild(row);
+                }
+                return false;
+            }
+        </script>
+        <?php
+        
         if (empty($hive_account)) {
             ?>
             <div class="wpdapp-notice-error">
@@ -133,7 +147,8 @@ class WP_Dapp_Post_Meta {
                                            value="<?php echo esc_attr($beneficiary['weight'] / 100); ?>" 
                                            min="0.01" max="100" step="0.01" />
                                     
-                                    <button type="button" class="button wpdapp-remove-beneficiary">
+                                    <button type="button" class="button wpdapp-remove-beneficiary" 
+                                            onclick="wpdappRemoveBeneficiary(this); return false;">
                                         <span class="dashicons dashicons-trash"></span>
                                     </button>
                                 </div>
