@@ -29,14 +29,22 @@
 .wpdapp-beneficiary-row {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     margin-bottom: 8px;
-    padding: 4px;
+    padding: 6px;
     border-radius: 3px;
     transition: background-color 0.2s;
+    border: 1px solid #f0f0f0;
 }
 
 .wpdapp-beneficiary-row:hover {
     background-color: #f8f8f8;
+}
+
+.wpdapp-beneficiary-inputs {
+    display: flex;
+    flex: 1;
+    margin-right: 8px;
 }
 
 .wpdapp-beneficiary-row input[type="text"] {
@@ -51,6 +59,7 @@
 }
 
 .wpdapp-remove-beneficiary {
+    flex: 0 0 auto;
     background-color: #f0f0f0 !important;
     padding: 0 !important;
     height: 30px !important;
@@ -76,6 +85,12 @@
     margin-top: 5px;
     background-color: #f8f8f8;
     border-color: #ddd;
+    display: inline-flex;
+    align-items: center;
+}
+
+#wpdapp-add-beneficiary .dashicons {
+    margin-right: 4px;
 }
 
 #wpdapp-add-beneficiary:hover {

@@ -77,10 +77,18 @@ class WP_Dapp_Post_Meta {
         ?>
         <script type="text/javascript">
             function wpdappRemoveBeneficiary(button) {
-                // Get the parent row and remove it
-                var row = button.parentNode;
-                if (row) {
+                // Find the closest parent with class wpdapp-beneficiary-row
+                var row = button;
+                while (row && !row.classList.contains('wpdapp-beneficiary-row')) {
+                    row = row.parentNode;
+                }
+                
+                // Remove the row if found
+                if (row && row.parentNode) {
                     row.parentNode.removeChild(row);
+                    console.log('Beneficiary row removed successfully');
+                } else {
+                    console.error('Could not find beneficiary row to remove');
                 }
                 return false;
             }
@@ -136,16 +144,18 @@ class WP_Dapp_Post_Meta {
                         <div id="wpdapp-beneficiaries-container">
                             <?php foreach ($beneficiaries as $index => $beneficiary): ?>
                                 <div class="wpdapp-beneficiary-row">
-                                    <input type="text" 
-                                           name="wpdapp_beneficiaries[<?php echo $index; ?>][account]" 
-                                           placeholder="Hive Username"
-                                           value="<?php echo esc_attr($beneficiary['account']); ?>" />
-                                    
-                                    <input type="number" 
-                                           name="wpdapp_beneficiaries[<?php echo $index; ?>][weight]" 
-                                           placeholder="Weight (%)"
-                                           value="<?php echo esc_attr($beneficiary['weight'] / 100); ?>" 
-                                           min="0.01" max="100" step="0.01" />
+                                    <div class="wpdapp-beneficiary-inputs">
+                                        <input type="text" 
+                                               name="wpdapp_beneficiaries[<?php echo $index; ?>][account]" 
+                                               placeholder="Hive Username"
+                                               value="<?php echo esc_attr($beneficiary['account']); ?>" />
+                                        
+                                        <input type="number" 
+                                               name="wpdapp_beneficiaries[<?php echo $index; ?>][weight]" 
+                                               placeholder="Weight (%)"
+                                               value="<?php echo esc_attr($beneficiary['weight'] / 100); ?>" 
+                                               min="0.01" max="100" step="0.01" />
+                                    </div>
                                     
                                     <button type="button" class="button wpdapp-remove-beneficiary" 
                                             onclick="wpdappRemoveBeneficiary(this); return false;">
@@ -156,7 +166,7 @@ class WP_Dapp_Post_Meta {
                         </div>
                         
                         <button type="button" id="wpdapp-add-beneficiary" class="button">
-                            Add Beneficiary
+                            <span class="dashicons dashicons-plus-alt"></span> Add Beneficiary
                         </button>
                     </div>
                 </div>
