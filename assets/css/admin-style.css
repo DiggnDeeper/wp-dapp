@@ -14,6 +14,52 @@
     margin-top: 2px;
 }
 
+/* Section Styles */
+.wpdapp-section {
+    margin-bottom: 15px;
+    border: 1px solid #e5e5e5;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.wpdapp-section:last-child {
+    margin-bottom: 0;
+}
+
+.wpdapp-section-title {
+    margin: 0;
+    padding: 8px 10px;
+    background-color: #f6f7f7;
+    border-bottom: 1px solid #e5e5e5;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+    display: flex;
+    align-items: center;
+}
+
+.wpdapp-section-title .dashicons {
+    margin-right: 5px;
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+.wpdapp-section-content {
+    padding: 10px;
+    background-color: #ffffff;
+}
+
+.wpdapp-status-ok {
+    color: #46b450;
+    font-weight: 600;
+}
+
+.wpdapp-status-error {
+    color: #dc3232;
+    font-weight: 600;
+}
+
 /* Beneficiary Styles - New Implementation */
 .wpdapp-beneficiaries {
     margin-top: 10px;
@@ -111,6 +157,27 @@
 #wpdapp-add-beneficiary:hover {
     background-color: #f0f0f0;
     border-color: #ccc;
+}
+
+/* Publish Actions */
+.wpdapp-publish-actions {
+    margin-top: 10px;
+}
+
+#wpdapp-publish-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+#wpdapp-publish-button .dashicons {
+    margin-right: 5px;
+}
+
+#wpdapp-publish-status {
+    margin-top: 10px;
+    text-align: center;
 }
 
 /* Meta box specific styles */

@@ -24,7 +24,7 @@ class WP_Dapp_Post_Meta {
     public function add_meta_boxes() {
         add_meta_box(
             'wpdapp_hive_settings',
-            'Hive Publishing Settings',
+            'Hive Integration',
             [$this, 'render_meta_box'],
             'post',
             'side',
@@ -122,61 +122,91 @@ class WP_Dapp_Post_Meta {
             <div id="wpdapp-hive-publish">
                 <div id="wpdapp-keychain-status"></div>
                 
-                <div class="wpdapp-publishing-options">
-                    <h4>Beneficiaries</h4>
-                    <p class="description">Users who will receive a share of rewards.</p>
-                    
-                    <div class="wpdapp-beneficiaries">
-                        <!-- Use a simple table with direct form fields -->
-                        <?php
-                        // Get existing beneficiaries
-                        $beneficiaries = get_post_meta($post->ID, '_wpdapp_beneficiaries', true);
-                        if (!is_array($beneficiaries)) {
-                            $beneficiaries = [];
-                        }
-                        
-                        // Add a dummy empty entry if none exist to show at least one row
-                        if (empty($beneficiaries)) {
-                            $beneficiaries = [['account' => '', 'weight' => 1000]]; // 10%
-                        }
-                        ?>
-                        
-                        <div id="wpdapp-beneficiaries-container">
-                            <?php foreach ($beneficiaries as $index => $beneficiary): ?>
-                                <div class="wpdapp-beneficiary-row">
-                                    <div class="wpdapp-beneficiary-inputs">
-                                        <input type="text" 
-                                               name="wpdapp_beneficiaries[<?php echo $index; ?>][account]" 
-                                               placeholder="Username"
-                                               value="<?php echo esc_attr($beneficiary['account']); ?>" />
-                                        
-                                        <input type="number" 
-                                               name="wpdapp_beneficiaries[<?php echo $index; ?>][weight]" 
-                                               placeholder="%"
-                                               value="<?php echo esc_attr($beneficiary['weight'] / 100); ?>" 
-                                               min="0.01" max="100" step="0.01" />
-                                    </div>
-                                    
-                                    <button type="button" class="button wpdapp-remove-beneficiary" 
-                                            onclick="wpdappRemoveBeneficiary(this); return false;"
-                                            title="Remove beneficiary">
-                                        <span class="dashicons dashicons-trash"></span>
-                                    </button>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                        
-                        <button type="button" id="wpdapp-add-beneficiary" class="button" title="Add new beneficiary">
-                            <span class="dashicons dashicons-plus-alt"></span> Add
-                        </button>
+                <!-- Status Section -->
+                <div class="wpdapp-section">
+                    <h4 class="wpdapp-section-title">
+                        <span class="dashicons dashicons-info"></span> Status
+                    </h4>
+                    <div class="wpdapp-section-content">
+                        <p>
+                            <?php if ($hive_keychain_detected = true): // Replace with actual detection ?>
+                                <span class="wpdapp-status-ok">✓ Hive Keychain detected</span>
+                            <?php else: ?>
+                                <span class="wpdapp-status-error">✗ Hive Keychain not detected</span>
+                            <?php endif; ?>
+                        </p>
                     </div>
                 </div>
                 
-                <div class="wpdapp-publish-actions" style="margin-top: 15px;">
-                    <button type="button" id="wpdapp-publish-button" class="button button-primary">
-                        Publish to Hive with Keychain
-                    </button>
-                    <div id="wpdapp-publish-status"></div>
+                <!-- Beneficiaries Section -->
+                <div class="wpdapp-section">
+                    <h4 class="wpdapp-section-title">
+                        <span class="dashicons dashicons-groups"></span> Beneficiaries
+                    </h4>
+                    <div class="wpdapp-section-content">
+                        <p class="description">Users who will receive a share of rewards.</p>
+                        
+                        <div class="wpdapp-beneficiaries">
+                            <!-- Use a simple table with direct form fields -->
+                            <?php
+                            // Get existing beneficiaries
+                            $beneficiaries = get_post_meta($post->ID, '_wpdapp_beneficiaries', true);
+                            if (!is_array($beneficiaries)) {
+                                $beneficiaries = [];
+                            }
+                            
+                            // Add a dummy empty entry if none exist to show at least one row
+                            if (empty($beneficiaries)) {
+                                $beneficiaries = [['account' => '', 'weight' => 1000]]; // 10%
+                            }
+                            ?>
+                            
+                            <div id="wpdapp-beneficiaries-container">
+                                <?php foreach ($beneficiaries as $index => $beneficiary): ?>
+                                    <div class="wpdapp-beneficiary-row">
+                                        <div class="wpdapp-beneficiary-inputs">
+                                            <input type="text" 
+                                                   name="wpdapp_beneficiaries[<?php echo $index; ?>][account]" 
+                                                   placeholder="Username"
+                                                   value="<?php echo esc_attr($beneficiary['account']); ?>" />
+                                            
+                                            <input type="number" 
+                                                   name="wpdapp_beneficiaries[<?php echo $index; ?>][weight]" 
+                                                   placeholder="%"
+                                                   value="<?php echo esc_attr($beneficiary['weight'] / 100); ?>" 
+                                                   min="0.01" max="100" step="0.01" />
+                                        </div>
+                                        
+                                        <button type="button" class="button wpdapp-remove-beneficiary" 
+                                                onclick="wpdappRemoveBeneficiary(this); return false;"
+                                                title="Remove beneficiary">
+                                            <span class="dashicons dashicons-trash"></span>
+                                        </button>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                            
+                            <button type="button" id="wpdapp-add-beneficiary" class="button" title="Add new beneficiary">
+                                <span class="dashicons dashicons-plus-alt"></span> Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Publish Section -->
+                <div class="wpdapp-section">
+                    <h4 class="wpdapp-section-title">
+                        <span class="dashicons dashicons-cloud-upload"></span> Publish 
+                    </h4>
+                    <div class="wpdapp-section-content">
+                        <p class="description">Publish this post to the Hive blockchain.</p>
+                        <div class="wpdapp-publish-actions">
+                            <button type="button" id="wpdapp-publish-button" class="button button-primary">
+                                <span class="dashicons dashicons-share-alt2"></span> Publish to Hive
+                            </button>
+                            <div id="wpdapp-publish-status"></div>
+                        </div>
+                    </div>
                 </div>
                 
                 <?php wp_nonce_field('wpdapp_post_meta', 'wpdapp_nonce'); ?>
