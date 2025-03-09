@@ -66,10 +66,20 @@ The Auto-Publish feature streamlines the workflow of publishing from WordPress t
 
 ### Enabling Auto-Publish
 
+Auto-Publish is **intentionally disabled by default** for security reasons. To enable it:
+
 1. Go to Settings > WP-Dapp
 2. Find the "Auto-Publish" option under "Post Settings"
 3. Check the box to enable Auto-Publish
 4. Click "Save Changes"
+
+### Why Auto-Publish is Disabled by Default
+
+The Auto-Publish feature is designed as an opt-in feature for several important reasons:
+
+1. **Security**: We believe users should explicitly choose to enable automatic workflows
+2. **Control**: Content creators may want to decide on a post-by-post basis what gets published to Hive
+3. **Awareness**: Users should be fully aware of which content is being prepared for blockchain publication
 
 ### How Auto-Publish Works
 
@@ -78,13 +88,6 @@ The Auto-Publish feature streamlines the workflow of publishing from WordPress t
 3. The "Publish to Hive" meta box will also show a "Ready for Auto-Publish" indicator
 4. You'll still need to click the "Publish to Hive" button and approve the transaction with Hive Keychain
    - This step is required because Hive Keychain requires manual approval for security reasons
-
-### Why We Need Manual Approval
-
-Even with Auto-Publish enabled, you still need to manually approve the transaction because:
-1. Hive Keychain requires user approval for all blockchain transactions (by design)
-2. This security feature ensures no one can publish to your Hive account without your explicit approval
-3. It gives you a final chance to review the post before it goes on the blockchain
 
 ### Auto-Publish Notifications
 

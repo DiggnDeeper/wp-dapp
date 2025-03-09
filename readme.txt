@@ -34,6 +34,7 @@ This plugin integrates with the Hive Keychain browser extension to provide enhan
 **Auto-Publish Feature:**
 
 * Optionally enable automatic detection of newly published WordPress posts
+* Intentionally disabled by default (opt-in only) for security and control
 * Get notified when a post is ready for Hive publication
 * Streamline your publishing workflow while maintaining secure Keychain authentication
 * Each post maintains a visible indicator when it's ready for Hive publication
