@@ -237,12 +237,11 @@ class WP_Dapp_Settings_Page {
         $sanitized['default_beneficiary_weight'] = intval($weight * 100); // Store as integer (1% = 100)
         
         // Publishing settings
-        $sanitized['enable_custom_tags'] = isset($options['enable_custom_tags']) ? 1 : 0;
         $sanitized['default_tags'] = sanitize_text_field($options['default_tags']);
+        $sanitized['auto_publish'] = isset($options['auto_publish']) ? 1 : 0;
         
         // Advanced settings
-        $sanitized['custom_api_node'] = sanitize_text_field($options['custom_api_node']);
-        $sanitized['delete_data_on_uninstall'] = isset($options['delete_data_on_uninstall']) ? 1 : 0;
+        $sanitized['hive_api_node'] = sanitize_text_field($options['hive_api_node']);
         
         return $sanitized;
     }

@@ -68,6 +68,7 @@ class WP_Dapp_Post_Meta {
         $hive_author = get_post_meta($post->ID, '_wpdapp_hive_author', true);
         $hive_permlink = get_post_meta($post->ID, '_wpdapp_hive_permlink', true);
         $hive_error = get_post_meta($post->ID, '_wpdapp_hive_error', true);
+        $auto_publish_ready = get_post_meta($post->ID, '_wpdapp_auto_publish_ready', true);
         
         // Get options
         $options = get_option('wpdapp_options', []);
@@ -107,6 +108,30 @@ class WP_Dapp_Post_Meta {
             </div>
             <?php
             return;
+        }
+        
+        // Show error message if auto-publish failed
+        if (!$hive_published && !empty($hive_error)) {
+            ?>
+            <div class="wpdapp-notice-error">
+                <p>
+                    <strong>Error:</strong> <?php echo esc_html($hive_error); ?>
+                </p>
+            </div>
+            <?php
+        }
+        
+        // Show auto-publish ready message if applicable
+        if (!$hive_published && $auto_publish_ready && $post->post_status === 'publish') {
+            ?>
+            <div class="wpdapp-notice-info">
+                <p>
+                    <strong>Ready for Auto-Publish</strong><br>
+                    This post has been marked for automatic publishing to Hive.
+                    Please use the button below to complete the process using Hive Keychain.
+                </p>
+            </div>
+            <?php
         }
         
         // Show publishing form if not published, or status if published

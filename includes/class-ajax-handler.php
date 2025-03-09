@@ -257,7 +257,8 @@ class WP_Dapp_Ajax_Handler {
             update_post_meta($post_id, '_wpdapp_hive_transaction_id', sanitize_text_field($hive_data['transaction_id']));
         }
         
-        // Clear any previous errors
+        // Clear any auto-publish flag or error
+        delete_post_meta($post_id, '_wpdapp_auto_publish_ready');
         delete_post_meta($post_id, '_wpdapp_hive_error');
         
         wp_send_json_success([
