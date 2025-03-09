@@ -77,6 +77,19 @@ class WP_Dapp_Settings_Page {
             [],
             WPDAPP_VERSION
         );
+        
+        // Add inline script to ensure auto_publish is unchecked by default (first time setup)
+        wp_add_inline_script('wpdapp-keychain-integration', '
+            jQuery(document).ready(function($) {
+                // Get current options from database
+                var options = ' . json_encode(get_option('wpdapp_options', [])) . ';
+                
+                // If auto_publish is not explicitly set in options, uncheck it
+                if (typeof options.auto_publish === "undefined") {
+                    $("#auto_publish").prop("checked", false);
+                }
+            });
+        ');
     }
 
     /**
@@ -238,7 +251,9 @@ class WP_Dapp_Settings_Page {
         
         // Publishing settings
         $sanitized['default_tags'] = sanitize_text_field($options['default_tags']);
-        $sanitized['auto_publish'] = isset($options['auto_publish']) ? 1 : 0;
+        
+        // Auto-publish: explicitly set to 0 if not checked
+        $sanitized['auto_publish'] = isset($options['auto_publish']) && $options['auto_publish'] ? 1 : 0;
         
         // Advanced settings
         $sanitized['hive_api_node'] = sanitize_text_field($options['hive_api_node']);
@@ -332,14 +347,29 @@ class WP_Dapp_Settings_Page {
         // Handle different field types
         switch ($type) {
             case 'checkbox':
-                printf(
-                    '<label for="%s"><input type="checkbox" id="%s" name="wpdapp_options[%s]" value="1" %s> %s</label>',
-                    esc_attr($field),
-                    esc_attr($field),
-                    esc_attr($field),
-                    checked(1, $value, false),
-                    isset($args['label']) ? esc_html($args['label']) : ''
-                );
+                // Special handling for auto_publish to ensure it's off by default
+                if ($field === 'auto_publish') {
+                    // Explicitly check if the value is 1/true, otherwise it's false
+                    $is_checked = isset($options[$field]) && (int)$options[$field] === 1;
+                    printf(
+                        '<label for="%s"><input type="checkbox" id="%s" name="wpdapp_options[%s]" value="1" %s> %s</label>',
+                        esc_attr($field),
+                        esc_attr($field),
+                        esc_attr($field),
+                        checked(true, $is_checked, false),
+                        isset($args['label']) ? esc_html($args['label']) : ''
+                    );
+                } else {
+                    // Regular checkbox handling for other fields
+                    printf(
+                        '<label for="%s"><input type="checkbox" id="%s" name="wpdapp_options[%s]" value="1" %s> %s</label>',
+                        esc_attr($field),
+                        esc_attr($field),
+                        esc_attr($field),
+                        checked(1, $value, false),
+                        isset($args['label']) ? esc_html($args['label']) : ''
+                    );
+                }
                 break;
                 
             case 'number':

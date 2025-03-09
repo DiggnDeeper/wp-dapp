@@ -47,6 +47,29 @@ wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-ajax-handler.php');
 wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-update-checker.php');
 
 /**
+ * Plugin version update handler - runs when plugin version changes
+ */
+function wpdapp_version_update() {
+    $current_version = get_option('wpdapp_version', '0.0.0');
+    
+    // If this is a new installation or update from an older version
+    if (version_compare($current_version, WPDAPP_VERSION, '<')) {
+        // Get current options
+        $options = get_option('wpdapp_options', []);
+        
+        // Ensure auto_publish is explicitly set to 0 by default
+        if (!isset($options['auto_publish'])) {
+            $options['auto_publish'] = 0;
+            update_option('wpdapp_options', $options);
+        }
+        
+        // Update stored version
+        update_option('wpdapp_version', WPDAPP_VERSION);
+    }
+}
+add_action('plugins_loaded', 'wpdapp_version_update', 5); // Priority 5 to run before other init functions
+
+/**
  * Initialize plugin classes on plugins_loaded
  */
 function wpdapp_init() {
