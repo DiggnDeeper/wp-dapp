@@ -8,6 +8,7 @@ A WordPress plugin that seamlessly integrates with the Hive blockchain, allowing
 
 - **Hive Keychain Authentication**: Securely authenticate with your Hive account using the Hive Keychain browser extension (no private keys stored)
 - **Post to Hive**: Publish WordPress posts to the Hive blockchain with a single click
+- **Auto-Publish**: Optionally enable automatic detection of newly published WordPress posts for Hive publishing
 - **Beneficiary Support**: Add beneficiaries to share rewards with other Hive accounts
 - **WordPress Tag Integration**: Automatically converts WordPress categories and tags to Hive tags
 - **Default Tags**: Set default tags to include in all your Hive posts
@@ -34,14 +35,22 @@ A WordPress plugin that seamlessly integrates with the Hive blockchain, allowing
 2. **Configure Hive Account**: Go to Settings > WP-Dapp and enter your Hive username
 3. **Verify Account**: Click the "Verify with Keychain" button to authenticate your account
 4. **Configure Beneficiaries**: (Optional) Set up default beneficiaries to receive a share of post rewards
+5. **Auto-Publish Setting**: (Optional) Enable the Auto-Publish feature in the plugin settings
 
 ## How to Use
 
+### Manual Publishing
 1. **Create/Edit a Post**: Write a post in WordPress as usual
 2. **Publish to WordPress**: Publish or update your post in WordPress
 3. **Publish to Hive**: On the post edit screen, find the "Publish to Hive" meta box and click "Publish to Hive with Keychain"
 4. **Approve Transaction**: Confirm the transaction in the Hive Keychain popup
 5. **View on Hive**: After successful publication, click the "View on Hive" link to see your post on Hive
+
+### Auto-Publishing
+1. **Enable Auto-Publish**: Go to Settings > WP-Dapp and check the "Auto-Publish" option
+2. **Create and Publish Posts**: When you publish a new post in WordPress, it will be automatically marked for Hive publishing
+3. **Complete the Publication**: After publishing in WordPress, you'll see a notification in the post editor. Click the "Publish to Hive" button to complete the process
+4. **Approve Transaction**: Confirm the transaction in the Hive Keychain popup
 
 ## Hive Keychain Integration
 

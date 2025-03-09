@@ -17,6 +17,7 @@ WP-Dapp is a WordPress plugin that enables publishing content to the Hive blockc
 
 * Secure authentication with Hive Keychain (no private keys stored in WordPress)
 * Publish WordPress posts automatically to Hive
+* Auto-Publish feature to streamline the WordPress to Hive publishing workflow
 * Set up default or custom beneficiaries for each post
 * Assign tags to your content
 * Simple, intuitive settings interface
@@ -29,6 +30,13 @@ This plugin integrates with the Hive Keychain browser extension to provide enhan
 * One-click verification of your Hive account
 * Review and approve each publication to Hive with a simple popup
 * No need to enter passwords or keys when publishing
+
+**Auto-Publish Feature:**
+
+* Optionally enable automatic detection of newly published WordPress posts
+* Get notified when a post is ready for Hive publication
+* Streamline your publishing workflow while maintaining secure Keychain authentication
+* Each post maintains a visible indicator when it's ready for Hive publication
 
 == Installation ==
 
@@ -47,11 +55,22 @@ Yes. With Hive Keychain integration, your private keys never leave your browser 
 
 Yes. Each post has publishing options that allow you to control whether it gets published to Hive.
 
+= What is the Auto-Publish feature? =
+
+The Auto-Publish feature automatically marks WordPress posts for Hive publication when they are published. You still need to complete the publishing process with Hive Keychain, but the system will notify you when posts are ready to be published to Hive.
+
 = How do I update the plugin? =
 
 The plugin includes a simple update checker that will notify you when a new version is available on GitHub. Follow the link in the notification to download the latest version.
 
 == Changelog ==
+
+= 0.7.3 =
+* Added: Auto-Publish feature to streamline WordPress to Hive publishing workflow
+* Added: UI indicators for posts ready for Hive publishing
+* Added: Notification system for posts marked for Auto-Publish
+* Improved: Settings page with Auto-Publish option
+* Added: Comprehensive documentation for the Auto-Publish feature
 
 = 0.7.2 =
 * Fixed: Removed WordPress Gutenberg block comments (<!-- wp:paragraph --> etc.) from Hive published content

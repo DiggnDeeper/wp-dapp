@@ -5,6 +5,9 @@ This file documents all notable changes to the WP-Dapp WordPress plugin.
 ## [Unreleased]
 ### Added
 - Multiple failsafe mechanisms for beneficiary management
+- Auto-Publish feature that detects newly published posts and marks them for Hive publication
+- UI indicators for posts ready for Auto-Publish
+- WordPress hooks to detect post status changes for Auto-Publish
 
 ### Changed
 - Complete UI overhaul for Hive publishing interface
@@ -29,6 +32,8 @@ This file documents all notable changes to the WP-Dapp WordPress plugin.
 - Updated README with beneficiary UX improvements
 - Updated README with recent bugfix information
 - Updated development roadmap with recent progress
+- Added Auto-Publish feature documentation
+- Created comprehensive USER_GUIDE document
 
 ## [0.7.2] - (Original Version)
 - Plugin as provided by the original author
