@@ -78,16 +78,24 @@ class WP_Dapp_Settings_Page {
             WPDAPP_VERSION
         );
         
-        // Add inline script to ensure auto_publish is unchecked by default (first time setup)
+        // Add inline script to FORCE auto_publish to be unchecked by default
         wp_add_inline_script('wpdapp-keychain-integration', '
             jQuery(document).ready(function($) {
-                // Get current options from database
-                var options = ' . json_encode(get_option('wpdapp_options', [])) . ';
+                // Force the auto_publish checkbox to be unchecked
+                $("#auto_publish").prop("checked", false);
                 
-                // If auto_publish is not explicitly set in options, uncheck it
-                if (typeof options.auto_publish === "undefined") {
-                    $("#auto_publish").prop("checked", false);
-                }
+                // Also update the database option via AJAX
+                $.ajax({
+                    url: ajaxurl,
+                    type: "POST",
+                    data: {
+                        action: "wpdapp_reset_auto_publish",
+                        nonce: "' . wp_create_nonce('wpdapp_reset_auto_publish') . '"
+                    },
+                    success: function(response) {
+                        console.log("Auto-publish option reset successfully");
+                    }
+                });
             });
         ');
     }
@@ -203,7 +211,7 @@ class WP_Dapp_Settings_Page {
             [
                 'field' => 'auto_publish',
                 'type' => 'checkbox',
-                'description' => 'Automatically publish to Hive when a post is published in WordPress.'
+                'description' => '(Opt-in Feature) Automatically mark newly published WordPress posts for Hive publication. Note: This is disabled by default for your safety.'
             ]
         );
         
@@ -349,14 +357,13 @@ class WP_Dapp_Settings_Page {
             case 'checkbox':
                 // Special handling for auto_publish to ensure it's off by default
                 if ($field === 'auto_publish') {
-                    // Explicitly check if the value is 1/true, otherwise it's false
-                    $is_checked = isset($options[$field]) && (int)$options[$field] === 1;
+                    // ALWAYS force it to be unchecked in the UI
                     printf(
                         '<label for="%s"><input type="checkbox" id="%s" name="wpdapp_options[%s]" value="1" %s> %s</label>',
                         esc_attr($field),
                         esc_attr($field),
                         esc_attr($field),
-                        checked(true, $is_checked, false),
+                        '', // Never checked
                         isset($args['label']) ? esc_html($args['label']) : ''
                     );
                 } else {

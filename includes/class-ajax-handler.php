@@ -19,6 +19,7 @@ class WP_Dapp_Ajax_Handler {
         add_action('wp_ajax_wpdapp_verify_posts', [$this, 'ajax_verify_posts']);
         add_action('wp_ajax_wpdapp_prepare_post', [$this, 'ajax_prepare_post']);
         add_action('wp_ajax_wpdapp_update_post_meta', [$this, 'ajax_update_post_meta']);
+        add_action('wp_ajax_wpdapp_reset_auto_publish', [$this, 'ajax_reset_auto_publish']);
     }
 
     /**
@@ -263,6 +264,37 @@ class WP_Dapp_Ajax_Handler {
         
         wp_send_json_success([
             'message' => 'Post meta updated successfully'
+        ]);
+    }
+
+    /**
+     * AJAX handler to reset the auto_publish option.
+     */
+    public function ajax_reset_auto_publish() {
+        // Check nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'wpdapp_reset_auto_publish')) {
+            wp_send_json_error('Security check failed');
+            return;
+        }
+        
+        // Check if user has permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Permission denied');
+            return;
+        }
+        
+        // Get current options
+        $options = get_option('wpdapp_options', []);
+        
+        // Force auto_publish to be 0
+        $options['auto_publish'] = 0;
+        
+        // Update the option
+        update_option('wpdapp_options', $options);
+        
+        // Send success response
+        wp_send_json_success([
+            'message' => 'Auto-publish option reset successfully'
         ]);
     }
 } 

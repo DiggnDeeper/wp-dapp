@@ -73,6 +73,11 @@ add_action('plugins_loaded', 'wpdapp_version_update', 5); // Priority 5 to run b
  * Initialize plugin classes on plugins_loaded
  */
 function wpdapp_init() {
+    // Reset auto_publish option to ensure it's off by default
+    $options = get_option('wpdapp_options', []);
+    $options['auto_publish'] = 0;
+    update_option('wpdapp_options', $options);
+    
     // Initialize classes
     new WP_Dapp_Settings_Page();
     new WP_Dapp_Post_Meta();
