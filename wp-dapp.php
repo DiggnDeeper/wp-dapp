@@ -2,7 +2,7 @@
 /**
  * Plugin Name: WP-Dapp: Hive Integration
  * Description: A plugin to post content from WordPress to Hive with Keychain support for beneficiaries, tags, and more.
- * Version: 0.7.2
+ * Version: 0.7.3
  * Author: DiggnDeeper
  * Author URI: https://diggndeeper.com
  * License: MIT
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Define plugin constants
 define( 'WPDAPP_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WPDAPP_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'WPDAPP_VERSION', '0.7.2' );
+define( 'WPDAPP_VERSION', '0.7.3' );
 define( 'WPDAPP_REPO_URL', 'https://github.com/DiggnDeeper/wp-dapp' );
 
 /**
