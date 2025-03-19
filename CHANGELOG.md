@@ -11,6 +11,7 @@ This file documents all notable changes to the WP-Dapp WordPress plugin.
 - Fixed Auto-Publish checkbox defaulting to enabled in settings
 - Implemented multiple safeguards to ensure Auto-Publish is always disabled by default
 - Updated documentation to clarify Auto-Publish is an opt-in feature
+- Fixed default beneficiary account to use correct username (diggndeeper.com)
 
 ### Documentation
 
