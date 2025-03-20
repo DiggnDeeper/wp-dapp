@@ -32,6 +32,10 @@ WP-Dapp is a WordPress plugin that integrates with the Hive blockchain, allowing
 - [ ] Add Hive post preview functionality
 - [ ] Create post status indicators in post list
 - [x] Implement Hive account connection verification
+- [ ] Add post update functionality with version tracking
+  - [ ] UI controls for choosing between update and new post modes
+  - [ ] Version history tracking for updated posts
+  - [ ] Visual indicators for updated posts in WordPress admin
 - [ ] Add statistics for published posts (views, earnings, etc.)
 - [ ] Implement Markdown conversion options for better Hive formatting
 - [x] Enhance beneficiary management UI with better visual feedback
