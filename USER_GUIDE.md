@@ -21,6 +21,7 @@ Before you begin, make sure you have:
 - A WordPress website with administrator access
 - A Hive account (if you don't have one, create one at [HiveOnboard](https://hiveonboard.com/))
 - The [Hive Keychain browser extension](https://hive-keychain.com/) installed
+- (Optional) A test account (e.g., dapp-tesing) for testing the plugin's functionality
 
 ### Installation
 

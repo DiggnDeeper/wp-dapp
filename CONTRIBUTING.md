@@ -31,7 +31,7 @@ Please be respectful, inclusive, and considerate to other contributors. We aim t
 ### Prerequisites
 - WordPress development environment
 - PHP 7.2+
-- Hive test account (for testing)
+- Hive test account (e.g., dapp-tesing for testing)
 
 ### Setting Up Development Environment
 1. Install a local WordPress development environment (like LocalWP, XAMPP, or Docker)

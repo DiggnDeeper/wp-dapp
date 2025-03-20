@@ -14,6 +14,9 @@ This file documents all notable changes to the WP-Dapp WordPress plugin.
 - Fixed default beneficiary account to use correct username (diggndeeper.com)
 
 ### Documentation
+- Updated documentation to include test account information (dapp-tesing)
+- Updated documentation to clarify Auto-Publish is an opt-in feature
+- Fixed default beneficiary account to use correct username (diggndeeper.com)
 
 ## [0.7.3] - 2024-03-08
 ### Added
