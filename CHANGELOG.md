@@ -12,6 +12,7 @@ This file documents all notable changes to the WP-Dapp WordPress plugin.
 - Implemented multiple safeguards to ensure Auto-Publish is always disabled by default
 - Updated documentation to clarify Auto-Publish is an opt-in feature
 - Fixed default beneficiary account to use correct username (diggndeeper.com)
+- Enhanced content formatting to remove WordPress-specific HTML elements, classes, and attributes when publishing to Hive
 
 ### Documentation
 - Updated documentation to include test account information (dapp-tesing)

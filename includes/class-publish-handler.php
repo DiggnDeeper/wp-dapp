@@ -174,6 +174,78 @@ class WP_Dapp_Publish_Handler {
         $content = preg_replace('/<!--\s*wp:.*?(?:-->|\/-->)/s', '', $content); // Opening tags
         $content = preg_replace('/<!--\s*\/wp:.*?(?:-->|\/-->)/s', '', $content); // Closing tags
         
+        // Clean WordPress-specific HTML elements and classes
+        
+        // 1. First pass - Remove WordPress-specific classes, IDs, and styles
+        $content = preg_replace('/\s+class=(["\'])[^"\']*\1/i', '', $content);
+        $content = preg_replace('/\s+id=(["\'])[^"\']*\1/i', '', $content);
+        $content = preg_replace('/\s+style=(["\'])[^"\']*\1/i', '', $content);
+        
+        // 2. Remove data attributes (WordPress blocks use these extensively)
+        $content = preg_replace('/\s+data-[a-z0-9_\-]+=(["\']).+?\1/i', '', $content);
+        
+        // 3. Remove empty div containers (often left after removing classes)
+        $content = preg_replace('/<div[^>]*>\s*<\/div>/is', '', $content);
+        
+        // 4. Replace WordPress wrapper divs with simpler structure
+        // Look for div patterns that are likely WordPress wrappers
+        $content = preg_replace('/<div[^>]*wp-block[^>]*>/i', '', $content);
+        
+        // 5. Simplify HTML structure - replace unnecessary div nesting with basic elements
+        $content = preg_replace('/<div[^>]*>\s*<p/is', '<p', $content);
+        $content = preg_replace('/<\/p>\s*<\/div>/is', '</p>', $content);
+        
+        // 6. Clean up remaining unnecessary divs
+        // First, count all opening and closing divs
+        $open_divs = substr_count(strtolower($content), '<div');
+        $close_divs = substr_count(strtolower($content), '</div>');
+        
+        // If they're balanced and we still have divs, let's convert outermost to semantic content
+        if ($open_divs == $close_divs && $open_divs > 0) {
+            // Replace first div and last /div
+            $content = preg_replace('/<div[^>]*>/i', '', $content, 1);
+            $content = preg_replace('/<\/div>/i', '', $content, 1);
+        }
+        
+        // 7. Remove any empty paragraphs
+        $content = preg_replace('/<p>\s*<\/p>/i', '', $content);
+        
+        // 8. Final cleanup - remove any remaining WordPress-specific attributes
+        $content = preg_replace('/\s+wp-[a-z0-9_\-]+=["\'][^"\']*["\']/i', '', $content);
+        
+        // 9. Use WordPress's wp_kses function to filter HTML to only allowed elements
+        // This helps create clean, minimal HTML suitable for Hive
+        $allowed_html = array(
+            'a' => array(
+                'href' => array(),
+                'title' => array(),
+                'rel' => array(),
+                'target' => array(),
+            ),
+            'p' => array(),
+            'br' => array(),
+            'em' => array(),
+            'strong' => array(),
+            'ul' => array(),
+            'ol' => array(),
+            'li' => array(),
+            'h1' => array(),
+            'h2' => array(),
+            'h3' => array(),
+            'h4' => array(),
+            'h5' => array(),
+            'h6' => array(),
+            'blockquote' => array(),
+            'img' => array(
+                'src' => array(),
+                'alt' => array(),
+                'title' => array(),
+            ),
+            'hr' => array(),
+        );
+        
+        $content = wp_kses($content, $allowed_html);
+        
         // Process images if needed
         $content = $this->process_images($content);
         
