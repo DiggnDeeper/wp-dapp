@@ -163,7 +163,13 @@ jQuery(document).ready(function($) {
                                 }
                             });
                         } else {
-                            $status.html('<span class="wpdapp-status-error">Keychain Error: ' + response.message + '</span>');
+                            // Prefer detailed error when available and avoid redundant prefixes
+                            let raw = (response && (response.error && (response.error.message || response.error))) || response.message || 'Transaction failed';
+                            raw = String(raw).replace(/^Error:\s*/i, '');
+                            if (/once every 5 minutes/i.test(raw)) {
+                                raw = 'You may only post once every 5 minutes. Please wait and try again.';
+                            }
+                            $status.html('<span class="wpdapp-status-error">' + raw + '</span>');
                             $button.prop('disabled', false).removeClass('loading');
                         }
                     }
