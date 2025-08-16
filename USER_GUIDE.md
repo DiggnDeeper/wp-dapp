@@ -6,7 +6,7 @@ This comprehensive guide will help you get the most out of the WP-Dapp plugin, w
 
 1. [Getting Started](#getting-started)
 2. [Publishing to Hive](#publishing-to-hive)
-3. [Publishing to Hive](#publishing-to-hive)
+3. [Comment Sync](#comment-sync)
 4. [Beneficiaries System](#beneficiaries-system)
 5. [Tag System](#tag-system)
 6. [Advanced Settings](#advanced-settings)
@@ -70,6 +70,23 @@ WordPress Publish is separate from Hive publish. After you publish a post in Wor
 3. Click "Publish to Hive"
 4. Approve the transaction in Hive Keychain
 5. Use the provided link to view the post on Hive
+
+## Comment Sync
+
+WP-Dapp can import Hive replies as native WordPress comments.
+
+### Enable Comment Sync
+
+1. Go to Settings > WP-Dapp
+2. In the "Comment Sync" section, enable "Enable Comment Sync"
+3. (Optional) Enable "Auto-approve Imported Comments" to approve synced comments automatically
+
+### Syncing Comments for a Post
+
+1. Open a WordPress post that has been published to Hive
+2. In the "Publish to Hive" meta box, click "Sync Comments"
+3. The plugin will fetch replies from Hive and insert them as WordPress comments, preserving threading where possible
+4. The sync status shows how many were imported or skipped (already present)
 
 ## Beneficiaries System
 

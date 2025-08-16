@@ -200,7 +200,11 @@ class WP_Dapp_Post_Meta {
                     <button type="button" id="wpdapp-publish-button" class="button button-primary">
                         <span class="dashicons dashicons-share-alt2"></span> Publish to Hive
                     </button>
+                    <button type="button" id="wpdapp-sync-comments-button" class="button">
+                        <span class="dashicons dashicons-update"></span> Sync Comments
+                    </button>
                     <div id="wpdapp-publish-status"></div>
+                    <div id="wpdapp-sync-status"></div>
                 </div>
                 
                 <?php wp_nonce_field('wpdapp_post_meta', 'wpdapp_nonce'); ?>

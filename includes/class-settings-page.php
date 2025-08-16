@@ -184,6 +184,32 @@ class WP_Dapp_Settings_Page {
                 'description' => 'Comma-separated list of default tags to use when none are specified.'
             ]
         );
+
+        // Comment Sync Section
+        add_settings_section(
+            'wpdapp_comment_sync_section',
+            'Comment Sync',
+            [$this, 'comment_sync_section_callback'],
+            'wpdapp-settings'
+        );
+
+        add_settings_field(
+            'enable_comment_sync',
+            'Enable Comment Sync',
+            [$this, 'render_field'],
+            'wpdapp-settings',
+            'wpdapp_comment_sync_section',
+            ['field' => 'enable_comment_sync', 'type' => 'checkbox', 'label' => 'Import Hive replies into WordPress comments']
+        );
+
+        add_settings_field(
+            'auto_approve_comments',
+            'Auto‑approve Imported Comments',
+            [$this, 'render_field'],
+            'wpdapp-settings',
+            'wpdapp_comment_sync_section',
+            ['field' => 'auto_approve_comments', 'type' => 'checkbox', 'label' => 'Mark imported comments as approved']
+        );
         
         // Advanced Settings Section
         add_settings_section(
@@ -229,6 +255,10 @@ class WP_Dapp_Settings_Page {
         
         // Publishing settings
         $sanitized['default_tags'] = sanitize_text_field($options['default_tags']);
+
+        // Comment sync settings
+        $sanitized['enable_comment_sync'] = isset($options['enable_comment_sync']) ? 1 : 0;
+        $sanitized['auto_approve_comments'] = isset($options['auto_approve_comments']) ? 1 : 0;
         
         // Advanced settings
         $sanitized['hive_api_node'] = sanitize_text_field($options['hive_api_node']);
@@ -261,6 +291,15 @@ class WP_Dapp_Settings_Page {
     public function post_section_callback() {
         echo '<div class="wpdapp-settings-section-description">';
         echo '<p>Configure post settings for your Hive posts.</p>';
+        echo '</div>';
+    }
+
+    /**
+     * Print the Comment Sync Section text.
+     */
+    public function comment_sync_section_callback() {
+        echo '<div class="wpdapp-settings-section-description">';
+        echo '<p>Import replies from Hive as WordPress comments. Use the post editor action to sync on demand.</p>';
         echo '</div>';
     }
     

@@ -14,6 +14,14 @@ class WP_Dapp_Hive_API {
         
         // Get account name
         $this->account = ! empty( $options['hive_account'] ) ? sanitize_text_field($options['hive_account']) : '';
+
+        // Allow custom API endpoint if configured
+        if ( ! empty( $options['hive_api_node'] ) ) {
+            $custom_node = trim( $options['hive_api_node'] );
+            if ( filter_var( $custom_node, FILTER_VALIDATE_URL ) ) {
+                $this->api_endpoint = $custom_node;
+            }
+        }
     }
 
     /**
@@ -168,6 +176,136 @@ class WP_Dapp_Hive_API {
         
         // Add date to make permlink unique
         return $permlink . '-' . date('Ymd');
+    }
+
+    /**
+     * Perform a JSON-RPC call to the configured Hive API endpoint
+     *
+     * @param string $method
+     * @param array $params
+     * @return array|WP_Error
+     */
+    private function rpc_call( $method, $params ) {
+        $request_data = [
+            'jsonrpc' => '2.0',
+            'method' => $method,
+            'params' => $params,
+            'id' => 1
+        ];
+
+        $response = wp_remote_post( $this->api_endpoint, [
+            'body' => wp_json_encode( $request_data ),
+            'headers' => [ 'Content-Type' => 'application/json' ],
+            'timeout' => 20
+        ] );
+
+        if ( is_wp_error( $response ) ) {
+            return $response;
+        }
+
+        $body = json_decode( wp_remote_retrieve_body( $response ), true );
+
+        if ( isset( $body['error'] ) ) {
+            $message = is_array( $body['error'] ) && isset( $body['error']['message'] ) ? $body['error']['message'] : 'Hive API error';
+            return new WP_Error( 'hive_api_error', $message );
+        }
+
+        return isset( $body['result'] ) ? $body['result'] : [];
+    }
+
+    /**
+     * Get a single post or comment content by author/permlink
+     *
+     * @param string $author
+     * @param string $permlink
+     * @return array|WP_Error
+     */
+    public function get_content( $author, $permlink ) {
+        if ( empty( $author ) || empty( $permlink ) ) {
+            return new WP_Error( 'invalid_parameters', 'Author and permlink are required.' );
+        }
+        $result = $this->rpc_call( 'condenser_api.get_content', [ $author, $permlink ] );
+        return $result;
+    }
+
+    /**
+     * Get direct replies to a post or comment
+     *
+     * @param string $author
+     * @param string $permlink
+     * @return array|WP_Error
+     */
+    public function get_content_replies( $author, $permlink ) {
+        if ( empty( $author ) || empty( $permlink ) ) {
+            return new WP_Error( 'invalid_parameters', 'Author and permlink are required.' );
+        }
+        $result = $this->rpc_call( 'condenser_api.get_content_replies', [ $author, $permlink ] );
+        return $result;
+    }
+
+    /**
+     * Recursively fetch all replies for a given (author, permlink) thread
+     * Returns a flat array of replies with parent info preserved
+     *
+     * @param string $author
+     * @param string $permlink
+     * @param int $max_depth Safety cap for recursion depth (0 = unlimited)
+     * @param int $max_comments Safety cap for total comments
+     * @return array|WP_Error
+     */
+    public function get_all_replies( $author, $permlink, $max_depth = 0, $max_comments = 2000 ) {
+        $queue = [ [ 'author' => $author, 'permlink' => $permlink, 'depth' => 0 ] ];
+        $collected = [];
+        $visitedParents = [];
+
+        while ( ! empty( $queue ) ) {
+            $parent = array_shift( $queue );
+            $parentKey = strtolower( $parent['author'] . '/' . $parent['permlink'] );
+            if ( isset( $visitedParents[ $parentKey ] ) ) {
+                continue;
+            }
+            $visitedParents[ $parentKey ] = true;
+
+            $replies = $this->get_content_replies( $parent['author'], $parent['permlink'] );
+            if ( is_wp_error( $replies ) ) {
+                return $replies;
+            }
+
+            foreach ( $replies as $reply ) {
+                // Normalize some fields
+                $reply['author'] = isset( $reply['author'] ) ? $reply['author'] : '';
+                $reply['permlink'] = isset( $reply['permlink'] ) ? $reply['permlink'] : '';
+                $reply['parent_author'] = isset( $reply['parent_author'] ) ? $reply['parent_author'] : '';
+                $reply['parent_permlink'] = isset( $reply['parent_permlink'] ) ? $reply['parent_permlink'] : '';
+                $reply['created'] = isset( $reply['created'] ) ? $reply['created'] : gmdate( 'Y-m-d H:i:s' );
+                $reply['children'] = isset( $reply['children'] ) ? intval( $reply['children'] ) : 0;
+
+                $collected[] = $reply;
+
+                if ( count( $collected ) >= $max_comments ) {
+                    break 2; // Stop if we hit max comment cap
+                }
+
+                $nextDepth = $parent['depth'] + 1;
+                if ( $reply['children'] > 0 && ( $max_depth === 0 || $nextDepth < $max_depth ) ) {
+                    $queue[] = [
+                        'author' => $reply['author'],
+                        'permlink' => $reply['permlink'],
+                        'depth' => $nextDepth,
+                    ];
+                }
+            }
+        }
+
+        // Sort by created ascending for stable insertion order
+        usort( $collected, function( $a, $b ) {
+            $t1 = strtotime( isset( $a['created'] ) ? $a['created'] : 'now' );
+            $t2 = strtotime( isset( $b['created'] ) ? $b['created'] : 'now' );
+            if ( $t1 === $t2 ) { return 0; }
+            return ( $t1 < $t2 ) ? -1 : 1;
+        } );
+
+        return $collected;
     }
 }
 

@@ -181,4 +181,38 @@ jQuery(document).ready(function($) {
             }
         });
     });
+
+    // Handle Sync Comments button click
+    $('#wpdapp-sync-comments-button').on('click', function(e) {
+        e.preventDefault();
+        const $button = $(this);
+        const $status = $('#wpdapp-sync-status');
+
+        $button.prop('disabled', true).addClass('loading');
+        $status.html('<span class="wpdapp-status-pending">Syncing comments from Hive...</span>');
+
+        $.ajax({
+            url: wpdapp_publish.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'wpdapp_sync_comments',
+                nonce: wpdapp_publish.nonce,
+                post_id: wpdapp_publish.post_id
+            },
+            success: function(response) {
+                if (response && response.success) {
+                    const d = response.data || {};
+                    $status.html('<span class="wpdapp-status-ok">Imported: ' + (d.imported || 0) + ', Skipped: ' + (d.skipped || 0) + ', Total on Hive: ' + (d.total_hive || 0) + '</span>');
+                } else {
+                    $status.html('<span class="wpdapp-status-error">' + (response && response.data ? response.data : 'Failed to sync comments') + '</span>');
+                }
+            },
+            error: function() {
+                $status.html('<span class="wpdapp-status-error">Server error while syncing comments</span>');
+            },
+            complete: function() {
+                $button.prop('disabled', false).removeClass('loading');
+            }
+        });
+    });
 }); 
