@@ -44,6 +44,7 @@ wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-publish-handler.php');
 wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-settings-page.php');
 wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-post-meta.php');
 wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-ajax-handler.php');
+wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-comment-sync.php');
 wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-update-checker.php');
 
 /**
@@ -72,6 +73,10 @@ function wpdapp_init() {
     new WP_Dapp_Post_Meta();
     new WP_Dapp_Publish_Handler();
     new WP_Dapp_Ajax_Handler();
+    // Initialize comment sync (registers cron schedule and hook)
+    if (class_exists('WP_Dapp_Comment_Sync')) {
+        new WP_Dapp_Comment_Sync();
+    }
     
     // Initialize update checker if available
     if (class_exists('WP_Dapp_Update_Checker')) {
@@ -91,6 +96,8 @@ function wpdapp_activate() {
         'default_beneficiary_account' => 'diggndeeper.com',
         'default_beneficiary_weight' => '100', // 1%
         'default_tags' => 'blog,wordpress',
+        'enable_comment_sync' => 0,
+        'auto_approve_comments' => 0,
     ];
     
     // Only set options if they don't exist
@@ -100,6 +107,19 @@ function wpdapp_activate() {
     
     // Clear any transients
     delete_transient('wpdapp_update_check');
+
+    // Ensure our cron schedule exists before scheduling the event
+    if (class_exists('WP_Dapp_Comment_Sync')) {
+        new WP_Dapp_Comment_Sync();
+    }
+
+    // Schedule recurring comment sync if not already scheduled
+    if (!wp_next_scheduled('wpdapp_sync_hive_comments_event')) {
+        // Default to our 15-minute schedule; if unavailable, fallback to hourly
+        $schedules = wp_get_schedules();
+        $recurrence = isset($schedules['wpdapp_every_15_minutes']) ? 'wpdapp_every_15_minutes' : 'hourly';
+        wp_schedule_event(time() + 5 * 60, $recurrence, 'wpdapp_sync_hive_comments_event');
+    }
 }
 register_activation_hook(__FILE__, 'wpdapp_activate');
 
@@ -109,6 +129,8 @@ register_activation_hook(__FILE__, 'wpdapp_activate');
 function wpdapp_deactivate() {
     // Clean up transients
     delete_transient('wpdapp_update_check');
+    // Clear scheduled comment sync
+    wp_clear_scheduled_hook('wpdapp_sync_hive_comments_event');
 }
 register_deactivation_hook(__FILE__, 'wpdapp_deactivate');
 

@@ -338,92 +338,18 @@ class WP_Dapp_Ajax_Handler {
             wp_send_json_error('This post has not been published to Hive');
         }
 
-        $hive_api = new WP_Dapp_Hive_API();
-        $replies = $hive_api->get_all_replies($hive_author, $hive_permlink, 0, 2000);
-        if (is_wp_error($replies)) {
-            wp_send_json_error($replies->get_error_message());
+        // Delegate to reusable comment sync service
+        if (!class_exists('WP_Dapp_Comment_Sync')) {
+            wp_send_json_error('Comment sync service not available');
         }
 
-        $imported = 0;
-        $skipped = 0;
-        $map_hive_to_wp = [];
-
-        // Build an index of existing Hive comment IDs to avoid duplicates
-        // We use comment meta key _wpdapp_hive_comment_key = author/permlink
-        $existing_index = [];
-        $existing = get_comments([
-            'post_id' => $post_id,
-            'status' => 'all',
-            'meta_key' => '_wpdapp_hive_comment_key',
-            'number' => 0,
-        ]);
-        if (!empty($existing)) {
-            foreach ($existing as $c) {
-                $key = get_comment_meta($c->comment_ID, '_wpdapp_hive_comment_key', true);
-                if (!empty($key)) {
-                    $existing_index[strtolower($key)] = intval($c->comment_ID);
-                }
-            }
+        $service = new WP_Dapp_Comment_Sync();
+        $result = $service->sync_post_comments($post_id, $auto_approve);
+        if (is_wp_error($result)) {
+            wp_send_json_error($result->get_error_message());
         }
 
-        foreach ($replies as $reply) {
-            $key = strtolower($reply['author'] . '/' . $reply['permlink']);
-            if (isset($existing_index[$key])) {
-                $skipped++;
-                $map_hive_to_wp[$key] = $existing_index[$key];
-                continue;
-            }
-
-            // Determine parent comment ID if any
-            $parent_id = 0;
-            $parent_key = '';
-            if (!empty($reply['parent_author']) && !empty($reply['parent_permlink'])) {
-                $parent_key = strtolower($reply['parent_author'] . '/' . $reply['parent_permlink']);
-                if (isset($existing_index[$parent_key])) {
-                    $parent_id = $existing_index[$parent_key];
-                } elseif (isset($map_hive_to_wp[$parent_key])) {
-                    $parent_id = $map_hive_to_wp[$parent_key];
-                }
-            }
-
-            // Prepare comment data
-            $comment_content = isset($reply['body']) ? wp_kses_post($reply['body']) : '';
-            $comment_date_gmt = isset($reply['created']) ? gmdate('Y-m-d H:i:s', strtotime($reply['created'])) : gmdate('Y-m-d H:i:s');
-
-            $comment_data = [
-                'comment_post_ID' => $post_id,
-                'comment_author' => $reply['author'],
-                'comment_author_email' => '',
-                'comment_author_url' => 'https://hive.blog/@' . $reply['author'],
-                'comment_content' => $comment_content,
-                'comment_type' => '',
-                'comment_parent' => $parent_id,
-                'user_id' => 0,
-                'comment_date_gmt' => $comment_date_gmt,
-                'comment_approved' => $auto_approve ? 1 : 0,
-            ];
-
-            $new_id = wp_insert_comment($comment_data);
-            if (is_wp_error($new_id) || !$new_id) {
-                $skipped++;
-                continue;
-            }
-
-            // Store mapping meta
-            add_comment_meta($new_id, '_wpdapp_hive_comment_key', $key, true);
-            if (!empty($parent_key)) {
-                add_comment_meta($new_id, '_wpdapp_hive_parent_key', $parent_key, true);
-            }
-
-            $imported++;
-            $map_hive_to_wp[$key] = intval($new_id);
-        }
-
-        wp_send_json_success([
-            'imported' => $imported,
-            'skipped' => $skipped,
-            'total_hive' => is_array($replies) ? count($replies) : 0,
-        ]);
+        wp_send_json_success($result);
     }
 
     // Legacy endpoint removed.
