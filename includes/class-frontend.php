@@ -54,9 +54,10 @@ class WP_Dapp_Frontend {
             return '';
         }
 
+        $status = !empty($options['hive_only_mode']) ? 'all' : 'approve';
         $comments = get_comments([
             'post_id'  => $post_id,
-            'status'   => 'approve',
+            'status'   => $status,
             'meta_key' => '_wpdapp_hive_comment_key',
             'number'   => 0,
             'orderby'  => 'comment_date_gmt',
