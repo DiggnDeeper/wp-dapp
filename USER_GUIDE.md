@@ -6,7 +6,7 @@ This comprehensive guide will help you get the most out of the WP-Dapp plugin, w
 
 1. [Getting Started](#getting-started)
 2. [Publishing to Hive](#publishing-to-hive)
-3. [Auto-Publish Feature](#auto-publish-feature)
+3. [Publishing to Hive](#publishing-to-hive)
 4. [Beneficiaries System](#beneficiaries-system)
 5. [Tag System](#tag-system)
 6. [Advanced Settings](#advanced-settings)
@@ -61,41 +61,15 @@ Once a post is published to Hive, the meta box will update to show:
 - The Hive author account used
 - A link to view the post on Hive
 
-## Auto-Publish Feature
+## Publishing to Hive
 
-The Auto-Publish feature streamlines the workflow of publishing from WordPress to Hive by automatically marking posts for Hive publication when they are published on WordPress.
+WordPress Publish is separate from Hive publish. After you publish a post in WordPress:
 
-### Enabling Auto-Publish
-
-Auto-Publish is **intentionally disabled by default** for security reasons. To enable it:
-
-1. Go to Settings > WP-Dapp
-2. Find the "Auto-Publish" option under "Post Settings"
-3. Check the box to enable Auto-Publish
-4. Click "Save Changes"
-
-### Why Auto-Publish is Disabled by Default
-
-The Auto-Publish feature is designed as an opt-in feature for several important reasons:
-
-1. **Security**: We believe users should explicitly choose to enable automatic workflows
-2. **Control**: Content creators may want to decide on a post-by-post basis what gets published to Hive
-3. **Awareness**: Users should be fully aware of which content is being prepared for blockchain publication
-
-### How Auto-Publish Works
-
-1. When Auto-Publish is enabled, any new post you publish in WordPress will be automatically marked for Hive publication
-2. After publishing a post in WordPress, you'll see a notification in the post editor indicating the post is ready for Hive publication
-3. The "Publish to Hive" meta box will also show a "Ready for Auto-Publish" indicator
-4. You'll still need to click the "Publish to Hive" button and approve the transaction with Hive Keychain
-   - This step is required because Hive Keychain requires manual approval for security reasons
-
-### Auto-Publish Notifications
-
-When a post is marked for Auto-Publish, you'll see:
-1. A notice at the top of the post editor
-2. An indicator in the "Publish to Hive" meta box
-3. Both notifications will remain until you complete the publishing process or disable Auto-Publish
+1. Open the "Publish to Hive" box in the editor sidebar
+2. Optionally add beneficiaries
+3. Click "Publish to Hive"
+4. Approve the transaction in Hive Keychain
+5. Use the provided link to view the post on Hive
 
 ## Beneficiaries System
 
@@ -212,16 +186,14 @@ For advanced users who want to use a specific Hive API node:
 5. Try again after a few minutes
 6. Check that your Hive account has enough Resource Credits
 
-### Auto-Publish Not Working
+### Common issues
 
-**Problem**: Posts aren't being marked for Auto-Publish.
+**Problem**: Hive Keychain not detected
 
 **Solutions**:
-1. Verify that Auto-Publish is enabled in Settings > WP-Dapp
-2. Make sure you're publishing new posts (editing already-published posts won't trigger Auto-Publish)
-3. Check that your Hive account is properly configured
-4. Try deactivating and reactivating the plugin
-5. Check for plugin conflicts by temporarily disabling other plugins
+1. Install or unlock Hive Keychain
+2. Refresh the editor
+3. Try a supported browser (Chrome, Firefox, Brave, Edge)
 
 ## Support & Resources
 
