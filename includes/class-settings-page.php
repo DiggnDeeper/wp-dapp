@@ -210,6 +210,15 @@ class WP_Dapp_Settings_Page {
             'wpdapp_comment_sync_section',
             ['field' => 'auto_approve_comments', 'type' => 'checkbox', 'label' => 'Mark imported comments as approved']
         );
+
+        add_settings_field(
+            'hive_only_mode',
+            'Hive‑only Mode',
+            [$this, 'render_field'],
+            'wpdapp-settings',
+            'wpdapp_comment_sync_section',
+            ['field' => 'hive_only_mode', 'type' => 'checkbox', 'label' => 'Hide WP comment form and show Hive replies with a "Reply on Hive" link']
+        );
         
         // Advanced Settings Section
         add_settings_section(
@@ -259,6 +268,7 @@ class WP_Dapp_Settings_Page {
         // Comment sync settings
         $sanitized['enable_comment_sync'] = isset($options['enable_comment_sync']) ? 1 : 0;
         $sanitized['auto_approve_comments'] = isset($options['auto_approve_comments']) ? 1 : 0;
+        $sanitized['hive_only_mode'] = isset($options['hive_only_mode']) ? 1 : 0;
         
         // Advanced settings
         $sanitized['hive_api_node'] = sanitize_text_field($options['hive_api_node']);

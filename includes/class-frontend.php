@@ -12,6 +12,8 @@ class WP_Dapp_Frontend {
         add_action('wp_enqueue_scripts', [$this, 'enqueue_assets']);
         add_shortcode('wpdapp_hive_comments', [$this, 'render_hive_comments_shortcode']);
         add_filter('the_content', [$this, 'append_notice_when_comments_closed']);
+        add_filter('comments_open', [$this, 'maybe_force_comments_closed'], 20, 2);
+        add_filter('comments_template', [$this, 'maybe_replace_comments_template'], 20);
     }
 
     public function enqueue_assets() {
@@ -162,6 +164,48 @@ class WP_Dapp_Frontend {
                 . '</span>';
         $notice .= '</div>';
         return $content . $notice;
+    }
+
+    /**
+     * If Hive-only mode is enabled, force comments_open() to false on singular posts.
+     */
+    public function maybe_force_comments_closed($open, $post_id) {
+        $options = get_option('wpdapp_options', []);
+        if (empty($options['hive_only_mode'])) {
+            return $open;
+        }
+        if (is_admin()) {
+            return $open;
+        }
+        $post = get_post($post_id);
+        if ($post && $post->post_type === 'post') {
+            return false;
+        }
+        return $open;
+    }
+
+    /**
+     * If Hive-only mode is enabled on single posts, append our Hive comments block after the content area
+     * by injecting it through the comments template filter when comments are closed.
+     */
+    public function maybe_replace_comments_template($template) {
+        $options = get_option('wpdapp_options', []);
+        if (empty($options['hive_only_mode'])) {
+            return $template;
+        }
+        if (!is_singular('post')) {
+            return $template;
+        }
+        global $post;
+        if (!$post) {
+            return $template;
+        }
+        // Always output our Hive comments block under the content area
+        add_filter('the_content', function($content) use ($post) {
+            $shortcode = '[wpdapp_hive_comments post_id="' . intval($post->ID) . '"]';
+            return $content . do_shortcode($shortcode);
+        }, 99);
+        return $template;
     }
 }
 
