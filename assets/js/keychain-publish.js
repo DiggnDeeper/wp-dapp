@@ -86,8 +86,8 @@ jQuery(document).ready(function($) {
                         body: postData.body,
                         json_metadata: JSON.stringify({
                             tags: postData.tags,
-                            app: 'wp-dapp/0.7.2',
-                            format: 'markdown',
+                            app: 'wp-dapp/0.7.3',
+                            format: 'html',
                             description: postData.excerpt,
                             image: postData.image || []
                         })

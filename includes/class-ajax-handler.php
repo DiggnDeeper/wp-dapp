@@ -162,15 +162,53 @@ class WP_Dapp_Ajax_Handler {
             wp_send_json_error('Post not found');
         }
         
-        // Get post meta
+        // Build tags from categories, tags, and default settings
         $tags = [];
-        $post_tags = wp_get_post_tags($post_id);
         
-        if (!empty($post_tags)) {
-            foreach ($post_tags as $tag) {
-                $tags[] = $tag->name;
+        // WordPress categories
+        $categories = get_the_category($post_id);
+        if (!empty($categories) && !is_wp_error($categories)) {
+            foreach ($categories as $cat) {
+                if (!empty($cat->slug)) {
+                    $tags[] = $cat->slug;
+                } else if (!empty($cat->name)) {
+                    $tags[] = sanitize_title($cat->name);
+                }
             }
         }
+        
+        // WordPress tags
+        $post_tags = wp_get_post_tags($post_id);
+        if (!empty($post_tags)) {
+            foreach ($post_tags as $tag) {
+                $tags[] = sanitize_title($tag->name);
+            }
+        }
+        
+        // Default tags from settings
+        $options = get_option('wpdapp_options', []);
+        if (!empty($options['default_tags'])) {
+            $defaults = array_map('trim', explode(',', $options['default_tags']));
+            foreach ($defaults as $def) {
+                if (!empty($def)) {
+                    $tags[] = sanitize_title($def);
+                }
+            }
+        }
+        
+        // Normalize tags: lowercase, unique, max 5, ensure at least one
+        $tags = array_values(array_unique(array_filter(array_map(function($t){
+            $t = strtolower($t);
+            $t = preg_replace('/[^a-z0-9-]/', '-', $t);
+            $t = preg_replace('/-+/', '-', $t);
+            return trim($t, '-');
+        }, $tags))));
+        
+        if (empty($tags)) {
+            $tags = ['blog'];
+        }
+        
+        $tags = array_slice($tags, 0, 5);
         
         // Get beneficiaries from post meta
         $beneficiaries = get_post_meta($post_id, '_wpdapp_beneficiaries', true);

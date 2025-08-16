@@ -8,19 +8,7 @@ jQuery(document).ready(function($) {
     // Counter for generating new field IDs
     var counter = 1000;
     
-    // Check for Hive Keychain
-    setTimeout(function() {
-        var keychainDetected = typeof window.hive_keychain !== 'undefined';
-        var statusElem = $('#wpdapp-keychain-detection');
-        
-        if (keychainDetected) {
-            statusElem.html('<span class="wpdapp-status-ok"><span class="dashicons dashicons-yes"></span> Hive Keychain detected</span>');
-        } else {
-            statusElem.html('<span class="wpdapp-status-error"><span class="dashicons dashicons-no"></span> Hive Keychain not detected</span><br><small>Please <a href="https://hive-keychain.com/" target="_blank">install Hive Keychain</a> to publish to Hive.</small>');
-            // Disable publish button if Keychain not detected
-            $('#wpdapp-publish-button').attr('disabled', 'disabled').css('opacity', '0.7');
-        }
-    }, 500);
+    // Leave Keychain detection to keychain-publish.js within the meta box context
     
     // Add beneficiary button click handler with error handling
     $(document).on('click', '#wpdapp-add-beneficiary', function(e) {
