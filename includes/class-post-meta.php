@@ -200,7 +200,11 @@ class WP_Dapp_Post_Meta {
                     <button type="button" id="wpdapp-publish-button" class="button button-primary">
                         <span class="dashicons dashicons-share-alt2"></span> Publish to Hive
                     </button>
+                    <button type="button" id="wpdapp-sync-comments-button" class="button">
+                        <span class="dashicons dashicons-update"></span> Sync Comments
+                    </button>
                     <div id="wpdapp-publish-status"></div>
+                    <div id="wpdapp-sync-status"></div>
                 </div>
                 
                 <?php wp_nonce_field('wpdapp_post_meta', 'wpdapp_nonce'); ?>
@@ -231,7 +235,7 @@ class WP_Dapp_Post_Meta {
             </div>
             <?php
         } else {
-            // Show published status
+            // Show published status + sync UI
             ?>
             <div class="wpdapp-published-info">
                 <p>
@@ -246,6 +250,23 @@ class WP_Dapp_Post_Meta {
                     </a>
                 </p>
             </div>
+
+            <div class="wpdapp-publish-actions">
+                <button type="button" id="wpdapp-sync-comments-button" class="button">
+                    <span class="dashicons dashicons-update"></span> Sync Comments
+                </button>
+                <div id="wpdapp-sync-status"></div>
+            </div>
+
+            <script>
+                // Ensure the data object exists for comment sync
+                var wpdapp_publish = {
+                    ajax_url: '<?php echo admin_url('admin-ajax.php'); ?>',
+                    nonce: '<?php echo wp_create_nonce('wpdapp_publish'); ?>',
+                    post_id: <?php echo $post->ID; ?>,
+                    hive_account: '<?php echo esc_js($hive_account); ?>'
+                };
+            </script>
             <?php
         }
     }

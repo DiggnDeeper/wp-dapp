@@ -1,0 +1,19 @@
+/* WP-Dapp front-end styles */
+.wpdapp-hive-comments { margin-top: 2rem; }
+.wpdapp-hive-comments .wpdapp-muted { color: #777; font-size: 0.95em; }
+.wpdapp-hive-comments-footer { margin-top: 0.75rem; }
+
+.wpdapp-comment-list { list-style: none; margin: 0; padding: 0; }
+.wpdapp-comment-list > .wpdapp-comment { margin: 1.2rem 0; }
+.wpdapp-comment-body { padding: 0.75rem 0; border-top: 1px solid rgba(127,127,127,0.2); }
+.wpdapp-comment-meta { color: #aaa; font-size: 0.9em; margin-bottom: 0.25rem; }
+.wpdapp-comment-author { font-weight: 600; color: #ddd; }
+.wpdapp-comment-content p { margin: 0.3rem 0; }
+.wpdapp-comment-actions { margin-top: 0.25rem; }
+.wpdapp-reply-link { font-size: 0.9em; }
+
+.wpdapp-comment-list .wpdapp-comment > .wpdapp-comment-list { margin-left: 1.25rem; border-left: 2px solid rgba(127,127,127,0.2); padding-left: 1rem; }
+
+.wpdapp-hive-comments-notice { margin-top: 1rem; padding: 0.75rem 1rem; background: rgba(127,127,127,0.08); border-left: 3px solid #888; }
+.wpdapp-hive-comments-notice .wpdapp-muted { color: #aaa; }
+

@@ -19,6 +19,7 @@ class WP_Dapp_Ajax_Handler {
         add_action('wp_ajax_wpdapp_verify_posts', [$this, 'ajax_verify_posts']);
         add_action('wp_ajax_wpdapp_prepare_post', [$this, 'ajax_prepare_post']);
         add_action('wp_ajax_wpdapp_update_post_meta', [$this, 'ajax_update_post_meta']);
+        add_action('wp_ajax_wpdapp_sync_comments', [$this, 'ajax_sync_comments']);
         // Legacy: reset auto_publish was used in previous versions; action removed.
     }
 
@@ -302,6 +303,53 @@ class WP_Dapp_Ajax_Handler {
         wp_send_json_success([
             'message' => 'Post meta updated successfully'
         ]);
+    }
+
+    /**
+     * AJAX handler to sync Hive comments into WordPress comments for a given post.
+     */
+    public function ajax_sync_comments() {
+        // Check nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'wpdapp_publish')) {
+            wp_send_json_error('Invalid security token');
+        }
+
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        if (!$post_id) {
+            wp_send_json_error('Invalid post ID');
+        }
+
+        if (!current_user_can('edit_post', $post_id)) {
+            wp_send_json_error('Permission denied');
+        }
+
+        // Option check: ensure comment sync is enabled
+        $options = get_option('wpdapp_options', []);
+        $comment_sync_enabled = !empty($options['enable_comment_sync']);
+        if (!$comment_sync_enabled) {
+            wp_send_json_error('Comment sync is disabled in WP-Dapp settings');
+        }
+        $auto_approve = !empty($options['auto_approve_comments']);
+
+        // Ensure this post has Hive mapping
+        $hive_author = get_post_meta($post_id, '_wpdapp_hive_author', true);
+        $hive_permlink = get_post_meta($post_id, '_wpdapp_hive_permlink', true);
+        if (empty($hive_author) || empty($hive_permlink)) {
+            wp_send_json_error('This post has not been published to Hive');
+        }
+
+        // Delegate to reusable comment sync service
+        if (!class_exists('WP_Dapp_Comment_Sync')) {
+            wp_send_json_error('Comment sync service not available');
+        }
+
+        $service = new WP_Dapp_Comment_Sync();
+        $result = $service->sync_post_comments($post_id, $auto_approve);
+        if (is_wp_error($result)) {
+            wp_send_json_error($result->get_error_message());
+        }
+
+        wp_send_json_success($result);
     }
 
     // Legacy endpoint removed.
