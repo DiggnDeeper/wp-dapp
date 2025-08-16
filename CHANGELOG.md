@@ -20,6 +20,15 @@ This file documents all notable changes to the WP-Dapp WordPress plugin.
 - Enhanced content formatting to remove WordPress-specific HTML elements, classes, and attributes when publishing to Hive
 
 ### Documentation
+
+## [0.7.4] - 2025-08-16
+### Changed
+- Removed Auto-Publish feature and UI; clarified WordPress vs Hive as separate steps
+- Simplified Keychain error messages; clearer cooldown text
+- Combined tag sources and normalized to Hive rules; capped at 5
+- Centralized publish logic in meta box script; removed duplication
+- Registered settings sanitization callback
+
 - Updated documentation to include test account information (dapp-tesing)
 - Updated documentation to clarify Auto-Publish is an opt-in feature
 - Fixed default beneficiary account to use correct username (diggndeeper.com)

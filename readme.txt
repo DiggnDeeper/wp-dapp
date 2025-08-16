@@ -3,7 +3,7 @@ Contributors: diggndeeper.com
 Tags: hive, blockchain, publishing, crypto, social
 Requires at least: 5.0
 Tested up to: 6.4
-Stable tag: 0.7.3
+Stable tag: 0.7.4
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
