@@ -45,6 +45,7 @@ wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-settings-page.php');
 wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-post-meta.php');
 wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-ajax-handler.php');
 wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-comment-sync.php');
+wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-frontend.php');
 wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-update-checker.php');
 
 /**
@@ -76,6 +77,10 @@ function wpdapp_init() {
     // Initialize comment sync (registers cron schedule and hook)
     if (class_exists('WP_Dapp_Comment_Sync')) {
         new WP_Dapp_Comment_Sync();
+    }
+    // Initialize front-end helpers (shortcode and notice)
+    if (class_exists('WP_Dapp_Frontend')) {
+        new WP_Dapp_Frontend();
     }
     
     // Initialize update checker if available

@@ -300,6 +300,7 @@ class WP_Dapp_Settings_Page {
     public function comment_sync_section_callback() {
         echo '<div class="wpdapp-settings-section-description">';
         echo '<p>Import replies from Hive as WordPress comments. Use the post editor action to sync on demand.</p>';
+        echo '<p><strong>Note:</strong> WordPress comments can be globally disabled to avoid spam. Imported Hive replies will still display using the <code>[wpdapp_hive_comments]</code> shortcode and a post footer notice will link users to reply on Hive. If you want imported comments to appear in the native WP comments template, ensure comments are enabled for that post and in Settings → Discussion.</p>';
         echo '</div>';
     }
     
