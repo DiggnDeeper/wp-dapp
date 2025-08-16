@@ -185,19 +185,6 @@ class WP_Dapp_Settings_Page {
             ]
         );
         
-        add_settings_field(
-            'auto_publish',
-            'Auto-Publish',
-            [$this, 'render_field'],
-            'wpdapp-settings',
-            'wpdapp_post_section',
-            [
-                'field' => 'auto_publish',
-                'type' => 'checkbox',
-                'description' => '(Opt-in Feature) Automatically mark newly published WordPress posts for Hive publication. Note: This is disabled by default for your safety.'
-            ]
-        );
-        
         // Advanced Settings Section
         add_settings_section(
             'wpdapp_advanced_section',
@@ -242,9 +229,6 @@ class WP_Dapp_Settings_Page {
         
         // Publishing settings
         $sanitized['default_tags'] = sanitize_text_field($options['default_tags']);
-        
-        // Auto-publish: explicitly set to 0 if not checked
-        $sanitized['auto_publish'] = isset($options['auto_publish']) && $options['auto_publish'] ? 1 : 0;
         
         // Advanced settings
         $sanitized['hive_api_node'] = sanitize_text_field($options['hive_api_node']);

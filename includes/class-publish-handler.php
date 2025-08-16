@@ -14,73 +14,10 @@ class WP_Dapp_Publish_Handler {
         // Register hooks for post meta box - DISABLED to prevent duplicate meta boxes
         // add_action('add_meta_boxes', [$this, 'add_hive_publish_meta_box']);
         
-        // Add hook for auto-publishing to Hive when a post is published
-        add_action('transition_post_status', [$this, 'handle_post_status_transition'], 10, 3);
+        // Auto-publish workflow removed: publishing requires explicit Keychain confirmation.
     }
 
-    /**
-     * Handle post status transitions for auto-publishing
-     * 
-     * @param string $new_status The new post status
-     * @param string $old_status The old post status
-     * @param WP_Post $post The post object
-     */
-    public function handle_post_status_transition($new_status, $old_status, $post) {
-        // Only proceed if:
-        // 1. The post is transitioning to 'publish'
-        // 2. It wasn't already published (to prevent re-publishing)
-        // 3. It's a regular post (not a page or custom post type)
-        if ($new_status !== 'publish' || $old_status === 'publish' || $post->post_type !== 'post') {
-            return;
-        }
-        
-        // Check if this post is already published to Hive
-        $hive_published = get_post_meta($post->ID, '_wpdapp_hive_published', true);
-        if ($hive_published) {
-            return;
-        }
-        
-        // Get plugin options
-        $options = get_option('wpdapp_options', []);
-        
-        // Check if auto-publish is enabled
-        if (empty($options['auto_publish'])) {
-            return;
-        }
-        
-        // Check if Hive account is configured
-        if (empty($options['hive_account'])) {
-            // Log error or notify admin that auto-publish is enabled but Hive account is not configured
-            update_post_meta($post->ID, '_wpdapp_hive_error', 'Auto-publish failed: Hive account not configured');
-            return;
-        }
-        
-        // Note: We can't do the actual publishing here since it requires Keychain interaction
-        // Instead, we'll add a notification to alert the user
-        
-        // Add a flag indicating this post is ready for Hive publishing
-        update_post_meta($post->ID, '_wpdapp_auto_publish_ready', 1);
-        
-        // Add an admin notice for this post
-        add_action('admin_notices', function() use ($post) {
-            // Only show on the post edit screen for this specific post
-            $screen = get_current_screen();
-            if (!$screen || $screen->base !== 'post' || $screen->id !== 'post' || 
-                !isset($_GET['post']) || intval($_GET['post']) !== $post->ID) {
-                return;
-            }
-            
-            ?>
-            <div class="notice notice-info is-dismissible">
-                <p>
-                    <strong>WP-Dapp:</strong> 
-                    This post is ready to be published to Hive. 
-                    <a href="#wpdapp_hive_settings">Click here</a> to publish it manually using Hive Keychain.
-                </p>
-            </div>
-            <?php
-        });
-    }
+    // Auto-publish handler removed.
 
     /**
      * Add Hive publish meta box to post editor

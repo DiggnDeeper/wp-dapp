@@ -17,7 +17,7 @@ WP-Dapp is a WordPress plugin that enables publishing content to the Hive blockc
 
 * Secure authentication with Hive Keychain (no private keys stored in WordPress)
 * Publish WordPress posts automatically to Hive
-* Auto-Publish feature to streamline the WordPress to Hive publishing workflow
+* WordPress and Hive publishing are separate steps: use the "Publish to Hive" button after publishing in WordPress
 * Set up default or custom beneficiaries for each post
 * Assign tags to your content
 * Simple, intuitive settings interface
@@ -31,13 +31,11 @@ This plugin integrates with the Hive Keychain browser extension to provide enhan
 * Review and approve each publication to Hive with a simple popup
 * No need to enter passwords or keys when publishing
 
-**Auto-Publish Feature:**
+**How Publishing Works:**
 
-* Optionally enable automatic detection of newly published WordPress posts
-* Intentionally disabled by default (opt-in only) for security and control
-* Get notified when a post is ready for Hive publication
-* Streamline your publishing workflow while maintaining secure Keychain authentication
-* Each post maintains a visible indicator when it's ready for Hive publication
+* Publish in WordPress as usual, then click "Publish to Hive" in the post editor
+* Hive Keychain will prompt you to approve the blockchain transaction
+* No private keys are stored on your server
 
 == Installation ==
 

@@ -57,12 +57,6 @@ function wpdapp_version_update() {
         // Get current options
         $options = get_option('wpdapp_options', []);
         
-        // Ensure auto_publish is explicitly set to 0 by default
-        if (!isset($options['auto_publish'])) {
-            $options['auto_publish'] = 0;
-            update_option('wpdapp_options', $options);
-        }
-        
         // Update stored version
         update_option('wpdapp_version', WPDAPP_VERSION);
     }
@@ -97,7 +91,6 @@ function wpdapp_activate() {
         'default_beneficiary_account' => 'diggndeeper.com',
         'default_beneficiary_weight' => '100', // 1%
         'default_tags' => 'blog,wordpress',
-        'auto_publish' => '0'
     ];
     
     // Only set options if they don't exist
