@@ -54,3 +54,5 @@ Thumbs.db
 *.zip
 *.tar.gz
 *.rar 
+# Local dev
+.cursor/

@@ -9,6 +9,8 @@ A WordPress plugin that seamlessly integrates with the Hive blockchain, allowing
 - **Hive Keychain Authentication**: Securely authenticate with your Hive account using the Hive Keychain browser extension (no private keys stored)
 - **Post to Hive**: Publish WordPress posts to the Hive blockchain with a single click
 - **Auto-Publish**: Optionally enable automatic detection of newly published WordPress posts for Hive publishing (disabled by default for security)
+  
+Note: WordPress Publish is separate from publishing to Hive. Use the "Publish to Hive" button in the post editor to broadcast via Hive Keychain.
 - **Beneficiary Support**: Add beneficiaries to share rewards with other Hive accounts
 - **WordPress Tag Integration**: Automatically converts WordPress categories and tags to Hive tags
 - **Default Tags**: Set default tags to include in all your Hive posts

@@ -6,6 +6,11 @@ This file documents all notable changes to the WP-Dapp WordPress plugin.
 ### Added
 
 ### Changed
+- Combined tag sources (categories, tags, and default tags) with normalization and 5-tag limit for Hive
+*- Registered settings sanitization callback to harden option saving*
+- Updated Keychain json_metadata to app `wp-dapp/0.7.3` and format `html`
+- Removed duplicate Keychain detection/publish logic from admin-script; centralized in meta box script
+- Removed Auto-Publish feature and UI; clarified that WordPress publish is separate from Hive publish
 
 ### Fixed
 - Fixed Auto-Publish checkbox defaulting to enabled in settings

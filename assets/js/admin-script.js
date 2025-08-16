@@ -8,19 +8,7 @@ jQuery(document).ready(function($) {
     // Counter for generating new field IDs
     var counter = 1000;
     
-    // Check for Hive Keychain
-    setTimeout(function() {
-        var keychainDetected = typeof window.hive_keychain !== 'undefined';
-        var statusElem = $('#wpdapp-keychain-detection');
-        
-        if (keychainDetected) {
-            statusElem.html('<span class="wpdapp-status-ok"><span class="dashicons dashicons-yes"></span> Hive Keychain detected</span>');
-        } else {
-            statusElem.html('<span class="wpdapp-status-error"><span class="dashicons dashicons-no"></span> Hive Keychain not detected</span><br><small>Please <a href="https://hive-keychain.com/" target="_blank">install Hive Keychain</a> to publish to Hive.</small>');
-            // Disable publish button if Keychain not detected
-            $('#wpdapp-publish-button').attr('disabled', 'disabled').css('opacity', '0.7');
-        }
-    }, 500);
+    // Leave Keychain detection to keychain-publish.js within the meta box context
     
     // Add beneficiary button click handler with error handling
     $(document).on('click', '#wpdapp-add-beneficiary', function(e) {
@@ -75,132 +63,7 @@ jQuery(document).ready(function($) {
         }
     });
     
-    // Handle Hive publishing with Keychain
-    $(document).on('click', '#wpdapp-publish-button', function() {
-        // Don't proceed if button is disabled
-        if ($(this).attr('disabled')) {
-            return;
-        }
-        
-        var statusElem = $('#wpdapp-publish-status');
-        statusElem.html('<p><span class="dashicons dashicons-update"></span> Preparing post data...</p>');
-        
-        // Disable button while processing
-        $(this).attr('disabled', 'disabled');
-        
-        // Call AJAX to prepare post data
-        $.ajax({
-            type: 'POST',
-            url: wpdapp_publish.ajax_url,
-            data: {
-                action: 'wpdapp_prepare_post',
-                post_id: wpdapp_publish.post_id,
-                nonce: wpdapp_publish.nonce
-            },
-            success: function(response) {
-                if (response.success) {
-                    statusElem.html('<p><span class="dashicons dashicons-update"></span> Publishing to Hive...</p>');
-                    publishToHive(response.data);
-                } else {
-                    handleError(response.data);
-                }
-            },
-            error: function() {
-                handleError('Failed to prepare post data');
-            }
-        });
-    });
-    
-    // Function to publish to Hive using Keychain
-    function publishToHive(data) {
-        if (typeof window.hive_keychain === 'undefined') {
-            handleError('Hive Keychain not detected');
-            return;
-        }
-        
-        // Build operations array
-        var operations = [
-            ['comment', {
-                parent_author: '',
-                parent_permlink: data.parent_permlink,
-                author: wpdapp_publish.hive_account,
-                permlink: data.permlink,
-                title: data.title,
-                body: data.body,
-                json_metadata: data.json_metadata
-            }]
-        ];
-        
-        // Add beneficiaries operation if present
-        if (data.beneficiaries && data.beneficiaries.length > 0) {
-            operations.push(['comment_options', {
-                author: wpdapp_publish.hive_account,
-                permlink: data.permlink,
-                max_accepted_payout: '1000000.000 HBD',
-                percent_hbd: 10000,
-                allow_votes: true,
-                allow_curation_rewards: true,
-                extensions: [
-                    [0, {
-                        beneficiaries: data.beneficiaries
-                    }]
-                ]
-            }]);
-        }
-        
-        // Use Keychain to broadcast operations
-        window.hive_keychain.requestBroadcast(
-            wpdapp_publish.hive_account,
-            operations,
-            'posting',
-            function(response) {
-                if (response.success) {
-                    // Post published successfully, update post meta
-                    updatePostMeta(data.permlink);
-                } else {
-                    handleError('Keychain Error: ' + response.message);
-                }
-            }
-        );
-    }
-    
-    // Function to update post meta after Hive publication
-    function updatePostMeta(permlink) {
-        $.ajax({
-            type: 'POST',
-            url: wpdapp_publish.ajax_url,
-            data: {
-                action: 'wpdapp_update_post_meta',
-                post_id: wpdapp_publish.post_id,
-                hive_author: wpdapp_publish.hive_account,
-                hive_permlink: permlink,
-                nonce: wpdapp_publish.nonce
-            },
-            success: function(response) {
-                if (response.success) {
-                    $('#wpdapp-publish-status').html('<p class="wpdapp-status-ok"><span class="dashicons dashicons-yes"></span> ' + 
-                        'Published to Hive successfully!</p><p><a href="https://hive.blog/@' + 
-                        wpdapp_publish.hive_account + '/' + permlink + '" target="_blank">View on Hive</a></p>');
-                    
-                    // Reload page after short delay to show updated meta box
-                    setTimeout(function() {
-                        window.location.reload();
-                    }, 2000);
-                } else {
-                    handleError('Error updating post meta: ' + response.data);
-                }
-            },
-            error: function() {
-                handleError('Failed to update post meta');
-            }
-        });
-    }
-    
-    // Function to handle errors
-    function handleError(message) {
-        $('#wpdapp-publish-status').html('<p class="wpdapp-status-error"><span class="dashicons dashicons-no"></span> ' + message + '</p>');
-        $('#wpdapp-publish-button').removeAttr('disabled');
-    }
+    // Publish handling has been centralized in keychain-publish.js
     
     // Emergency fallback for clicks - direct DOM approach if all else fails
     document.addEventListener('click', function(e) {

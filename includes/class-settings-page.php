@@ -78,33 +78,16 @@ class WP_Dapp_Settings_Page {
             WPDAPP_VERSION
         );
         
-        // Add inline script to FORCE auto_publish to be unchecked by default
-        wp_add_inline_script('wpdapp-keychain-integration', '
-            jQuery(document).ready(function($) {
-                // Force the auto_publish checkbox to be unchecked
-                $("#auto_publish").prop("checked", false);
-                
-                // Also update the database option via AJAX
-                $.ajax({
-                    url: ajaxurl,
-                    type: "POST",
-                    data: {
-                        action: "wpdapp_reset_auto_publish",
-                        nonce: "' . wp_create_nonce('wpdapp_reset_auto_publish') . '"
-                    },
-                    success: function(response) {
-                        console.log("Auto-publish option reset successfully");
-                    }
-                });
-            });
-        ');
+        // Intentionally do not force auto_publish here; default is handled on install/upgrade.
     }
 
     /**
      * Register and add settings.
      */
     public function register_settings() {
-        register_setting('wpdapp_options_group', 'wpdapp_options');
+        register_setting('wpdapp_options_group', 'wpdapp_options', [
+            'sanitize_callback' => [$this, 'sanitize_options']
+        ]);
         
         // Account Settings Section
         add_settings_section(
@@ -202,19 +185,6 @@ class WP_Dapp_Settings_Page {
             ]
         );
         
-        add_settings_field(
-            'auto_publish',
-            'Auto-Publish',
-            [$this, 'render_field'],
-            'wpdapp-settings',
-            'wpdapp_post_section',
-            [
-                'field' => 'auto_publish',
-                'type' => 'checkbox',
-                'description' => '(Opt-in Feature) Automatically mark newly published WordPress posts for Hive publication. Note: This is disabled by default for your safety.'
-            ]
-        );
-        
         // Advanced Settings Section
         add_settings_section(
             'wpdapp_advanced_section',
@@ -259,9 +229,6 @@ class WP_Dapp_Settings_Page {
         
         // Publishing settings
         $sanitized['default_tags'] = sanitize_text_field($options['default_tags']);
-        
-        // Auto-publish: explicitly set to 0 if not checked
-        $sanitized['auto_publish'] = isset($options['auto_publish']) && $options['auto_publish'] ? 1 : 0;
         
         // Advanced settings
         $sanitized['hive_api_node'] = sanitize_text_field($options['hive_api_node']);
@@ -355,28 +322,15 @@ class WP_Dapp_Settings_Page {
         // Handle different field types
         switch ($type) {
             case 'checkbox':
-                // Special handling for auto_publish to ensure it's off by default
-                if ($field === 'auto_publish') {
-                    // ALWAYS force it to be unchecked in the UI
-                    printf(
-                        '<label for="%s"><input type="checkbox" id="%s" name="wpdapp_options[%s]" value="1" %s> %s</label>',
-                        esc_attr($field),
-                        esc_attr($field),
-                        esc_attr($field),
-                        '', // Never checked
-                        isset($args['label']) ? esc_html($args['label']) : ''
-                    );
-                } else {
-                    // Regular checkbox handling for other fields
-                    printf(
-                        '<label for="%s"><input type="checkbox" id="%s" name="wpdapp_options[%s]" value="1" %s> %s</label>',
-                        esc_attr($field),
-                        esc_attr($field),
-                        esc_attr($field),
-                        checked(1, $value, false),
-                        isset($args['label']) ? esc_html($args['label']) : ''
-                    );
-                }
+                // Checkbox handling (including auto_publish)
+                printf(
+                    '<label for="%s"><input type="checkbox" id="%s" name="wpdapp_options[%s]" value="1" %s> %s</label>',
+                    esc_attr($field),
+                    esc_attr($field),
+                    esc_attr($field),
+                    checked(1, $value, false),
+                    isset($args['label']) ? esc_html($args['label']) : ''
+                );
                 break;
                 
             case 'number':
