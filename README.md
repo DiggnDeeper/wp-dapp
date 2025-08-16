@@ -2,14 +2,12 @@
 
 A WordPress plugin that seamlessly integrates with the Hive blockchain, allowing you to publish content from WordPress to Hive directly using Hive Keychain.
 
-**Version: 0.7.3**
+**Version: 0.7.4**
 
 ## Features
 
 - **Hive Keychain Authentication**: Securely authenticate with your Hive account using the Hive Keychain browser extension (no private keys stored)
 - **Post to Hive**: Publish WordPress posts to the Hive blockchain with a single click
-- **Auto-Publish**: Optionally enable automatic detection of newly published WordPress posts for Hive publishing (disabled by default for security)
-  
 Note: WordPress Publish is separate from publishing to Hive. Use the "Publish to Hive" button in the post editor to broadcast via Hive Keychain.
 - **Beneficiary Support**: Add beneficiaries to share rewards with other Hive accounts
 - **WordPress Tag Integration**: Automatically converts WordPress categories and tags to Hive tags
@@ -37,7 +35,7 @@ Note: WordPress Publish is separate from publishing to Hive. Use the "Publish to
 2. **Configure Hive Account**: Go to Settings > WP-Dapp and enter your Hive username
 3. **Verify Account**: Click the "Verify with Keychain" button to authenticate your account
 4. **Configure Beneficiaries**: (Optional) Set up default beneficiaries to receive a share of post rewards
-5. **Auto-Publish Setting**: (Optional) Enable the Auto-Publish feature in the plugin settings
+ 
 
 ## How to Use
 
@@ -48,11 +46,7 @@ Note: WordPress Publish is separate from publishing to Hive. Use the "Publish to
 4. **Approve Transaction**: Confirm the transaction in the Hive Keychain popup
 5. **View on Hive**: After successful publication, click the "View on Hive" link to see your post on Hive
 
-### Auto-Publishing
-1. **Enable Auto-Publish**: Go to Settings > WP-Dapp and check the "Auto-Publish" option (this feature is disabled by default for security reasons)
-2. **Create and Publish Posts**: When you publish a new post in WordPress, it will be automatically marked for Hive publishing
-3. **Complete the Publication**: After publishing in WordPress, you'll see a notification in the post editor. Click the "Publish to Hive" button to complete the process
-4. **Approve Transaction**: Confirm the transaction in the Hive Keychain popup
+ 
 
 ## Hive Keychain Integration
 
