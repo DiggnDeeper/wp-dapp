@@ -23,6 +23,13 @@ class WP_Dapp_Frontend {
             [],
             WPDAPP_VERSION
         );
+        wp_enqueue_script(
+            'wpdapp-hive-comment',
+            WPDAPP_PLUGIN_URL . 'assets/js/hive-comment.js',
+            ['jquery'],
+            WPDAPP_VERSION,
+            true
+        );
     }
 
     /**
@@ -81,7 +88,7 @@ class WP_Dapp_Frontend {
         $show_reply_links = $atts['show_reply_links'] === '1';
         $thread_url_base = 'https://peakd.com/@' . rawurlencode($root_author) . '/' . rawurlencode($root_permlink);
 
-        $html  = '<div class="wpdapp-hive-comments">';
+        $html  = '<div class="wpdapp-hive-comments" data-root-author="' . esc_attr($root_author) . '" data-root-permlink="' . esc_attr($root_permlink) . '">';
         $html .= $this->render_comment_branch($by_parent, 0, $thread_url_base);
         $html .= '</div>';
 
@@ -112,7 +119,7 @@ class WP_Dapp_Frontend {
                 $reply_link = $thread_url_base . '#@' . rawurlencode(str_replace('/', '/', $key));
             }
 
-            $html .= '<li class="wpdapp-comment">';
+            $html .= '<li class="wpdapp-comment" data-hive-key="' . esc_attr($key) . '">';
             $html .= '<div class="wpdapp-comment-body">';
             $html .= '<div class="wpdapp-comment-meta">'
                   . '<span class="wpdapp-comment-author">' . $author . '</span>'
