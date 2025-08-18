@@ -25,32 +25,77 @@ jQuery(document).ready(function($) {
         if (hiveKey) {
             const [author, permlink] = hiveKey.split('/');
             $comment.find('.wpdapp-comment-actions').append(
-                '<button class="wpdapp-reply-button" data-author="' + author + '" data-permlink="' + permlink + '">Reply with Keychain</button>'
+                '<button class="wpdapp-reply-button" aria-label="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyWithKeychain : 'Reply with Keychain') + '" data-author="' + author + '" data-permlink="' + permlink + '">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyWithKeychain : 'Reply with Keychain') + '</button>'
             );
         }
     });
 
     // Add main reply button at the bottom
     $('.wpdapp-hive-comments-footer').append(
-        '<button class="wpdapp-reply-button" data-author="' + $('.wpdapp-hive-comments').data('root-author') + '" data-permlink="' + $('.wpdapp-hive-comments').data('root-permlink') + '">Reply to Post with Keychain</button>'
+        '<button class="wpdapp-reply-button" aria-label="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyToPostWithKeychain : 'Reply to Post with Keychain') + '" data-author="' + $('.wpdapp-hive-comments').data('root-author') + '" data-permlink="' + $('.wpdapp-hive-comments').data('root-permlink') + '">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyToPostWithKeychain : 'Reply to Post with Keychain') + '</button>'
     );
 
-    // Handle reply button click
+    // Add global username variable
+    let hiveUsername = sessionStorage.getItem('wpdapp_hive_username') || null;
+
+    // Function to connect with Keychain
+    function connectKeychain(callback) {
+        if (!isKeychainAvailable()) {
+            alert((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.keychainNotDetected : 'Hive Keychain not detected. Please install the extension.'));
+            return;
+        }
+        hive_keychain.requestHandshake(function(response) {
+            if (response.success) {
+                // Handshake doesn't provide username directly; request a sign to get it
+                // For simplicity, prompt once after handshake, but ideally use a better method
+                // Note: Keychain doesn't expose active account directly; we need to request a operation
+                const tempUsername = prompt((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.verifyPrompt : 'Enter your Hive username to verify:')); // Temporary fallback
+                if (tempUsername) {
+                    // Verify by requesting a sign
+                    hive_keychain.requestSignBuffer(tempUsername, 'Verify WP-Dapp Connection', 'Posting', function(signResponse) {
+                        if (signResponse.success) {
+                            hiveUsername = tempUsername;
+                            sessionStorage.setItem('wpdapp_hive_username', hiveUsername);
+                            callback(hiveUsername);
+                        } else {
+                            alert((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.verifyFailed : 'Verification failed:') + ' ' + signResponse.message);
+                        }
+                    });
+                }
+            } else {
+                alert((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.keychainConnectFailed : 'Keychain connection failed:') + ' ' + response.message);
+            }
+        });
+    }
+
+    // Update reply form to include connect button if not connected
+    // In the reply button click handler:
     $(document).on('click', '.wpdapp-reply-button', function(e) {
         e.preventDefault();
         const $button = $(this);
         if (!isKeychainAvailable()) {
-            alert('Hive Keychain not detected. Please install the extension.');
+            alert((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.keychainNotDetected : 'Hive Keychain not detected. Please install the extension.'));
             return;
         }
 
-        // Show reply form
         let $form = $button.next('.wpdapp-reply-form');
         if ($form.length === 0) {
-            $form = $('<div class="wpdapp-reply-form"><textarea placeholder="Your reply..."></textarea><button class="wpdapp-submit-reply">Submit</button><button class="wpdapp-cancel-reply">Cancel</button></div>');
+            $form = $('<div class="wpdapp-reply-form" role="form" aria-live="polite">' +
+                (hiveUsername ? '<p>' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.connectedAs : 'Connected as:') + ' ' + hiveUsername + '</p>' : '<button class="wpdapp-connect-keychain">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.connectWithKeychain : 'Connect with Keychain') + '</button>') +
+                '<textarea placeholder="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.yourReplyPlaceholder : 'Your reply...') + '"></textarea>' +
+                '<button class="wpdapp-submit-reply">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.submit : 'Submit') + '</button>' +
+                '<button class="wpdapp-cancel-reply">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.cancel : 'Cancel') + '</button>' +
+                '</div>');
             $button.after($form);
         }
         $form.slideDown();
+    });
+
+    // Handle connect button
+    $(document).on('click', '.wpdapp-connect-keychain', function() {
+        connectKeychain(function(username) {
+            $(this).replaceWith('<p>Connected as: ' + username + '</p>');
+        }.bind(this));
     });
 
     // Handle cancel
@@ -62,8 +107,21 @@ jQuery(document).ready(function($) {
     $(document).on('click', '.wpdapp-submit-reply', function() {
         const $form = $(this).parent();
         const content = $form.find('textarea').val().trim();
+
+        // Validation
         if (!content) {
-            alert('Please enter a reply.');
+            $form.append('<div class="wpdapp-form-error" role="status">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.pleaseEnterReply : 'Please enter a reply.') + '</div>');
+            setTimeout(() => $form.find('.wpdapp-form-error').remove(), 3000);
+            return;
+        }
+        if (content.length < 3) {
+            $form.append('<div class="wpdapp-form-error" role="status">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyMinLength : 'Reply must be at least 3 characters.') + '</div>');
+            setTimeout(() => $form.find('.wpdapp-form-error').remove(), 3000);
+            return;
+        }
+        if (!hiveUsername) {
+            $form.append('<div class="wpdapp-form-error" role="status">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.pleaseConnectFirst : 'Please connect with Keychain first.') + '</div>');
+            setTimeout(() => $form.find('.wpdapp-form-error').remove(), 3000);
             return;
         }
 
@@ -71,17 +129,13 @@ jQuery(document).ready(function($) {
         const parentAuthor = $button.data('author');
         const parentPermlink = $button.data('permlink');
 
-        // Prompt for username
-        const username = prompt('Enter your Hive username:');
-        if (!username) return;
-
         const permlink = generatePermlink(content);
 
         const operations = [
             ['comment', {
                 parent_author: parentAuthor,
                 parent_permlink: parentPermlink,
-                author: username,
+                author: hiveUsername,
                 permlink: permlink,
                 title: '',
                 body: content,
@@ -92,14 +146,69 @@ jQuery(document).ready(function($) {
             }]
         ];
 
-        hive_keychain.requestBroadcast(username, operations, 'posting', function(response) {
+        // Add loading state
+        $(this).text(wpdapp_frontend.i18n ? wpdapp_frontend.i18n.posting : 'Posting...').prop('disabled', true).addClass('loading');
+
+        hive_keychain.requestBroadcast(hiveUsername, operations, 'posting', function(response) {
+            $(this).text(wpdapp_frontend.i18n ? wpdapp_frontend.i18n.submit : 'Submit').prop('disabled', false).removeClass('loading');
             if (response.success) {
-                alert('Reply posted successfully!');
-                $form.slideUp();
-                $form.find('textarea').val('');
+                $form.append('<div class="wpdapp-form-success" role="status">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.postedSyncing : 'Reply posted successfully! Syncing...') + '</div>');
+                // Item 2: Trigger immediate sync
+                $.ajax({
+                    url: wpdapp_frontend.ajax_url,
+                    type: 'POST',
+                    data: {
+                        action: 'wpdapp_sync_comments',
+                        nonce: wpdapp_frontend.nonce,
+                        post_id: wpdapp_frontend.post_id
+                    },
+                    success: function(syncResponse) {
+                        if (syncResponse.success) {
+                            // Fetch fresh rendered HTML and replace the block
+                            $.ajax({
+                                url: wpdapp_frontend.ajax_url,
+                                type: 'POST',
+                                data: {
+                                    action: 'wpdapp_render_hive_comments',
+                                    nonce: wpdapp_frontend.nonce,
+                                    post_id: wpdapp_frontend.post_id
+                                },
+                                success: function(renderResponse) {
+                                    if (renderResponse.success && renderResponse.data && renderResponse.data.html) {
+                                        var $container = $('.wpdapp-hive-comments').first().parent();
+                                        // Replace the entire block (comments + footer)
+                                        // Find existing footer
+                                        var $footer = $('.wpdapp-hive-comments-footer').first();
+                                        if ($footer.length) {
+                                            $footer.remove();
+                                        }
+                                        $('.wpdapp-hive-comments').first().replaceWith(renderResponse.data.html);
+                                        $form.find('.wpdapp-form-success').text(wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyPostedSynced : 'Reply posted and synced!');
+                                    } else {
+                                        $form.append('<div class="wpdapp-form-error" role="status">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.syncedRefreshFailed : 'Synced, but failed to refresh comments.') + '</div>');
+                                    }
+                                },
+                                error: function() {
+                                    $form.append('<div class="wpdapp-form-error" role="status">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.syncedRefreshError : 'Synced, but refresh failed.') + '</div>');
+                                }
+                            });
+                        } else {
+                            $form.append('<div class="wpdapp-form-error" role="status">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.syncFailedPrefix : 'Posted to Hive, but sync failed:') + ' ' + (syncResponse.data || 'Unknown error') + '</div>');
+                        }
+                    },
+                    error: function() {
+                        $form.append('<div class="wpdapp-form-error" role="status">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.syncErrorOccurred : 'Posted to Hive, but sync error occurred.') + '</div>');
+                    },
+                    complete: function() {
+                        setTimeout(() => $form.find('.wpdapp-form-success, .wpdapp-form-error').remove(), 5000);
+                        $form.slideUp();
+                        $form.find('textarea').val('');
+                    }
+                });
             } else {
-                alert('Error: ' + response.message);
+                $form.append('<div class="wpdapp-form-error">Error: ' + response.message + '</div>');
+                setTimeout(() => $form.find('.wpdapp-form-error').remove(), 5000);
             }
-        });
+        }.bind(this));
     });
 });

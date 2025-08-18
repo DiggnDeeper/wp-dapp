@@ -20,6 +20,9 @@ class WP_Dapp_Ajax_Handler {
         add_action('wp_ajax_wpdapp_prepare_post', [$this, 'ajax_prepare_post']);
         add_action('wp_ajax_wpdapp_update_post_meta', [$this, 'ajax_update_post_meta']);
         add_action('wp_ajax_wpdapp_sync_comments', [$this, 'ajax_sync_comments']);
+        add_action('wp_ajax_nopriv_wpdapp_sync_comments', [$this, 'ajax_sync_comments']);
+        add_action('wp_ajax_wpdapp_render_hive_comments', [$this, 'ajax_render_hive_comments']);
+        add_action('wp_ajax_nopriv_wpdapp_render_hive_comments', [$this, 'ajax_render_hive_comments']);
         // Legacy: reset auto_publish was used in previous versions; action removed.
     }
 
@@ -309,40 +312,31 @@ class WP_Dapp_Ajax_Handler {
      * AJAX handler to sync Hive comments into WordPress comments for a given post.
      */
     public function ajax_sync_comments() {
-        // Check nonce
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'wpdapp_publish')) {
+        // Check nonce (works for frontend too)
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'wpdapp_frontend_sync')) { // Use frontend nonce
             wp_send_json_error('Invalid security token');
         }
 
         $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
-        if (!$post_id) {
-            wp_send_json_error('Invalid post ID');
+        if (!$post_id || get_post_status($post_id) !== 'publish') {
+            wp_send_json_error('Invalid or unpublished post');
         }
 
-        if (!current_user_can('edit_post', $post_id)) {
-            wp_send_json_error('Permission denied');
-        }
-
-        // Option check: ensure comment sync is enabled
+        // Skip capability check for frontend, but ensure sync is enabled globally
         $options = get_option('wpdapp_options', []);
-        $comment_sync_enabled = !empty($options['enable_comment_sync']);
-        if (!$comment_sync_enabled) {
-            wp_send_json_error('Comment sync is disabled in WP-Dapp settings');
+        if (empty($options['enable_comment_sync'])) {
+            wp_send_json_error('Comment sync is disabled');
         }
         $auto_approve = !empty($options['auto_approve_comments']);
 
-        // Ensure this post has Hive mapping
+        // Ensure post is Hive-published
         $hive_author = get_post_meta($post_id, '_wpdapp_hive_author', true);
         $hive_permlink = get_post_meta($post_id, '_wpdapp_hive_permlink', true);
         if (empty($hive_author) || empty($hive_permlink)) {
             wp_send_json_error('This post has not been published to Hive');
         }
 
-        // Delegate to reusable comment sync service
-        if (!class_exists('WP_Dapp_Comment_Sync')) {
-            wp_send_json_error('Comment sync service not available');
-        }
-
+        // Proceed with sync
         $service = new WP_Dapp_Comment_Sync();
         $result = $service->sync_post_comments($post_id, $auto_approve);
         if (is_wp_error($result)) {
@@ -350,6 +344,36 @@ class WP_Dapp_Ajax_Handler {
         }
 
         wp_send_json_success($result);
+    }
+
+    /**
+     * AJAX handler to render the Hive comments block HTML for a given post.
+     */
+    public function ajax_render_hive_comments() {
+        // Check nonce (reuse frontend sync nonce)
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'wpdapp_frontend_sync')) {
+            wp_send_json_error('Invalid security token');
+        }
+
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        if (!$post_id || get_post_status($post_id) !== 'publish') {
+            wp_send_json_error('Invalid or unpublished post');
+        }
+
+        $options = get_option('wpdapp_options', []);
+        if (empty($options['enable_comment_sync'])) {
+            wp_send_json_error('Comment sync is disabled');
+        }
+
+        $root_author = get_post_meta($post_id, '_wpdapp_hive_author', true);
+        $root_permlink = get_post_meta($post_id, '_wpdapp_hive_permlink', true);
+        if (empty($root_author) || empty($root_permlink)) {
+            wp_send_json_error('This post has not been published to Hive');
+        }
+
+        // Render via shortcode
+        $html = do_shortcode('[wpdapp_hive_comments post_id="' . intval($post_id) . '"]');
+        wp_send_json_success(['html' => $html]);
     }
 
     // Legacy endpoint removed.

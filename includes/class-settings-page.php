@@ -220,6 +220,40 @@ class WP_Dapp_Settings_Page {
             ['field' => 'hive_only_mode', 'type' => 'checkbox', 'label' => 'Hide WP comment form and show Hive replies with a "Reply on Hive" link']
         );
         
+        add_settings_field(
+            'hive_frontend',
+            'Hive Frontend',
+            [$this, 'render_field'],
+            'wpdapp-settings',
+            'wpdapp_comment_sync_section',
+            [
+                'field' => 'hive_frontend',
+                'type' => 'select',
+                'options' => [
+                    'peakd' => 'PeakD',
+                    'hive.blog' => 'Hive.blog',
+                    'ecency' => 'Ecency'
+                ],
+                'description' => 'Choose which Hive frontend to use for links (e.g., View thread).'
+            ]
+        );
+
+        add_settings_field(
+            'hive_max_thread_depth',
+            'Max Thread Depth',
+            [$this, 'render_field'],
+            'wpdapp-settings',
+            'wpdapp_comment_sync_section',
+            [
+                'field' => 'hive_max_thread_depth',
+                'type' => 'number',
+                'min' => 1,
+                'max' => 10,
+                'step' => 1,
+                'description' => 'Limit nested replies shown on-site (default 4).'
+            ]
+        );
+        
         // Advanced Settings Section
         add_settings_section(
             'wpdapp_advanced_section',
@@ -269,6 +303,21 @@ class WP_Dapp_Settings_Page {
         $sanitized['enable_comment_sync'] = isset($options['enable_comment_sync']) ? 1 : 0;
         $sanitized['auto_approve_comments'] = isset($options['auto_approve_comments']) ? 1 : 0;
         $sanitized['hive_only_mode'] = isset($options['hive_only_mode']) ? 1 : 0;
+        // Hive frontend choice
+        $allowed_frontends = ['peakd', 'hive.blog', 'ecency'];
+        $chosen_frontend = isset($options['hive_frontend']) ? sanitize_text_field($options['hive_frontend']) : '';
+        if (!in_array($chosen_frontend, $allowed_frontends, true)) {
+            $chosen_frontend = isset($existing_options['hive_frontend']) ? $existing_options['hive_frontend'] : 'peakd';
+            if (!in_array($chosen_frontend, $allowed_frontends, true)) {
+                $chosen_frontend = 'peakd';
+            }
+        }
+        $sanitized['hive_frontend'] = $chosen_frontend;
+        // Max thread depth
+        $max_depth = isset($options['hive_max_thread_depth']) ? intval($options['hive_max_thread_depth']) : 4;
+        if ($max_depth < 1) { $max_depth = 1; }
+        if ($max_depth > 10) { $max_depth = 10; }
+        $sanitized['hive_max_thread_depth'] = $max_depth;
         
         // Advanced settings
         $sanitized['hive_api_node'] = sanitize_text_field($options['hive_api_node']);
@@ -381,6 +430,18 @@ class WP_Dapp_Settings_Page {
                     checked(1, $value, false),
                     isset($args['label']) ? esc_html($args['label']) : ''
                 );
+                break;
+            
+            case 'select':
+                $options_map = isset($args['options']) && is_array($args['options']) ? $args['options'] : [];
+                if (empty($value)) {
+                    $value = 'peakd';
+                }
+                printf('<select id="%s" name="wpdapp_options[%s]">', esc_attr($field), esc_attr($field));
+                foreach ($options_map as $opt_value => $label) {
+                    printf('<option value="%s" %s>%s</option>', esc_attr($opt_value), selected($value, $opt_value, false), esc_html($label));
+                }
+                echo '</select>';
                 break;
                 
             case 'number':

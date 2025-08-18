@@ -17,3 +17,14 @@
 .wpdapp-hive-comments-notice { margin-top: 1rem; padding: 0.75rem 1rem; background: rgba(127,127,127,0.08); border-left: 3px solid #888; }
 .wpdapp-hive-comments-notice .wpdapp-muted { color: #aaa; }
 
+/* Reply UI */
+.wpdapp-reply-button { margin-top: 0.25rem; padding: 0.35rem 0.6rem; font-size: 0.9em; }
+.wpdapp-reply-form { margin-top: 0.5rem; border: 1px solid rgba(127,127,127,0.2); padding: 0.5rem; border-radius: 4px; }
+.wpdapp-reply-form textarea { width: 100%; min-height: 100px; }
+.wpdapp-reply-form .wpdapp-form-error { margin-top: 0.5rem; color: #b33; }
+.wpdapp-reply-form .wpdapp-form-success { margin-top: 0.5rem; color: #2d8a34; }
+
+/* Depth limiting hint when threads get too deep */
+.wpdapp-comment-list[data-max-depth] .wpdapp-comment-list[data-depth] { position: relative; }
+.wpdapp-show-more { display: inline-block; margin: 0.25rem 0; font-size: 0.9em; }
+
