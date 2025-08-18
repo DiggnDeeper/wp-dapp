@@ -19,14 +19,17 @@ jQuery(document).ready(function($) {
     }
 
     // Add reply buttons to each comment and the main comments section
-    $('.wpdapp-comment-list > li').each(function() {
+    $('.wpdapp-comment-list > li.wpdapp-comment').each(function() {
         const $comment = $(this);
-        const hiveKey = $comment.data('hive-key'); // Assume we add this data attribute
-        if (hiveKey) {
-            const [author, permlink] = hiveKey.split('/');
-            $comment.find('.wpdapp-comment-actions').append(
-                '<button class="wpdapp-reply-button" aria-label="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyWithKeychain : 'Reply with Keychain') + '" data-author="' + author + '" data-permlink="' + permlink + '">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyWithKeychain : 'Reply with Keychain') + '</button>'
-            );
+        const hiveKey = $comment.data('hive-key');
+        if (!hiveKey) return;
+        const parts = String(hiveKey).split('/');
+        const author = parts[0] || '';
+        const permlink = parts[1] || '';
+        // Only target this LI's own actions, not descendants
+        const $actions = $comment.children('.wpdapp-comment-body').children('.wpdapp-comment-actions');
+        if ($actions.length && $actions.find('.wpdapp-reply-button').length === 0) {
+            $actions.append('<button class="wpdapp-reply-button" aria-label="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyWithKeychain : 'Reply with Keychain') + '" data-author="' + author + '" data-permlink="' + permlink + '">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyWithKeychain : 'Reply with Keychain') + '</button>');
         }
     });
 

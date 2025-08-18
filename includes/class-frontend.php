@@ -140,13 +140,15 @@ class WP_Dapp_Frontend {
         $html .= $this->render_comment_branch($by_parent, 0, $thread_url_base, 0, $max_depth);
         $html .= '</div>';
 
-        // Consolidated footer notice
-        $html .= '<div class="wpdapp-hive-comments-footer">';
-        $html .= '<span class="wpdapp-muted">' . esc_html__('These are mirrored from Hive', 'wp-dapp');
-        if ($show_reply_links) {
-            $html .= ' · <a href="' . esc_url($thread_url_base) . '" target="_blank" rel="noopener nofollow">' . esc_html__('View thread / reply on Hive', 'wp-dapp') . '</a>';
+        // Consolidated footer notice (avoid duplicating when hive_only_mode already shows notice)
+        if (comments_open($post_id)) {
+            $html .= '<div class="wpdapp-hive-comments-footer">';
+            $html .= '<span class="wpdapp-muted">' . esc_html__('These are mirrored from Hive', 'wp-dapp');
+            if ($show_reply_links) {
+                $html .= ' · <a href="' . esc_url($thread_url_base) . '" target="_blank" rel="noopener nofollow">' . esc_html__('View thread / reply on Hive', 'wp-dapp') . '</a>';
+            }
+            $html .= '</span></div>';
         }
-        $html .= '</span></div>';
 
         return $html;
     }
