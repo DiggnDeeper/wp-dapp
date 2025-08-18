@@ -17,17 +17,22 @@ class WP_Dapp_Frontend {
     }
 
     public function enqueue_assets() {
+        // Cache-bust assets with file modification time appended to plugin version
+        $css_file = WPDAPP_PLUGIN_DIR . 'assets/css/style.css';
+        $css_ver  = WPDAPP_VERSION . (file_exists($css_file) ? '.' . filemtime($css_file) : '');
         wp_enqueue_style(
             'wpdapp-frontend',
             WPDAPP_PLUGIN_URL . 'assets/css/style.css',
             [],
-            WPDAPP_VERSION
+            $css_ver
         );
+        $js_file = WPDAPP_PLUGIN_DIR . 'assets/js/hive-comment.js';
+        $js_ver  = WPDAPP_VERSION . (file_exists($js_file) ? '.' . filemtime($js_file) : '');
         wp_enqueue_script(
             'wpdapp-hive-comment',
             WPDAPP_PLUGIN_URL . 'assets/js/hive-comment.js',
             ['jquery'],
-            WPDAPP_VERSION,
+            $js_ver,
             true
         );
         // Localize data for AJAX
