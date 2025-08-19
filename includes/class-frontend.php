@@ -79,6 +79,8 @@ class WP_Dapp_Frontend {
                 'verificationTimeout' => __('No response from Hive Keychain. Make sure it\'s installed and unlocked.', 'wp-dapp'),
                 'statusConnected' => __('Connected', 'wp-dapp'),
                 'statusNotConnected' => __('Not connected', 'wp-dapp'),
+                'change' => __('Change', 'wp-dapp'),
+                'save' => __('Save', 'wp-dapp'),
             ]
         ]);
     }

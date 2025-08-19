@@ -60,11 +60,11 @@ jQuery(document).ready(function($) {
             const formId = ++wpdappFormCounter;
             const usernameInputId = 'wpdapp-username-' + formId;
             const connected = !!hiveUsername;
-            $form = $('<div class="wpdapp-reply-form" role="form" aria-live="polite">' +
+            $form = $('<div class="wpdapp-reply-form" role="form" aria-live="polite" data-form-id="' + formId + '">' +
                 '<div class="wpdapp-conn-row">' +
                     '<span class="wpdapp-status-chip ' + (connected ? 'connected' : 'not-connected') + '">' + (connected ? (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.statusConnected : 'Connected') : (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.statusNotConnected : 'Not connected')) + '</span>' +
                     (connected
-                        ? '<p class="wpdapp-connected-as">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.connectedAs : 'Connected as:') + ' ' + hiveUsername + '</p>'
+                        ? '<p class="wpdapp-connected-as">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.connectedAs : 'Connected as:') + ' <span class="wpdapp-username-display">' + hiveUsername + '</span> <button type="button" class="wpdapp-change-account">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.change : 'Change') + '</button></p>'
                         : '<label class="wpdapp-username-label" for="' + usernameInputId + '">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.enterHiveUsername : 'Enter your Hive username:') + '</label>' +
                           '<input type="text" class="wpdapp-username" id="' + usernameInputId + '" placeholder="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.hiveUsernamePlaceholder : 'Hive username') + '">'
                       ) +
@@ -81,6 +81,63 @@ jQuery(document).ready(function($) {
         // If Keychain missing, inform inline but do not block
         if (!isKeychainAvailable() && $form.find('.wpdapp-keychain-warning').length === 0) {
             $form.prepend('<div class="wpdapp-form-error wpdapp-keychain-warning" role="status">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.keychainNotDetected : 'Hive Keychain not detected. Please install the extension.') + '</div>');
+        }
+    });
+
+    // Change account: switch to edit mode
+    $(document).on('click', '.wpdapp-change-account', function() {
+        const $form = $(this).closest('.wpdapp-reply-form');
+        const formId = $form.data('form-id') || Date.now();
+        const editId = 'wpdapp-username-edit-' + formId;
+        const current = $form.find('.wpdapp-username-display').text().trim() || hiveUsername || '';
+        const label = '<label class="wpdapp-username-label" for="' + editId + '">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.enterHiveUsername : 'Enter your Hive username:') + '</label>';
+        const input = '<input type="text" class="wpdapp-username-edit" id="' + editId + '" value="' + current + '">';
+        const actions = '<button type="button" class="wpdapp-save-account">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.save : 'Save') + '</button>' +
+                        '<button type="button" class="wpdapp-cancel-account">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.cancel : 'Cancel') + '</button>';
+        $form.find('.wpdapp-connected-as').html(label + ' ' + input + ' ' + actions);
+        $form.find('#' + editId).focus();
+    });
+
+    // Save new account
+    $(document).on('click', '.wpdapp-save-account', function() {
+        const $form = $(this).closest('.wpdapp-reply-form');
+        const newUsername = ($form.find('.wpdapp-username-edit').val() || '').trim();
+        if (!newUsername) {
+            $form.append('<div class="wpdapp-form-error" role="status">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.pleaseEnterUsername : 'Please enter your Hive username.') + '</div>');
+            setTimeout(() => $form.find('.wpdapp-form-error').remove(), 3000);
+            return;
+        }
+        hiveUsername = newUsername;
+        try { localStorage.setItem('wpdapp_hive_username', hiveUsername); } catch(e) {}
+        sessionStorage.setItem('wpdapp_hive_username', hiveUsername);
+        $form.find('.wpdapp-connected-as').html(
+            (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.connectedAs : 'Connected as:') +
+            ' <span class="wpdapp-username-display">' + hiveUsername + '</span> ' +
+            '<button type="button" class="wpdapp-change-account">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.change : 'Change') + '</button>'
+        );
+        // Ensure chip shows connected
+        const $chip = $form.find('.wpdapp-status-chip');
+        $chip.removeClass('not-connected').addClass('connected').text(wpdapp_frontend.i18n ? wpdapp_frontend.i18n.statusConnected : 'Connected');
+    });
+
+    // Cancel account edit
+    $(document).on('click', '.wpdapp-cancel-account', function() {
+        const $form = $(this).closest('.wpdapp-reply-form');
+        const display = hiveUsername ? hiveUsername : '';
+        const inner = hiveUsername
+            ? (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.connectedAs : 'Connected as:') + ' <span class="wpdapp-username-display">' + display + '</span> ' +
+              '<button type="button" class="wpdapp-change-account">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.change : 'Change') + '</button>'
+            : '';
+        if (inner) {
+            $form.find('.wpdapp-connected-as').html(inner);
+        } else {
+            // If nothing stored, revert to input row
+            const formId = $form.data('form-id') || Date.now();
+            const usernameInputId = 'wpdapp-username-' + formId;
+            $form.find('.wpdapp-connected-as').html('<label class="wpdapp-username-label" for="' + usernameInputId + '">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.enterHiveUsername : 'Enter your Hive username:') + '</label>' +
+                '<input type="text" class="wpdapp-username" id="' + usernameInputId + '" placeholder="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.hiveUsernamePlaceholder : 'Hive username') + '">');
+            const $chip = $form.find('.wpdapp-status-chip');
+            $chip.removeClass('connected').addClass('not-connected').text(wpdapp_frontend.i18n ? wpdapp_frontend.i18n.statusNotConnected : 'Not connected');
         }
     });
 
