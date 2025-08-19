@@ -70,7 +70,7 @@ class WP_Dapp_Frontend {
                 'syncErrorOccurred' => __('Posted to Hive, but sync error occurred.', 'wp-dapp'),
                 'syncedRefreshFailed' => __('Synced, but failed to refresh comments.', 'wp-dapp'),
                 'syncedRefreshError' => __('Synced, but refresh failed.', 'wp-dapp'),
-                'syncHiveComments' => __('Sync Hive Comments', 'wp-dapp'),
+                'syncHiveComments' => __('Sync (copy) Hive replies into WP comments', 'wp-dapp'),
                 'syncing' => __('Syncing...', 'wp-dapp'),
                 'enterHiveUsername' => __('Enter your Hive username:', 'wp-dapp'),
                 'hiveUsernamePlaceholder' => __('Hive username', 'wp-dapp'),
@@ -176,7 +176,7 @@ class WP_Dapp_Frontend {
                 if ($show_reply_buttons_opt) {
                     $html .= ' <button class="wpdapp-reply-button" aria-label="' . esc_attr__('Reply to Post with Keychain', 'wp-dapp') . '" data-author="' . esc_attr($root_author) . '" data-permlink="' . esc_attr($root_permlink) . '">' . esc_html__('Reply to Post with Keychain', 'wp-dapp') . '</button>';
                 }
-                $html .= '<button class="wpdapp-sync-button">' . esc_html__('Sync Hive Comments', 'wp-dapp') . '</button>';
+                $html .= '<button class="wpdapp-sync-button">' . esc_html__('Sync (copy) Hive replies into WP comments', 'wp-dapp') . '</button>';
             } else {
                 // When sync is disabled, keep footer minimal with only the external link context
                 $html .= '<span class="wpdapp-muted">' . esc_html__('Mirroring is off. ', 'wp-dapp');
@@ -242,7 +242,7 @@ class WP_Dapp_Frontend {
         if (!$enable_sync) {
             $html .= '<button class="wpdapp-sync-button" data-force="1">' . esc_html__('Import Hive Comments', 'wp-dapp') . '</button>';
         } else {
-            $html .= '<button class="wpdapp-sync-button">' . esc_html__('Sync Hive Comments', 'wp-dapp') . '</button>';
+            $html .= '<button class="wpdapp-sync-button">' . esc_html__('Sync (copy) Hive replies into WP comments', 'wp-dapp') . '</button>';
         }
         $html .= '</div>';
 

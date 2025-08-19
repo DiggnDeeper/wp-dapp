@@ -310,7 +310,7 @@ jQuery(document).ready(function($) {
             },
             complete: function() {
                 isSyncInFlight = false;
-                $button.text(wpdapp_frontend.i18n ? wpdapp_frontend.i18n.syncHiveComments : 'Sync Hive Comments').prop('disabled', false).removeClass('loading');
+                $button.text(wpdapp_frontend.i18n ? wpdapp_frontend.i18n.syncHiveComments : 'Sync (copy) Hive replies into WP comments').prop('disabled', false).removeClass('loading');
             }
         });
     });
