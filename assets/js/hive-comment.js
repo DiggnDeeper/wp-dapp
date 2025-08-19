@@ -21,7 +21,7 @@ jQuery(document).ready(function($) {
         return permlink + '-' + Date.now().toString(36);
     }
 
-    // Add reply buttons to each comment and the main comments section
+    // Add reply buttons to each comment (keep inline replies)
     if (wpdapp_frontend.show_reply_buttons) {
       $('.wpdapp-comment-list > li.wpdapp-comment').each(function() {
         const $comment = $(this);

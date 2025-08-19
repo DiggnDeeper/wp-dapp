@@ -128,25 +128,31 @@ class WP_Dapp_Frontend {
         if (empty($comments)) {
             // Render container with root data attributes even when there are no comments
             $html  = '<div class="wpdapp-hive-comments" role="region" aria-label="' . esc_attr__('Hive comments', 'wp-dapp') . '" data-root-author="' . esc_attr($root_author) . '" data-root-permlink="' . esc_attr($root_permlink) . '">';
+
+            // Header (top-level reply button before external links)
+            $html .= '<div class="wpdapp-hive-comments-header">';
+            if (!empty($options['show_reply_buttons'])) {
+                $html .= '<button class="wpdapp-reply-button" aria-label="' . esc_attr__('Reply to Post with Keychain', 'wp-dapp') . '" data-author="' . esc_attr($root_author) . '" data-permlink="' . esc_attr($root_permlink) . '">' . esc_html__('Reply to Post with Keychain', 'wp-dapp') . '</button>';
+            }
+            // Keep external link after Keychain option
+            $frontend = !empty($options['hive_frontend']) ? $options['hive_frontend'] : 'peakd';
+            switch ($frontend) {
+                case 'hive.blog': $base = 'https://hive.blog/@'; break;
+                case 'ecency':   $base = 'https://ecency.com/@'; break;
+                case 'peakd':
+                default:         $base = 'https://peakd.com/@'; break;
+            }
+            $thread_url_base = $base . rawurlencode($root_author) . '/' . rawurlencode($root_permlink);
+            if ($atts['show_reply_links'] === '1') {
+                $html .= '<span class="wpdapp-muted"> · <a href="' . esc_url($thread_url_base) . '" target="_blank" rel="noopener nofollow">' . esc_html__('View thread / reply on Hive', 'wp-dapp') . '</a></span>';
+            }
+            $html .= '</div>';
+
             $html .= '<p class="wpdapp-muted">' . esc_html__('No Hive comments yet.', 'wp-dapp') . '</p>';
             $html .= '</div>';
 
-            // Determine frontend base URL for footer link
-            $frontend = !empty($options['hive_frontend']) ? $options['hive_frontend'] : 'peakd';
-            switch ($frontend) {
-                case 'hive.blog':
-                    $base = 'https://hive.blog/@';
-                    break;
-                case 'ecency':
-                    $base = 'https://ecency.com/@';
-                    break;
-                case 'peakd':
-                default:
-                    $base = 'https://peakd.com/@';
-                    break;
-            }
-            $thread_url_base = $base . rawurlencode($root_author) . '/' . rawurlencode($root_permlink);
-            $show_reply_links = $atts['show_reply_links'] === '1';
+            // Determine frontend base URL for footer link (reusing $thread_url_base from header)
+            // $thread_url_base already computed above
 
             // Always render the footer so the main reply button can attach (single footer only)
             $html .= '<div class="wpdapp-hive-comments-footer">';
@@ -191,6 +197,16 @@ class WP_Dapp_Frontend {
         $thread_url_base = $base . rawurlencode($root_author) . '/' . rawurlencode($root_permlink);
 
         $html  = '<div class="wpdapp-hive-comments" role="region" aria-label="' . esc_attr__('Hive comments', 'wp-dapp') . '" data-root-author="' . esc_attr($root_author) . '" data-root-permlink="' . esc_attr($root_permlink) . '">';
+
+        // Header area above comments: Keychain reply first, then external link
+        $html .= '<div class="wpdapp-hive-comments-header">';
+        if (!empty($options['show_reply_buttons'])) {
+            $html .= '<button class="wpdapp-reply-button" aria-label="' . esc_attr__('Reply to Post with Keychain', 'wp-dapp') . '" data-author="' . esc_attr($root_author) . '" data-permlink="' . esc_attr($root_permlink) . '">' . esc_html__('Reply to Post with Keychain', 'wp-dapp') . '</button>';
+        }
+        if ($show_reply_links) {
+            $html .= '<span class="wpdapp-muted"> · <a href="' . esc_url($thread_url_base) . '" target="_blank" rel="noopener nofollow">' . esc_html__('View thread / reply on Hive', 'wp-dapp') . '</a></span>';
+        }
+        $html .= '</div>';
         // Determine max depth from settings (default 4)
         $max_depth = isset($options['hive_max_thread_depth']) ? intval($options['hive_max_thread_depth']) : 4;
         if ($max_depth < 1) { $max_depth = 1; }
@@ -198,16 +214,8 @@ class WP_Dapp_Frontend {
         $html .= $this->render_comment_branch($by_parent, 0, $thread_url_base, 0, $max_depth);
         $html .= '</div>';
 
-        // Consolidated footer notice: always render one footer to enable main reply button
+        // Footer: keep minimal (sync button only) to avoid duplication with header
         $html .= '<div class="wpdapp-hive-comments-footer">';
-        $html .= '<span class="wpdapp-muted">' . esc_html__('These are mirrored from Hive', 'wp-dapp');
-        if ($show_reply_links) {
-            $html .= ' · <a href="' . esc_url($thread_url_base) . '" target="_blank" rel="noopener nofollow">' . esc_html__('View thread / reply on Hive', 'wp-dapp') . '</a>';
-        }
-        $html .= '</span>';
-        if ($show_reply_buttons_opt) {
-            $html .= ' <button class="wpdapp-reply-button" aria-label="' . esc_attr__('Reply to Post with Keychain', 'wp-dapp') . '" data-author="' . esc_attr($root_author) . '" data-permlink="' . esc_attr($root_permlink) . '">' . esc_html__('Reply to Post with Keychain', 'wp-dapp') . '</button>';
-        }
         $html .= '<button class="wpdapp-sync-button">' . esc_html__('Sync Hive Comments', 'wp-dapp') . '</button>';
         $html .= '</div>';
 

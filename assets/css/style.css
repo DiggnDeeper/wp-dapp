@@ -2,6 +2,7 @@
 .wpdapp-hive-comments { margin-top: 2rem; }
 .wpdapp-hive-comments .wpdapp-muted { color: #777; font-size: 0.95em; }
 .wpdapp-hive-comments-footer { margin-top: 0.75rem; }
+.wpdapp-hive-comments-header { margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
 .wpdapp-hive-comments-footer .wpdapp-reply-button { margin-right: 0.5rem; }
 
 .wpdapp-comment-list { list-style: none; margin: 0; padding: 0; }
