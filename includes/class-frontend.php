@@ -70,6 +70,10 @@ class WP_Dapp_Frontend {
                 'syncedRefreshError' => __('Synced, but refresh failed.', 'wp-dapp'),
                 'syncHiveComments' => __('Sync Hive Comments', 'wp-dapp'),
                 'syncing' => __('Syncing...', 'wp-dapp'),
+                'enterHiveUsername' => __('Enter your Hive username:', 'wp-dapp'),
+                'hiveUsernamePlaceholder' => __('Hive username', 'wp-dapp'),
+                'verifyWithKeychain' => __('Verify with Keychain', 'wp-dapp'),
+                'pleaseEnterUsername' => __('Please enter your Hive username.', 'wp-dapp'),
             ]
         ]);
     }

@@ -46,29 +46,27 @@ jQuery(document).ready(function($) {
     let hiveUsername = sessionStorage.getItem('wpdapp_hive_username') || null;
 
     // Function to connect with Keychain
-    function connectKeychain(callback) {
+    function connectKeychain(callback, username) {
         if (!isKeychainAvailable()) {
             alert((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.keychainNotDetected : 'Hive Keychain not detected. Please install the extension.'));
             return;
         }
         hive_keychain.requestHandshake(function(response) {
             if (response.success) {
-                // Handshake doesn't provide username directly; request a sign to get it
-                // For simplicity, prompt once after handshake, but ideally use a better method
-                // Note: Keychain doesn't expose active account directly; we need to request a operation
-                const tempUsername = prompt((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.verifyPrompt : 'Enter your Hive username to verify:')); // Temporary fallback
-                if (tempUsername) {
-                    // Verify by requesting a sign
-                    hive_keychain.requestSignBuffer(tempUsername, 'Verify WP-Dapp Connection', 'Posting', function(signResponse) {
-                        if (signResponse.success) {
-                            hiveUsername = tempUsername;
-                            sessionStorage.setItem('wpdapp_hive_username', hiveUsername);
-                            callback(hiveUsername);
-                        } else {
-                            alert((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.verifyFailed : 'Verification failed:') + ' ' + signResponse.message);
-                        }
-                    });
+                if (!username) {
+                    // If no username provided, we can't proceed - but now it's handled in UI
+                    return;
                 }
+                // Verify by requesting a sign
+                hive_keychain.requestSignBuffer(username, 'Verify WP-Dapp Connection', 'Posting', function(signResponse) {
+                    if (signResponse.success) {
+                        hiveUsername = username;
+                        sessionStorage.setItem('wpdapp_hive_username', hiveUsername);
+                        callback(hiveUsername);
+                    } else {
+                        alert((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.verifyFailed : 'Verification failed:') + ' ' + signResponse.message);
+                    }
+                });
             } else {
                 alert((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.keychainConnectFailed : 'Keychain connection failed:') + ' ' + response.message);
             }
@@ -88,7 +86,10 @@ jQuery(document).ready(function($) {
         let $form = $button.next('.wpdapp-reply-form');
         if ($form.length === 0) {
             $form = $('<div class="wpdapp-reply-form" role="form" aria-live="polite">' +
-                (hiveUsername ? '<p>' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.connectedAs : 'Connected as:') + ' ' + hiveUsername + '</p>' : '<button class="wpdapp-connect-keychain">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.connectWithKeychain : 'Connect with Keychain') + '</button>') +
+                (hiveUsername ? '<p>' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.connectedAs : 'Connected as:') + ' ' + hiveUsername + '</p>' : 
+                '<label for="wpdapp-username">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.enterHiveUsername : 'Enter your Hive username:') + '</label>' +
+                '<input type="text" id="wpdapp-username" placeholder="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.hiveUsernamePlaceholder : 'Hive username') + '">' +
+                '<button class="wpdapp-verify-keychain">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.verifyWithKeychain : 'Verify with Keychain') + '</button>') +
                 '<textarea aria-label="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.yourReply : 'Your reply') + '" placeholder="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.yourReplyPlaceholder : 'Your reply...') + '"></textarea>' +
                 '<button class="wpdapp-submit-reply">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.submit : 'Submit') + '</button>' +
                 '<button class="wpdapp-cancel-reply">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.cancel : 'Cancel') + '</button>' +
@@ -99,11 +100,18 @@ jQuery(document).ready(function($) {
         $form.find('textarea').focus(); // Add focus to textarea for keyboard accessibility
     });
 
-    // Handle connect button
-    $(document).on('click', '.wpdapp-connect-keychain', function() {
-        connectKeychain(function(username) {
-            $(this).replaceWith('<p>Connected as: ' + username + '</p>');
-        }.bind(this));
+    // Handle verify button
+    $(document).on('click', '.wpdapp-verify-keychain', function() {
+        const username = $(this).prev('#wpdapp-username').val().trim();
+        if (!username) {
+            alert((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.pleaseEnterUsername : 'Please enter your Hive username.'));
+            return;
+        }
+        connectKeychain(function(verifiedUsername) {
+            $(this).prev('#wpdapp-username').remove();
+            $(this).prev('label').remove();
+            $(this).replaceWith('<p>' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.connectedAs : 'Connected as:') + ' ' + verifiedUsername + '</p>');
+        }.bind(this), username);
     });
 
     // Handle cancel
