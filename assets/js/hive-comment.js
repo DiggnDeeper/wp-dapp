@@ -49,27 +49,51 @@ jQuery(document).ready(function($) {
     let hiveUsername = sessionStorage.getItem('wpdapp_hive_username') || null;
 
     // Function to connect with Keychain
-    function connectKeychain(callback, username) {
+    function connectKeychain(onSuccess, username, onError) {
         if (!isKeychainAvailable()) {
-            alert((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.keychainNotDetected : 'Hive Keychain not detected. Please install the extension.'));
+            if (typeof onError === 'function') {
+                onError((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.keychainNotDetected : 'Hive Keychain not detected. Please install the extension.'));
+            } else {
+                alert((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.keychainNotDetected : 'Hive Keychain not detected. Please install the extension.'));
+            }
             return;
         }
+        let responded = false;
+        const timeoutId = setTimeout(function() {
+            if (!responded && typeof onError === 'function') {
+                onError((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.verificationTimeout : 'No response from Hive Keychain. Make sure it\'s installed and unlocked.'));
+            }
+        }, 10000);
+
         hive_keychain.requestHandshake(function(response) {
+            responded = true;
+            clearTimeout(timeoutId);
             if (response.success) {
                 if (!username) {
+                    if (typeof onError === 'function') {
+                        onError('');
+                    }
                     return;
                 }
                 hive_keychain.requestSignBuffer(username, 'Verify WP-Dapp Connection', 'Posting', function(signResponse) {
                     if (signResponse.success) {
                         hiveUsername = username;
                         sessionStorage.setItem('wpdapp_hive_username', hiveUsername);
-                        callback(hiveUsername);
+                        onSuccess(hiveUsername);
                     } else {
-                        alert((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.verifyFailed : 'Verification failed:') + ' ' + signResponse.message);
+                        if (typeof onError === 'function') {
+                            onError((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.verifyFailed : 'Verification failed:') + ' ' + signResponse.message);
+                        } else {
+                            alert((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.verifyFailed : 'Verification failed:') + ' ' + signResponse.message);
+                        }
                     }
                 });
             } else {
-                alert((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.keychainConnectFailed : 'Keychain connection failed:') + ' ' + response.message);
+                if (typeof onError === 'function') {
+                    onError((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.keychainConnectFailed : 'Keychain connection failed:') + ' ' + response.message);
+                } else {
+                    alert((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.keychainConnectFailed : 'Keychain connection failed:') + ' ' + response.message);
+                }
             }
         });
     }
@@ -113,11 +137,18 @@ jQuery(document).ready(function($) {
             return;
         }
         $btn.text(wpdapp_frontend.i18n ? wpdapp_frontend.i18n.verifying : 'Verifying...').prop('disabled', true).addClass('loading');
+        const resetBtn = (msg) => {
+            $btn.text(wpdapp_frontend.i18n ? wpdapp_frontend.i18n.verifyWithKeychain : 'Verify with Keychain').prop('disabled', false).removeClass('loading');
+            if (msg) {
+                $form.append('<div class="wpdapp-form-error" role="status">' + msg + '</div>');
+                setTimeout(() => $form.find('.wpdapp-form-error').remove(), 5000);
+            }
+        };
         connectKeychain(function(verifiedUsername) {
             $usernameInput.remove();
             $form.find('.wpdapp-username-label').remove();
             $btn.replaceWith('<p>' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.connectedAs : 'Connected as:') + ' ' + verifiedUsername + '</p>');
-        }, username);
+        }, username, resetBtn);
     });
 
     // Allow pressing Enter to trigger verification
@@ -158,9 +189,15 @@ jQuery(document).ready(function($) {
             return;
         }
         if (!hiveUsername) {
-            $form.append('<div class="wpdapp-form-error" role="status">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.pleaseConnectFirst : 'Please connect with Keychain first.') + '</div>');
-            setTimeout(() => $form.find('.wpdapp-form-error').remove(), 3000);
-            return;
+            // Fallback: use typed username if present
+            const typed = $form.find('.wpdapp-username').val();
+            if (typed && typed.trim().length > 0) {
+                hiveUsername = typed.trim();
+            } else {
+                $form.append('<div class="wpdapp-form-error" role="status">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.pleaseConnectFirst : 'Please connect with Keychain first.') + '</div>');
+                setTimeout(() => $form.find('.wpdapp-form-error').remove(), 3000);
+                return;
+            }
         }
 
         const $button = $form.prev('.wpdapp-reply-button');

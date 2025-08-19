@@ -75,6 +75,7 @@ class WP_Dapp_Frontend {
                 'verifyWithKeychain' => __('Verify with Keychain', 'wp-dapp'),
                 'pleaseEnterUsername' => __('Please enter your Hive username.', 'wp-dapp'),
                 'verifying' => __('Verifying...', 'wp-dapp'),
+                'verificationTimeout' => __('No response from Hive Keychain. Make sure it\'s installed and unlocked.', 'wp-dapp'),
             ]
         ]);
     }
