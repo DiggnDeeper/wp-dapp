@@ -38,12 +38,7 @@ jQuery(document).ready(function($) {
       });
     }
 
-    // Add main reply button at the bottom
-    if (wpdapp_frontend.show_reply_buttons) {
-      $('.wpdapp-hive-comments-footer').append(
-          '<button type="button" class="wpdapp-reply-button" aria-label="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyToPostWithKeychain : 'Reply to Post with Keychain') + '" data-author="' + $('.wpdapp-hive-comments').data('root-author') + '" data-permlink="' + $('.wpdapp-hive-comments').data('root-permlink') + '">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyToPostWithKeychain : 'Reply to Post with Keychain') + '</button>'
-      );
-    }
+    // Note: Top-level reply button is rendered server-side in the footer to avoid duplicates
 
     // Username persistence: prefer localStorage, fallback to sessionStorage
     let hiveUsername = (function() {

@@ -148,7 +148,7 @@ class WP_Dapp_Frontend {
             $thread_url_base = $base . rawurlencode($root_author) . '/' . rawurlencode($root_permlink);
             $show_reply_links = $atts['show_reply_links'] === '1';
 
-            // Always render the footer so the main reply button can attach
+            // Always render the footer so the main reply button can attach (single footer only)
             $html .= '<div class="wpdapp-hive-comments-footer">';
             $html .= '<span class="wpdapp-muted">' . esc_html__('These are mirrored from Hive', 'wp-dapp');
             if ($show_reply_links) {
@@ -198,7 +198,7 @@ class WP_Dapp_Frontend {
         $html .= $this->render_comment_branch($by_parent, 0, $thread_url_base, 0, $max_depth);
         $html .= '</div>';
 
-        // Consolidated footer notice: always render footer to enable main reply button
+        // Consolidated footer notice: always render one footer to enable main reply button
         $html .= '<div class="wpdapp-hive-comments-footer">';
         $html .= '<span class="wpdapp-muted">' . esc_html__('These are mirrored from Hive', 'wp-dapp');
         if ($show_reply_links) {
