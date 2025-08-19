@@ -48,6 +48,7 @@ class WP_Dapp_Frontend {
                 'replyWithKeychain' => __('Reply with Keychain', 'wp-dapp'),
                 'replyToPostWithKeychain' => __('Reply to Post with Keychain', 'wp-dapp'),
                 'connectWithKeychain' => __('Connect with Keychain', 'wp-dapp'),
+                'connecting' => __('Connecting...', 'wp-dapp'),
                 'connectedAs' => __('Connected as:', 'wp-dapp'),
                 'yourReplyPlaceholder' => __('Your reply...', 'wp-dapp'),
                 'yourReply' => __('Your reply', 'wp-dapp'), // Added for aria-label
