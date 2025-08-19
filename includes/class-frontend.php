@@ -157,7 +157,7 @@ class WP_Dapp_Frontend {
             if ($enable_sync) {
                 $html .= '<p class="wpdapp-muted">' . esc_html__('No Hive comments yet.', 'wp-dapp') . '</p>';
             } else {
-                $html .= '<p class="wpdapp-muted">' . esc_html__('Comment sync is disabled. Replies are not mirrored here. Use the link above to view or reply on Hive.', 'wp-dapp') . '</p>';
+                $html .= '<p class="wpdapp-muted">' . esc_html__('Mirroring is off. Replies are not copied into WP comments. Use the link above to view or reply on Hive.', 'wp-dapp') . '</p>';
             }
             $html .= '</div>';
 

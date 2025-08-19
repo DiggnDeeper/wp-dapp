@@ -327,10 +327,7 @@ class WP_Dapp_Settings_Page {
         $sanitized['enable_comment_sync'] = isset($options['enable_comment_sync']) ? 1 : 0;
         $sanitized['auto_approve_comments'] = isset($options['auto_approve_comments']) ? 1 : 0;
         $sanitized['hive_only_mode'] = isset($options['hive_only_mode']) ? 1 : 0;
-        // If Hive-only display is enabled, force mirroring on so it "just works"
-        if (!empty($sanitized['hive_only_mode'])) {
-            $sanitized['enable_comment_sync'] = 1;
-        }
+        // Hive-only display does not automatically force mirroring; user can choose whether to mirror into WP
         $sanitized['show_reply_buttons'] = isset($options['show_reply_buttons']) ? 1 : 0;
         // Hive frontend choice
         $allowed_frontends = ['peakd', 'hive.blog', 'ecency'];
@@ -388,7 +385,7 @@ class WP_Dapp_Settings_Page {
     public function comment_sync_section_callback() {
         echo '<div class="wpdapp-settings-section-description">';
         echo '<p>' . __('Mirror replies from Hive into WordPress and choose how to display them on-site.', 'wp-dapp') . '</p>';
-        echo '<p>' . __('Display modes:', 'wp-dapp') . ' ' . __('(1) Native WP comments — uses your theme’s comments template; auto‑approval affects visibility. (2) Hive‑only Display — removes the WP comment form and shows the Hive thread with reply buttons and links. Hive‑only automatically enables mirroring so it just works.', 'wp-dapp') . '</p>';
+        echo '<p>' . __('Display modes:', 'wp-dapp') . ' ' . __('(1) Native WP comments — uses your theme’s comments template; auto‑approval affects visibility. (2) Hive‑only Display — removes the WP comment form and shows the Hive thread with reply buttons and links. Mirroring is optional in Hive‑only; enable it if you want replies copied into WP comments.', 'wp-dapp') . '</p>';
         echo '<p><strong>' . __('Note:', 'wp-dapp') . '</strong> ' . __('WordPress comments can be globally disabled to avoid spam. Imported Hive replies will still display using the <code>[wpdapp_hive_comments]</code> shortcode and a post footer notice will link users to reply on Hive. If you want imported comments to appear in the native WP comments template, ensure comments are enabled for that post and in Settings → Discussion.', 'wp-dapp') . '</p>';
         echo '</div>';
     }
@@ -453,22 +450,15 @@ class WP_Dapp_Settings_Page {
             case 'checkbox':
                 // Special handling: when rendering the mirroring checkbox and Hive-only is on, show it disabled (forced on)
                 if ($field === 'enable_comment_sync') {
-                    $all_options = get_option('wpdapp_options');
-                    $hive_only = !empty($all_options['hive_only_mode']);
-                    $is_checked = $hive_only ? true : (bool)$value;
-                    // Disabled visual control + hidden input to persist forced-on value when Hive-only is active
+                    // Standard checkbox; user can choose to mirror even in Hive-only
                     printf(
-                        '<label for="%s"><input type="checkbox" id="%s" %s %s> %s</label>',
+                        '<label for="%s"><input type="checkbox" id="%s" name="wpdapp_options[%s]" value="1" %s> %s</label>',
                         esc_attr($field),
                         esc_attr($field),
-                        $is_checked ? 'checked' : '',
-                        $hive_only ? 'disabled' : 'name="wpdapp_options[' . esc_attr($field) . ']" value="1"',
+                        esc_attr($field),
+                        checked(1, $value, false),
                         isset($args['label']) ? esc_html($args['label']) : ''
                     );
-                    if ($hive_only) {
-                        echo '<input type="hidden" name="wpdapp_options[' . esc_attr($field) . ']" value="1">';
-                        echo '<p class="description">' . esc_html__('Enabled automatically by Hive‑only Display.', 'wp-dapp') . '</p>';
-                    }
                 } else {
                     printf(
                         '<label for="%s"><input type="checkbox" id="%s" name="wpdapp_options[%s]" value="1" %s> %s</label>',
