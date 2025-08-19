@@ -45,108 +45,30 @@ jQuery(document).ready(function($) {
       );
     }
 
-    // Add global username variable
-    let hiveUsername = sessionStorage.getItem('wpdapp_hive_username') || null;
+    // Username persistence: prefer localStorage, fallback to sessionStorage
+    let hiveUsername = (function() {
+        try { return localStorage.getItem('wpdapp_hive_username') || sessionStorage.getItem('wpdapp_hive_username') || null; } catch(e) { return sessionStorage.getItem('wpdapp_hive_username') || null; }
+    })();
 
-    // Function to connect with Keychain
-    function connectKeychain(onSuccess, username, onError) {
-        if (!isKeychainAvailable()) {
-            if (typeof onError === 'function') {
-                onError((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.keychainNotDetected : 'Hive Keychain not detected. Please install the extension.'));
-            } else {
-                alert((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.keychainNotDetected : 'Hive Keychain not detected. Please install the extension.'));
-            }
-            return;
-        }
-        let responded = false;
-        const timeoutId = setTimeout(function() {
-            if (!responded && typeof onError === 'function') {
-                onError((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.verificationTimeout : 'No response from Hive Keychain. Make sure it\'s installed and unlocked.'));
-            }
-        }, 10000);
-
-        hive_keychain.requestHandshake(function(response) {
-            responded = true;
-            clearTimeout(timeoutId);
-            if (response.success) {
-                if (!username) {
-                    if (typeof onError === 'function') {
-                        onError('');
-                    }
-                    return;
-                }
-                hive_keychain.requestSignBuffer(username, 'Verify WP-Dapp Connection', 'Posting', function(signResponse) {
-                    if (signResponse.success) {
-                        hiveUsername = username;
-                        sessionStorage.setItem('wpdapp_hive_username', hiveUsername);
-                        onSuccess(hiveUsername);
-                    } else {
-                        if (typeof onError === 'function') {
-                            onError((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.verifyFailed : 'Verification failed:') + ' ' + signResponse.message);
-                        } else {
-                            alert((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.verifyFailed : 'Verification failed:') + ' ' + signResponse.message);
-                        }
-                    }
-                });
-            } else {
-                if (typeof onError === 'function') {
-                    onError((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.keychainConnectFailed : 'Keychain connection failed:') + ' ' + response.message);
-                } else {
-                    alert((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.keychainConnectFailed : 'Keychain connection failed:') + ' ' + response.message);
-                }
-            }
-        });
-    }
-
-    // Handshake-only helper
-    function handshakeKeychain(onSuccess, onError) {
-        if (!isKeychainAvailable()) {
-            if (typeof onError === 'function') {
-                onError((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.keychainNotDetected : 'Hive Keychain not detected. Please install the extension.'));
-            } else {
-                alert((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.keychainNotDetected : 'Hive Keychain not detected. Please install the extension.'));
-            }
-            return;
-        }
-        let responded = false;
-        const timeoutId = setTimeout(function() {
-            if (!responded && typeof onError === 'function') {
-                onError((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.verificationTimeout : 'No response from Hive Keychain. Make sure it\'s installed and unlocked.'));
-            }
-        }, 10000);
-        hive_keychain.requestHandshake(function(response) {
-            responded = true;
-            clearTimeout(timeoutId);
-            if (response.success) {
-                onSuccess();
-            } else {
-                if (typeof onError === 'function') {
-                    onError((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.keychainConnectFailed : 'Keychain connection failed:') + ' ' + response.message);
-                } else {
-                    alert((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.keychainConnectFailed : 'Keychain connection failed:') + ' ' + response.message);
-                }
-            }
-        });
-    }
-
-    // Update reply form to include connect UI if not connected
+    // Open reply form (no connect step)
     $(document).on('click', '.wpdapp-reply-button', function(e) {
         e.preventDefault();
         const $button = $(this);
-        if (!isKeychainAvailable()) {
-            alert((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.keychainNotDetected : 'Hive Keychain not detected. Please install the extension.'));
-            return;
-        }
 
         let $form = $button.next('.wpdapp-reply-form');
         if ($form.length === 0) {
             const formId = ++wpdappFormCounter;
             const usernameInputId = 'wpdapp-username-' + formId;
+            const connected = !!hiveUsername;
             $form = $('<div class="wpdapp-reply-form" role="form" aria-live="polite">' +
-                (hiveUsername ? '<p>' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.connectedAs : 'Connected as:') + ' ' + hiveUsername + '</p>' : 
-                '<label class="wpdapp-username-label" for="' + usernameInputId + '">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.enterHiveUsername : 'Enter your Hive username:') + '</label>' +
-                '<input type="text" class="wpdapp-username" id="' + usernameInputId + '" placeholder="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.hiveUsernamePlaceholder : 'Hive username') + '">' +
-                '<button type="button" class="wpdapp-verify-keychain">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.connectWithKeychain : 'Connect with Keychain') + '</button>') +
+                '<div class="wpdapp-conn-row">' +
+                    '<span class="wpdapp-status-chip ' + (connected ? 'connected' : 'not-connected') + '">' + (connected ? (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.statusConnected : 'Connected') : (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.statusNotConnected : 'Not connected')) + '</span>' +
+                    (connected
+                        ? '<p class="wpdapp-connected-as">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.connectedAs : 'Connected as:') + ' ' + hiveUsername + '</p>'
+                        : '<label class="wpdapp-username-label" for="' + usernameInputId + '">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.enterHiveUsername : 'Enter your Hive username:') + '</label>' +
+                          '<input type="text" class="wpdapp-username" id="' + usernameInputId + '" placeholder="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.hiveUsernamePlaceholder : 'Hive username') + '">'
+                      ) +
+                '</div>' +
                 '<textarea aria-label="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.yourReply : 'Your reply') + '" placeholder="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.yourReplyPlaceholder : 'Your reply...') + '"></textarea>' +
                 '<button type="button" class="wpdapp-submit-reply">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.submit : 'Submit') + '</button>' +
                 '<button type="button" class="wpdapp-cancel-reply">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.cancel : 'Cancel') + '</button>' +
@@ -155,57 +77,25 @@ jQuery(document).ready(function($) {
         }
         $form.slideDown();
         $form.find('textarea').focus();
-    });
 
-    // Handle verify button
-    $(document).on('click', '.wpdapp-verify-keychain', function() {
-        const $btn = $(this);
-        const $form = $btn.closest('.wpdapp-reply-form');
-        const $usernameInput = $form.find('.wpdapp-username');
-        const username = $usernameInput.val() ? $usernameInput.val().trim() : '';
-        if (!username) {
-            alert((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.pleaseEnterUsername : 'Please enter your Hive username.'));
-            return;
-        }
-        $btn.text(wpdapp_frontend.i18n ? wpdapp_frontend.i18n.connecting : 'Connecting...').prop('disabled', true).addClass('loading');
-        const resetBtn = (msg) => {
-            $btn.text(wpdapp_frontend.i18n ? wpdapp_frontend.i18n.connectWithKeychain : 'Connect with Keychain').prop('disabled', false).removeClass('loading');
-            if (msg) {
-                $form.append('<div class="wpdapp-form-error" role="status">' + msg + '</div>');
-                setTimeout(() => $form.find('.wpdapp-form-error').remove(), 5000);
-            }
-        };
-        handshakeKeychain(function() {
-            hiveUsername = username;
-            sessionStorage.setItem('wpdapp_hive_username', hiveUsername);
-            $usernameInput.remove();
-            $form.find('.wpdapp-username-label').remove();
-            $btn.replaceWith('<p>' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.connectedAs : 'Connected as:') + ' ' + hiveUsername + '</p>');
-        }, resetBtn);
-    });
-
-    // Allow pressing Enter to trigger verification
-    $(document).on('keydown', '.wpdapp-username', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            $(this).closest('.wpdapp-reply-form').find('.wpdapp-verify-keychain').trigger('click');
+        // If Keychain missing, inform inline but do not block
+        if (!isKeychainAvailable() && $form.find('.wpdapp-keychain-warning').length === 0) {
+            $form.prepend('<div class="wpdapp-form-error wpdapp-keychain-warning" role="status">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.keychainNotDetected : 'Hive Keychain not detected. Please install the extension.') + '</div>');
         }
     });
 
-    // Handle cancel
+    // Cancel
     $(document).on('click', '.wpdapp-cancel-reply', function() {
         $(this).parent().slideUp();
     });
 
-    // Handle submit
-    // Prevent duplicate in-flight sync requests
+    // Submit
     let isSyncInFlight = false;
 
     $(document).on('click', '.wpdapp-submit-reply', function() {
         const $form = $(this).parent();
         const content = $form.find('textarea').val().trim();
 
-        // Validation
         if (!content) {
             $form.append('<div class="wpdapp-form-error" role="status">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.pleaseEnterReply : 'Please enter a reply.') + '</div>');
             setTimeout(() => $form.find('.wpdapp-form-error').remove(), 3000);
@@ -221,77 +111,78 @@ jQuery(document).ready(function($) {
             setTimeout(() => $form.find('.wpdapp-form-error').remove(), 3000);
             return;
         }
-        if (!hiveUsername) {
-            // Fallback: use typed username if present
+
+        // Determine username: stored or typed
+        let usedUsername = hiveUsername;
+        if (!usedUsername) {
             const typed = $form.find('.wpdapp-username').val();
             if (typed && typed.trim().length > 0) {
-                hiveUsername = typed.trim();
+                usedUsername = typed.trim();
             } else {
-                $form.append('<div class="wpdapp-form-error" role="status">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.pleaseConnectFirst : 'Please connect with Keychain first.') + '</div>');
+                $form.append('<div class="wpdapp-form-error" role="status">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.pleaseEnterUsername : 'Please enter your Hive username.') + '</div>');
                 setTimeout(() => $form.find('.wpdapp-form-error').remove(), 3000);
                 return;
             }
         }
 
+        if (!isKeychainAvailable()) {
+            alert((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.keychainNotDetected : 'Hive Keychain not detected. Please install the extension.'));
+            return;
+        }
+
         const $button = $form.prev('.wpdapp-reply-button');
         const parentAuthor = $button.data('author');
         const parentPermlink = $button.data('permlink');
-
         const permlink = generatePermlink(content);
 
         const operations = [
             ['comment', {
                 parent_author: parentAuthor,
                 parent_permlink: parentPermlink,
-                author: hiveUsername,
+                author: usedUsername,
                 permlink: permlink,
                 title: '',
                 body: content,
-                json_metadata: JSON.stringify({
-                    app: 'wp-dapp/0.7.4',
-                    format: 'markdown'
-                })
+                json_metadata: JSON.stringify({ app: 'wp-dapp/0.7.4', format: 'markdown' })
             }]
         ];
 
-        // Add loading state
         $(this).text(wpdapp_frontend.i18n ? wpdapp_frontend.i18n.posting : 'Posting...').prop('disabled', true).addClass('loading');
 
-        hive_keychain.requestBroadcast(hiveUsername, operations, 'posting', function(response) {
+        hive_keychain.requestBroadcast(usedUsername, operations, 'posting', function(response) {
             $(this).text(wpdapp_frontend.i18n ? wpdapp_frontend.i18n.submit : 'Submit').prop('disabled', false).removeClass('loading');
             if (response.success) {
+                // Persist username after first success
+                hiveUsername = usedUsername;
+                try { localStorage.setItem('wpdapp_hive_username', hiveUsername); } catch(e) {}
+                sessionStorage.setItem('wpdapp_hive_username', hiveUsername);
+                // Update status chip/UI
+                $form.find('.wpdapp-username, .wpdapp-username-label').remove();
+                const $chip = $form.find('.wpdapp-status-chip');
+                $chip.removeClass('not-connected').addClass('connected').text(wpdapp_frontend.i18n ? wpdapp_frontend.i18n.statusConnected : 'Connected');
+                if ($form.find('.wpdapp-connected-as').length === 0) {
+                    $chip.after('<p class="wpdapp-connected-as">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.connectedAs : 'Connected as:') + ' ' + hiveUsername + '</p>');
+                } else {
+                    $form.find('.wpdapp-connected-as').text((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.connectedAs : 'Connected as:') + ' ' + hiveUsername);
+                }
+
                 $form.append('<div class="wpdapp-form-success" role="status">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.postedSyncing : 'Reply posted successfully! Syncing...') + '</div>');
-                // Item 2: Trigger immediate sync
-                if (isSyncInFlight) return; // throttle duplicates
+                if (isSyncInFlight) return;
                 isSyncInFlight = true;
                 $.ajax({
                     url: wpdapp_frontend.ajax_url,
                     type: 'POST',
-                    data: {
-                        action: 'wpdapp_sync_comments',
-                        nonce: wpdapp_frontend.nonce,
-                        post_id: wpdapp_frontend.post_id
-                    },
+                    data: { action: 'wpdapp_sync_comments', nonce: wpdapp_frontend.nonce, post_id: wpdapp_frontend.post_id },
                     success: function(syncResponse) {
                         if (syncResponse.success) {
-                            // Fetch fresh rendered HTML and replace the block
                             $.ajax({
                                 url: wpdapp_frontend.ajax_url,
                                 type: 'POST',
-                                data: {
-                                    action: 'wpdapp_render_hive_comments',
-                                    nonce: wpdapp_frontend.nonce,
-                                    post_id: wpdapp_frontend.post_id
-                                },
+                                data: { action: 'wpdapp_render_hive_comments', nonce: wpdapp_frontend.nonce, post_id: wpdapp_frontend.post_id },
                                 success: function(renderResponse) {
                                     if (renderResponse.success && renderResponse.data && renderResponse.data.html) {
-                                        var $container = $('.wpdapp-hive-comments').first().parent();
-                                        // Replace the entire block (comments + footer)
-                                        // Find existing footer
                                         var $footer = $('.wpdapp-hive-comments-footer').first();
-                                        if ($footer.length) {
-                                            $footer.remove();
-                                        }
+                                        if ($footer.length) { $footer.remove(); }
                                         $('.wpdapp-hive-comments').first().replaceWith(renderResponse.data.html);
                                         $form.find('.wpdapp-form-success').text(wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyPostedSynced : 'Reply posted and synced!');
                                     } else {
@@ -305,9 +196,6 @@ jQuery(document).ready(function($) {
                         } else {
                             $form.append('<div class="wpdapp-form-error" role="status">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.syncFailedPrefix : 'Posted to Hive, but sync failed:') + ' ' + (syncResponse.data || 'Unknown error') + '</div>');
                         }
-                    },
-                    error: function() {
-                        $form.append('<div class="wpdapp-form-error" role="status">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.syncErrorOccurred : 'Posted to Hive, but sync error occurred.') + '</div>');
                     },
                     complete: function() {
                         isSyncInFlight = false;

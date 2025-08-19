@@ -77,6 +77,8 @@ class WP_Dapp_Frontend {
                 'pleaseEnterUsername' => __('Please enter your Hive username.', 'wp-dapp'),
                 'verifying' => __('Verifying...', 'wp-dapp'),
                 'verificationTimeout' => __('No response from Hive Keychain. Make sure it\'s installed and unlocked.', 'wp-dapp'),
+                'statusConnected' => __('Connected', 'wp-dapp'),
+                'statusNotConnected' => __('Not connected', 'wp-dapp'),
             ]
         ]);
     }

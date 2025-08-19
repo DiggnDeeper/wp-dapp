@@ -29,6 +29,11 @@
 .wpdapp-reply-form .wpdapp-username-label { display: block; margin-bottom: 0.25rem; font-size: 0.95em; color: #ccc; }
 .wpdapp-reply-form .wpdapp-username { width: 100%; max-width: 240px; padding: 0.3rem; margin-right: 0.5rem; }
 .wpdapp-reply-form .wpdapp-verify-keychain { margin: 0.25rem 0 0.5rem; }
+.wpdapp-reply-form .wpdapp-conn-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
+.wpdapp-status-chip { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.8em; border: 1px solid rgba(127,127,127,0.35); }
+.wpdapp-status-chip.connected { color: #2d8a34; border-color: rgba(45,138,52,0.6); }
+.wpdapp-status-chip.not-connected { color: #b33; border-color: rgba(179,51,51,0.6); }
+.wpdapp-connected-as { margin: 0; color: #ccc; }
 
 /* Depth limiting hint when threads get too deep */
 .wpdapp-comment-list[data-max-depth] .wpdapp-comment-list[data-depth] { position: relative; }
