@@ -19,7 +19,8 @@ jQuery(document).ready(function($) {
     }
 
     // Add reply buttons to each comment and the main comments section
-    $('.wpdapp-comment-list > li.wpdapp-comment').each(function() {
+    if (wpdapp_frontend.show_reply_buttons) {
+      $('.wpdapp-comment-list > li.wpdapp-comment').each(function() {
         const $comment = $(this);
         const hiveKey = $comment.data('hive-key');
         if (!hiveKey) return;
@@ -31,12 +32,15 @@ jQuery(document).ready(function($) {
         if ($actions.length && $actions.find('.wpdapp-reply-button').length === 0) {
             $actions.append('<button class="wpdapp-reply-button" aria-label="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyWithKeychain : 'Reply with Keychain') + '" data-author="' + author + '" data-permlink="' + permlink + '">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyWithKeychain : 'Reply with Keychain') + '</button>');
         }
-    });
+      });
+    }
 
     // Add main reply button at the bottom
-    $('.wpdapp-hive-comments-footer').append(
-        '<button class="wpdapp-reply-button" aria-label="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyToPostWithKeychain : 'Reply to Post with Keychain') + '" data-author="' + $('.wpdapp-hive-comments').data('root-author') + '" data-permlink="' + $('.wpdapp-hive-comments').data('root-permlink') + '">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyToPostWithKeychain : 'Reply to Post with Keychain') + '</button>'
-    );
+    if (wpdapp_frontend.show_reply_buttons) {
+      $('.wpdapp-hive-comments-footer').append(
+          '<button class="wpdapp-reply-button" aria-label="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyToPostWithKeychain : 'Reply to Post with Keychain') + '" data-author="' + $('.wpdapp-hive-comments').data('root-author') + '" data-permlink="' + $('.wpdapp-hive-comments').data('root-permlink') + '">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyToPostWithKeychain : 'Reply to Post with Keychain') + '</button>'
+      );
+    }
 
     // Add global username variable
     let hiveUsername = sessionStorage.getItem('wpdapp_hive_username') || null;
@@ -85,13 +89,14 @@ jQuery(document).ready(function($) {
         if ($form.length === 0) {
             $form = $('<div class="wpdapp-reply-form" role="form" aria-live="polite">' +
                 (hiveUsername ? '<p>' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.connectedAs : 'Connected as:') + ' ' + hiveUsername + '</p>' : '<button class="wpdapp-connect-keychain">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.connectWithKeychain : 'Connect with Keychain') + '</button>') +
-                '<textarea placeholder="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.yourReplyPlaceholder : 'Your reply...') + '"></textarea>' +
+                '<textarea aria-label="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.yourReply : 'Your reply') + '" placeholder="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.yourReplyPlaceholder : 'Your reply...') + '"></textarea>' +
                 '<button class="wpdapp-submit-reply">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.submit : 'Submit') + '</button>' +
                 '<button class="wpdapp-cancel-reply">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.cancel : 'Cancel') + '</button>' +
                 '</div>');
             $button.after($form);
         }
         $form.slideDown();
+        $form.find('textarea').focus(); // Add focus to textarea for keyboard accessibility
     });
 
     // Handle connect button
@@ -107,6 +112,9 @@ jQuery(document).ready(function($) {
     });
 
     // Handle submit
+    // Prevent duplicate in-flight sync requests
+    let isSyncInFlight = false;
+
     $(document).on('click', '.wpdapp-submit-reply', function() {
         const $form = $(this).parent();
         const content = $form.find('textarea').val().trim();
@@ -119,6 +127,11 @@ jQuery(document).ready(function($) {
         }
         if (content.length < 3) {
             $form.append('<div class="wpdapp-form-error" role="status">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyMinLength : 'Reply must be at least 3 characters.') + '</div>');
+            setTimeout(() => $form.find('.wpdapp-form-error').remove(), 3000);
+            return;
+        }
+        if (content.length > 5000) {
+            $form.append('<div class="wpdapp-form-error" role="status">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyMaxLength : 'Reply must be at most 5000 characters.') + '</div>');
             setTimeout(() => $form.find('.wpdapp-form-error').remove(), 3000);
             return;
         }
@@ -157,6 +170,8 @@ jQuery(document).ready(function($) {
             if (response.success) {
                 $form.append('<div class="wpdapp-form-success" role="status">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.postedSyncing : 'Reply posted successfully! Syncing...') + '</div>');
                 // Item 2: Trigger immediate sync
+                if (isSyncInFlight) return; // throttle duplicates
+                isSyncInFlight = true;
                 $.ajax({
                     url: wpdapp_frontend.ajax_url,
                     type: 'POST',
@@ -203,6 +218,7 @@ jQuery(document).ready(function($) {
                         $form.append('<div class="wpdapp-form-error" role="status">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.syncErrorOccurred : 'Posted to Hive, but sync error occurred.') + '</div>');
                     },
                     complete: function() {
+                        isSyncInFlight = false;
                         setTimeout(() => $form.find('.wpdapp-form-success, .wpdapp-form-error').remove(), 5000);
                         $form.slideUp();
                         $form.find('textarea').val('');
@@ -213,5 +229,61 @@ jQuery(document).ready(function($) {
                 setTimeout(() => $form.find('.wpdapp-form-error').remove(), 5000);
             }
         }.bind(this));
+    });
+
+    // Handle sync button
+    $(document).on('click', '.wpdapp-sync-button', function(e) {
+        e.preventDefault();
+        const $button = $(this);
+        if (isSyncInFlight) return;
+        isSyncInFlight = true;
+        $button.text(wpdapp_frontend.i18n ? wpdapp_frontend.i18n.syncing : 'Syncing...').prop('disabled', true).addClass('loading');
+        $.ajax({
+            url: wpdapp_frontend.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'wpdapp_sync_comments',
+                nonce: wpdapp_frontend.nonce,
+                post_id: wpdapp_frontend.post_id
+            },
+            success: function(syncResponse) {
+                if (syncResponse.success) {
+                    // Fetch fresh rendered HTML and replace the block
+                    $.ajax({
+                        url: wpdapp_frontend.ajax_url,
+                        type: 'POST',
+                        data: {
+                            action: 'wpdapp_render_hive_comments',
+                            nonce: wpdapp_frontend.nonce,
+                            post_id: wpdapp_frontend.post_id
+                        },
+                        success: function(renderResponse) {
+                            if (renderResponse.success && renderResponse.data && renderResponse.data.html) {
+                                var $footer = $('.wpdapp-hive-comments-footer').first();
+                                if ($footer.length) {
+                                    $footer.remove();
+                                }
+                                $('.wpdapp-hive-comments').first().replaceWith(renderResponse.data.html);
+                                // Optionally announce success
+                            } else {
+                                // Error handling
+                            }
+                        },
+                        error: function() {
+                            // Error
+                        }
+                    });
+                } else {
+                    // Sync failed
+                }
+            },
+            error: function() {
+                // Error
+            },
+            complete: function() {
+                isSyncInFlight = false;
+                $button.text(wpdapp_frontend.i18n ? wpdapp_frontend.i18n.syncHiveComments : 'Sync Hive Comments').prop('disabled', false).removeClass('loading');
+            }
+        });
     });
 });

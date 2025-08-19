@@ -37,16 +37,20 @@ class WP_Dapp_Frontend {
         );
         // Localize data for AJAX
         $post_id = is_singular() ? get_the_ID() : 0;
+        $options = get_option('wpdapp_options', []);
+        $show_reply_buttons = !empty($options['show_reply_buttons']);
         wp_localize_script('wpdapp-hive-comment', 'wpdapp_frontend', [
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('wpdapp_frontend_sync'),
             'post_id' => $post_id,
+            'show_reply_buttons' => $show_reply_buttons ? 1 : 0,
             'i18n' => [
                 'replyWithKeychain' => __('Reply with Keychain', 'wp-dapp'),
                 'replyToPostWithKeychain' => __('Reply to Post with Keychain', 'wp-dapp'),
                 'connectWithKeychain' => __('Connect with Keychain', 'wp-dapp'),
                 'connectedAs' => __('Connected as:', 'wp-dapp'),
                 'yourReplyPlaceholder' => __('Your reply...', 'wp-dapp'),
+                'yourReply' => __('Your reply', 'wp-dapp'), // Added for aria-label
                 'submit' => __('Submit', 'wp-dapp'),
                 'cancel' => __('Cancel', 'wp-dapp'),
                 'posting' => __('Posting...', 'wp-dapp'),
@@ -56,6 +60,7 @@ class WP_Dapp_Frontend {
                 'keychainConnectFailed' => __('Keychain connection failed:', 'wp-dapp'),
                 'pleaseEnterReply' => __('Please enter a reply.', 'wp-dapp'),
                 'replyMinLength' => __('Reply must be at least 3 characters.', 'wp-dapp'),
+                'replyMaxLength' => __('Reply must be at most 5000 characters.', 'wp-dapp'), // Added
                 'pleaseConnectFirst' => __('Please connect with Keychain first.', 'wp-dapp'),
                 'postedSyncing' => __('Reply posted successfully! Syncing...', 'wp-dapp'),
                 'replyPostedSynced' => __('Reply posted and synced!', 'wp-dapp'),
@@ -63,6 +68,8 @@ class WP_Dapp_Frontend {
                 'syncErrorOccurred' => __('Posted to Hive, but sync error occurred.', 'wp-dapp'),
                 'syncedRefreshFailed' => __('Synced, but failed to refresh comments.', 'wp-dapp'),
                 'syncedRefreshError' => __('Synced, but refresh failed.', 'wp-dapp'),
+                'syncHiveComments' => __('Sync Hive Comments', 'wp-dapp'),
+                'syncing' => __('Syncing...', 'wp-dapp'),
             ]
         ]);
     }
@@ -152,7 +159,9 @@ class WP_Dapp_Frontend {
             if ($show_reply_links) {
                 $html .= ' · <a href="' . esc_url($thread_url_base) . '" target="_blank" rel="noopener nofollow">' . esc_html__('View thread / reply on Hive', 'wp-dapp') . '</a>';
             }
-            $html .= '</span></div>';
+            $html .= '</span>';
+            $html .= '<button class="wpdapp-sync-button">' . esc_html__('Sync Hive Comments', 'wp-dapp') . '</button>'; // Added sync button
+            $html .= '</div>';
         }
 
         return $html;

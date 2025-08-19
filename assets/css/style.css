@@ -31,3 +31,14 @@
 .wpdapp-comment-list[data-max-depth] .wpdapp-comment-list[data-depth] { position: relative; }
 .wpdapp-show-more { display: inline-block; margin: 0.25rem 0; font-size: 0.9em; }
 
+/* Mobile responsive */
+@media (max-width: 600px) {
+    .wpdapp-hive-comments { margin-top: 1rem; }
+    .wpdapp-comment-list .wpdapp-comment > .wpdapp-comment-list { margin-left: 0.75rem; padding-left: 0.75rem; border-left-width: 1px; }
+    .wpdapp-reply-form { padding: 0.3rem; }
+    .wpdapp-reply-form textarea { min-height: 80px; font-size: 1em; }
+    .wpdapp-comment-actions { flex-direction: column; align-items: flex-start; gap: 0.3rem; }
+    .wpdapp-hive-comments-footer { text-align: center; }
+    .wpdapp-hive-comments-footer button { width: 100%; margin-top: 0.5rem; }
+}
+

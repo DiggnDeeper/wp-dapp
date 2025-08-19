@@ -107,6 +107,7 @@ function wpdapp_activate() {
         'auto_approve_comments' => 0,
         'hive_frontend' => 'peakd',
         'hive_max_thread_depth' => 4,
+        'show_reply_buttons' => 1,
     ];
     
     // Only set options if they don't exist
