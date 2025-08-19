@@ -184,6 +184,8 @@ class WP_Dapp_Frontend {
                     $html .= '<a href="' . esc_url($thread_url_base) . '" target="_blank" rel="noopener nofollow">' . esc_html__('View thread / reply on Hive', 'wp-dapp') . '</a>';
                 }
                 $html .= '</span>';
+                // Offer a one‑time import button for convenience
+                $html .= ' <button class="wpdapp-sync-button" data-force="1">' . esc_html__('Import Hive Comments', 'wp-dapp') . '</button>';
             }
             $html .= '</div>';
             return $html;
@@ -236,7 +238,12 @@ class WP_Dapp_Frontend {
 
         // Footer: keep minimal (sync button only) to avoid duplication with header
         $html .= '<div class="wpdapp-hive-comments-footer">';
-        $html .= '<button class="wpdapp-sync-button">' . esc_html__('Sync Hive Comments', 'wp-dapp') . '</button>';
+        // If mirroring is off but comments exist (from a previous import), allow one‑time import via force flag
+        if (!$enable_sync) {
+            $html .= '<button class="wpdapp-sync-button" data-force="1">' . esc_html__('Import Hive Comments', 'wp-dapp') . '</button>';
+        } else {
+            $html .= '<button class="wpdapp-sync-button">' . esc_html__('Sync Hive Comments', 'wp-dapp') . '</button>';
+        }
         $html .= '</div>';
 
         return $html;

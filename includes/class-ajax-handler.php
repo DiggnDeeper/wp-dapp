@@ -322,9 +322,10 @@ class WP_Dapp_Ajax_Handler {
             wp_send_json_error(__('Invalid or unpublished post', 'wp-dapp'));
         }
 
-        // Skip capability check for frontend, but ensure sync is enabled globally
+        // Allow a one-time import when explicitly forced from the frontend, even if mirroring is off
         $options = get_option('wpdapp_options', []);
-        if (empty($options['enable_comment_sync'])) {
+        $force = !empty($_POST['force']);
+        if (empty($options['enable_comment_sync']) && !$force) {
             wp_send_json_error(__('Comment sync is disabled', 'wp-dapp'));
         }
         $auto_approve = !empty($options['auto_approve_comments']);

@@ -272,14 +272,16 @@ jQuery(document).ready(function($) {
         const $button = $(this);
         if (isSyncInFlight) return;
         isSyncInFlight = true;
-        $button.text(wpdapp_frontend.i18n ? wpdapp_frontend.i18n.syncing : 'Syncing...').prop('disabled', true).addClass('loading');
+        const isForce = $button.data('force') ? 1 : 0;
+        $button.text(wpdapp_frontend.i18n ? wpdapp_frontend.i18n.syncing : (isForce ? 'Importing...' : 'Syncing...')).prop('disabled', true).addClass('loading');
         $.ajax({
             url: wpdapp_frontend.ajax_url,
             type: 'POST',
             data: {
                 action: 'wpdapp_sync_comments',
                 nonce: wpdapp_frontend.nonce,
-                post_id: wpdapp_frontend.post_id
+                post_id: wpdapp_frontend.post_id,
+                force: isForce
             },
             success: function(syncResponse) {
                 if (syncResponse.success) {
