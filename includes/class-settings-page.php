@@ -212,20 +212,20 @@ class WP_Dapp_Settings_Page {
                 'field' => 'auto_approve_comments',
                 'type' => 'checkbox',
                 'label' => __('Mark imported comments as approved', 'wp-dapp'),
-                'description' => __('Only applies when Hive-only mode is off.', 'wp-dapp')
+                'description' => __('Applies to the native WP comments display. In Hive‑only display, all imported comments are shown.', 'wp-dapp')
             ]
         );
 
         add_settings_field(
             'hive_only_mode',
-            __('Hive‑only Mode', 'wp-dapp'),
+            __('Hive‑only Display', 'wp-dapp'),
             [$this, 'render_field'],
             'wpdapp-settings',
             'wpdapp_comment_sync_section',
             [
                 'field' => 'hive_only_mode',
                 'type' => 'checkbox',
-                'label' => __('Hide WP comment form and always show mirrored Hive replies with a \'Reply on Hive\' link', 'wp-dapp'),
+                'label' => __('Hide the WP comment form and always show mirrored Hive replies with a “Reply on Hive” link', 'wp-dapp'),
                 'description' => __('Imported comments display regardless of approval status.', 'wp-dapp')
             ]
         );
@@ -378,7 +378,8 @@ class WP_Dapp_Settings_Page {
      */
     public function comment_sync_section_callback() {
         echo '<div class="wpdapp-settings-section-description">';
-        echo '<p>' . __('Import replies from Hive as WordPress comments. Use the post editor action to sync on demand.', 'wp-dapp') . '</p>';
+        echo '<p>' . __('Import replies from Hive as WordPress comments, then choose how to display them on-site.', 'wp-dapp') . '</p>';
+        echo '<p>' . __('Display modes:', 'wp-dapp') . ' ' . __('(1) Native WP comments — uses your theme’s comments template; auto‑approval affects visibility. (2) Hive‑only — replace the WP comment form and always show the mirrored Hive replies with a link to reply on Hive.', 'wp-dapp') . '</p>';
         echo '<p><strong>' . __('Note:', 'wp-dapp') . '</strong> ' . __('WordPress comments can be globally disabled to avoid spam. Imported Hive replies will still display using the <code>[wpdapp_hive_comments]</code> shortcode and a post footer notice will link users to reply on Hive. If you want imported comments to appear in the native WP comments template, ensure comments are enabled for that post and in Settings → Discussion.', 'wp-dapp') . '</p>';
         echo '</div>';
     }
