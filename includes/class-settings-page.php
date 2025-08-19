@@ -21,8 +21,8 @@ class WP_Dapp_Settings_Page {
      */
     public function add_settings_page() {
         add_options_page(
-            'WP-Dapp Settings',
-            'WP-Dapp',
+            __('WP-Dapp Settings', 'wp-dapp'),
+            __('WP-Dapp', 'wp-dapp'),
             'manage_options',
             'wpdapp-settings',
             [$this, 'render_settings_page']
@@ -99,7 +99,7 @@ class WP_Dapp_Settings_Page {
         
         add_settings_field(
             'hive_account',
-            'Hive Account',
+            __('Hive Account', 'wp-dapp'),
             [$this, 'render_field'],
             'wpdapp-settings',
             'wpdapp_account_section',
@@ -132,7 +132,7 @@ class WP_Dapp_Settings_Page {
         
         add_settings_field(
             'enable_default_beneficiary',
-            'Enable Default Beneficiary',
+            __('Enable Default Beneficiary', 'wp-dapp'),
             [$this, 'render_field'],
             'wpdapp-settings',
             'wpdapp_beneficiary_section',
@@ -141,7 +141,7 @@ class WP_Dapp_Settings_Page {
         
         add_settings_field(
             'default_beneficiary_account',
-            'Default Beneficiary Account',
+            __('Default Beneficiary Account', 'wp-dapp'),
             [$this, 'render_field'],
             'wpdapp-settings',
             'wpdapp_beneficiary_section',
@@ -150,7 +150,7 @@ class WP_Dapp_Settings_Page {
         
         add_settings_field(
             'default_beneficiary_weight',
-            'Default Beneficiary Percentage',
+            __('Default Beneficiary Percentage', 'wp-dapp'),
             [$this, 'render_field'],
             'wpdapp-settings',
             'wpdapp_beneficiary_section',
@@ -160,7 +160,7 @@ class WP_Dapp_Settings_Page {
                 'min' => 0.1,
                 'max' => 10,
                 'step' => 0.1,
-                'description' => 'Percentage of rewards (0.1-10%). Default is 1%.',
+                'description' => __('Percentage of rewards (0.1-10%). Default is 1%.', 'wp-dapp'),
                 'class' => 'wpdapp-percentage-field'
             ]
         );
@@ -175,13 +175,13 @@ class WP_Dapp_Settings_Page {
         
         add_settings_field(
             'default_tags',
-            'Default Tags',
+            __('Default Tags', 'wp-dapp'),
             [$this, 'render_field'],
             'wpdapp-settings',
             'wpdapp_post_section',
             [
                 'field' => 'default_tags',
-                'description' => 'Comma-separated list of default tags to use when none are specified.'
+                'description' => __('Comma-separated list of default tags to use when none are specified.', 'wp-dapp')
             ]
         );
 
@@ -195,29 +195,87 @@ class WP_Dapp_Settings_Page {
 
         add_settings_field(
             'enable_comment_sync',
-            'Enable Comment Sync',
+            __('Enable Mirroring', 'wp-dapp'),
             [$this, 'render_field'],
             'wpdapp-settings',
             'wpdapp_comment_sync_section',
-            ['field' => 'enable_comment_sync', 'type' => 'checkbox', 'label' => 'Import Hive replies into WordPress comments']
+            ['field' => 'enable_comment_sync', 'type' => 'checkbox', 'label' => __('Mirror Hive replies into WordPress comments', 'wp-dapp')]
         );
 
         add_settings_field(
             'auto_approve_comments',
-            'Auto‑approve Imported Comments',
+            __('Auto‑approve Imported Comments', 'wp-dapp'),
             [$this, 'render_field'],
             'wpdapp-settings',
             'wpdapp_comment_sync_section',
-            ['field' => 'auto_approve_comments', 'type' => 'checkbox', 'label' => 'Mark imported comments as approved']
+            [
+                'field' => 'auto_approve_comments',
+                'type' => 'checkbox',
+                'label' => __('Mark imported comments as approved', 'wp-dapp'),
+                'description' => __('Applies to the native WP comments display. In Hive‑only display, all imported comments are shown.', 'wp-dapp')
+            ]
         );
 
         add_settings_field(
             'hive_only_mode',
-            'Hive‑only Mode',
+            __('Hive‑only Display', 'wp-dapp'),
             [$this, 'render_field'],
             'wpdapp-settings',
             'wpdapp_comment_sync_section',
-            ['field' => 'hive_only_mode', 'type' => 'checkbox', 'label' => 'Hide WP comment form and show Hive replies with a "Reply on Hive" link']
+            [
+                'field' => 'hive_only_mode',
+                'type' => 'checkbox',
+                'label' => __('Hide the WP comment form and always show mirrored Hive replies with a “Reply on Hive” link', 'wp-dapp'),
+                'description' => __('Imported comments display regardless of approval status.', 'wp-dapp')
+            ]
+        );
+
+        add_settings_field(
+            'show_reply_buttons',
+            __('Show Reply Buttons', 'wp-dapp'),
+            [$this, 'render_field'],
+            'wpdapp-settings',
+            'wpdapp_comment_sync_section',
+            [
+                'field' => 'show_reply_buttons',
+                'type' => 'checkbox',
+                'label' => __('Enable Keychain reply buttons on-site', 'wp-dapp'),
+                'description' => __('Adds “Reply with Keychain” buttons above the thread and on each imported comment (native WP comments mode only). In Hive‑only Display, reply buttons are always shown. Requires the Hive Keychain browser extension; mirroring back into WP still requires comment sync to be enabled.', 'wp-dapp')
+            ]
+        );
+        
+        add_settings_field(
+            'hive_frontend',
+            __('Hive Frontend', 'wp-dapp'),
+            [$this, 'render_field'],
+            'wpdapp-settings',
+            'wpdapp_comment_sync_section',
+            [
+                'field' => 'hive_frontend',
+                'type' => 'select',
+                'options' => [
+                    'peakd' => __('PeakD', 'wp-dapp'),
+                    'hive.blog' => __('Hive.blog', 'wp-dapp'),
+                    'ecency' => __('Ecency', 'wp-dapp')
+                ],
+                'description' => __('Choose which Hive frontend to use for links (e.g., View thread).', 'wp-dapp')
+            ]
+        );
+
+        add_settings_field(
+            'hive_max_thread_depth',
+            __('Max Thread Depth', 'wp-dapp'),
+            [$this, 'render_field'],
+            'wpdapp-settings',
+            'wpdapp_comment_sync_section',
+            [
+                'field' => 'hive_max_thread_depth',
+                'type' => 'number',
+                'min' => 1,
+                'max' => 10,
+                'step' => 1,
+                'description' => __('How many nested levels to render on-site (1–10). Deeper replies remain available via the \"View more replies on Hive\" link.', 'wp-dapp')
+            ]
         );
         
         // Advanced Settings Section
@@ -230,13 +288,13 @@ class WP_Dapp_Settings_Page {
         
         add_settings_field(
             'hive_api_node',
-            'Hive API Node',
+            __('Hive API Node', 'wp-dapp'),
             [$this, 'render_field'],
             'wpdapp-settings',
             'wpdapp_advanced_section',
             [
                 'field' => 'hive_api_node',
-                'description' => 'Custom Hive API node URL. Leave blank to use the default (api.hive.blog).'
+                'description' => __('Custom Hive API node URL. Leave blank to use the default (api.hive.blog).', 'wp-dapp')
             ]
         );
     }
@@ -269,6 +327,23 @@ class WP_Dapp_Settings_Page {
         $sanitized['enable_comment_sync'] = isset($options['enable_comment_sync']) ? 1 : 0;
         $sanitized['auto_approve_comments'] = isset($options['auto_approve_comments']) ? 1 : 0;
         $sanitized['hive_only_mode'] = isset($options['hive_only_mode']) ? 1 : 0;
+        // Hive-only display does not automatically force mirroring; user can choose whether to mirror into WP
+        $sanitized['show_reply_buttons'] = isset($options['show_reply_buttons']) ? 1 : 0;
+        // Hive frontend choice
+        $allowed_frontends = ['peakd', 'hive.blog', 'ecency'];
+        $chosen_frontend = isset($options['hive_frontend']) ? sanitize_text_field($options['hive_frontend']) : '';
+        if (!in_array($chosen_frontend, $allowed_frontends, true)) {
+            $chosen_frontend = isset($existing_options['hive_frontend']) ? $existing_options['hive_frontend'] : 'peakd';
+            if (!in_array($chosen_frontend, $allowed_frontends, true)) {
+                $chosen_frontend = 'peakd';
+            }
+        }
+        $sanitized['hive_frontend'] = $chosen_frontend;
+        // Max thread depth
+        $max_depth = isset($options['hive_max_thread_depth']) ? intval($options['hive_max_thread_depth']) : 4;
+        if ($max_depth < 1) { $max_depth = 1; }
+        if ($max_depth > 10) { $max_depth = 10; }
+        $sanitized['hive_max_thread_depth'] = $max_depth;
         
         // Advanced settings
         $sanitized['hive_api_node'] = sanitize_text_field($options['hive_api_node']);
@@ -281,7 +356,7 @@ class WP_Dapp_Settings_Page {
      */
     public function account_section_callback() {
         echo '<div class="wpdapp-settings-section-description">';
-        echo '<p>Configure your Hive account settings for publishing to the Hive blockchain.</p>';
+        echo '<p>' . __('Configure your Hive account settings for publishing to the Hive blockchain.', 'wp-dapp') . '</p>';
         echo '</div>';
     }
     
@@ -290,8 +365,8 @@ class WP_Dapp_Settings_Page {
      */
     public function beneficiary_section_callback() {
         echo '<div class="wpdapp-settings-section-description">';
-        echo '<p>Configure beneficiaries for your Hive posts. Beneficiaries receive a percentage of post rewards.</p>';
-        echo '<p><em>Note: A small percentage can be automatically set to support the WP-Dapp plugin development.</em></p>';
+        echo '<p>' . __('Configure beneficiaries for your Hive posts. Beneficiaries receive a percentage of post rewards.', 'wp-dapp') . '</p>';
+        echo '<p><em>' . __('Note: A small percentage can be automatically set to support the WP-Dapp plugin development.', 'wp-dapp') . '</em></p>';
         echo '</div>';
     }
     
@@ -300,7 +375,7 @@ class WP_Dapp_Settings_Page {
      */
     public function post_section_callback() {
         echo '<div class="wpdapp-settings-section-description">';
-        echo '<p>Configure post settings for your Hive posts.</p>';
+        echo '<p>' . __('Configure post settings for your Hive posts.', 'wp-dapp') . '</p>';
         echo '</div>';
     }
 
@@ -309,8 +384,9 @@ class WP_Dapp_Settings_Page {
      */
     public function comment_sync_section_callback() {
         echo '<div class="wpdapp-settings-section-description">';
-        echo '<p>Import replies from Hive as WordPress comments. Use the post editor action to sync on demand.</p>';
-        echo '<p><strong>Note:</strong> WordPress comments can be globally disabled to avoid spam. Imported Hive replies will still display using the <code>[wpdapp_hive_comments]</code> shortcode and a post footer notice will link users to reply on Hive. If you want imported comments to appear in the native WP comments template, ensure comments are enabled for that post and in Settings → Discussion.</p>';
+        echo '<p>' . __('Mirror replies from Hive into WordPress and choose how to display them on-site.', 'wp-dapp') . '</p>';
+        echo '<p>' . __('Display modes:', 'wp-dapp') . ' ' . __('(1) Native WP comments — uses your theme’s comments template; auto‑approval affects visibility. (2) Hive‑only Display — removes the WP comment form and shows the Hive thread with reply buttons and links. Mirroring is optional in Hive‑only; enable it if you want replies copied into WP comments.', 'wp-dapp') . '</p>';
+        echo '<p><strong>' . __('Note:', 'wp-dapp') . '</strong> ' . __('WordPress comments can be globally disabled to avoid spam. Imported Hive replies will still display using the <code>[wpdapp_hive_comments]</code> shortcode and a post footer notice will link users to reply on Hive. If you want imported comments to appear in the native WP comments template, ensure comments are enabled for that post and in Settings → Discussion.', 'wp-dapp') . '</p>';
         echo '</div>';
     }
     
@@ -319,7 +395,7 @@ class WP_Dapp_Settings_Page {
      */
     public function advanced_section_callback() {
         echo '<div class="wpdapp-settings-section-description">';
-        echo '<p>Advanced settings for the WP-Dapp plugin.</p>';
+        echo '<p>' . __('Advanced settings for the WP-Dapp plugin.', 'wp-dapp') . '</p>';
         echo '</div>';
     }
 
@@ -351,7 +427,7 @@ class WP_Dapp_Settings_Page {
                 <span class="dashicons dashicons-yes"></span> Verify with Keychain
             </button>
             <div id="wpdapp-verify-status"></div>
-            <p class="description">Click this button to verify your Hive account with Keychain.</p>
+            <p class="description"><?php _e('Click this button to verify your Hive account with Keychain.', 'wp-dapp'); ?></p>
         </div>
         <?php
     }
@@ -372,15 +448,39 @@ class WP_Dapp_Settings_Page {
         // Handle different field types
         switch ($type) {
             case 'checkbox':
-                // Checkbox handling (including auto_publish)
-                printf(
-                    '<label for="%s"><input type="checkbox" id="%s" name="wpdapp_options[%s]" value="1" %s> %s</label>',
-                    esc_attr($field),
-                    esc_attr($field),
-                    esc_attr($field),
-                    checked(1, $value, false),
-                    isset($args['label']) ? esc_html($args['label']) : ''
-                );
+                // Special handling: when rendering the mirroring checkbox and Hive-only is on, show it disabled (forced on)
+                if ($field === 'enable_comment_sync') {
+                    // Standard checkbox; user can choose to mirror even in Hive-only
+                    printf(
+                        '<label for="%s"><input type="checkbox" id="%s" name="wpdapp_options[%s]" value="1" %s> %s</label>',
+                        esc_attr($field),
+                        esc_attr($field),
+                        esc_attr($field),
+                        checked(1, $value, false),
+                        isset($args['label']) ? esc_html($args['label']) : ''
+                    );
+                } else {
+                    printf(
+                        '<label for="%s"><input type="checkbox" id="%s" name="wpdapp_options[%s]" value="1" %s> %s</label>',
+                        esc_attr($field),
+                        esc_attr($field),
+                        esc_attr($field),
+                        checked(1, $value, false),
+                        isset($args['label']) ? esc_html($args['label']) : ''
+                    );
+                }
+                break;
+            
+            case 'select':
+                $options_map = isset($args['options']) && is_array($args['options']) ? $args['options'] : [];
+                if (empty($value)) {
+                    $value = 'peakd';
+                }
+                printf('<select id="%s" name="wpdapp_options[%s]">', esc_attr($field), esc_attr($field));
+                foreach ($options_map as $opt_value => $label) {
+                    printf('<option value="%s" %s>%s</option>', esc_attr($opt_value), selected($value, $opt_value, false), esc_html($label));
+                }
+                echo '</select>';
                 break;
                 
             case 'number':
@@ -476,10 +576,10 @@ class WP_Dapp_Settings_Page {
             </form>
             
             <div class="wpdapp-settings-footer">
-                <h3>About WP-Dapp</h3>
-                <p>WP-Dapp is a WordPress plugin that enables publishing content to the Hive blockchain directly from your WordPress dashboard using Hive Keychain.</p>
-                <p>Version: <?php echo WPDAPP_VERSION; ?></p>
-                <p><a href="https://diggndeeper.com/wp-dapp/" target="_blank">Plugin Website</a> | <a href="https://github.com/DiggnDeeper/wp-dapp" target="_blank">GitHub Repository</a></p>
+                <h3><?php _e('About WP-Dapp', 'wp-dapp'); ?></h3>
+                <p><?php _e('WP-Dapp is a WordPress plugin that enables publishing content to the Hive blockchain directly from your WordPress dashboard using Hive Keychain.', 'wp-dapp'); ?></p>
+                <p><?php _e('Version:', 'wp-dapp'); ?> <?php echo WPDAPP_VERSION; ?></p>
+                <p><a href="https://diggndeeper.com/wp-dapp/" target="_blank"><?php _e('Plugin Website', 'wp-dapp'); ?></a> | <a href="https://github.com/DiggnDeeper/wp-dapp" target="_blank"><?php _e('GitHub Repository', 'wp-dapp'); ?></a></p>
             </div>
         </div>
         <?php

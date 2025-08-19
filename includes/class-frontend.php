@@ -8,7 +8,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class WP_Dapp_Frontend {
 
+    /** @var WP_Dapp_Hive_API */
+    private $hive_api;
+
     public function __construct() {
+        $this->hive_api = new WP_Dapp_Hive_API();
         add_action('wp_enqueue_scripts', [$this, 'enqueue_assets']);
         add_shortcode('wpdapp_hive_comments', [$this, 'render_hive_comments_shortcode']);
         add_filter('the_content', [$this, 'append_notice_when_comments_closed']);
@@ -17,12 +21,73 @@ class WP_Dapp_Frontend {
     }
 
     public function enqueue_assets() {
+        // Cache-bust assets with file modification time appended to plugin version
+        $css_file = WPDAPP_PLUGIN_DIR . 'assets/css/style.css';
+        $css_ver  = WPDAPP_VERSION . (file_exists($css_file) ? '.' . filemtime($css_file) : '');
         wp_enqueue_style(
             'wpdapp-frontend',
             WPDAPP_PLUGIN_URL . 'assets/css/style.css',
             [],
-            WPDAPP_VERSION
+            $css_ver
         );
+        $js_file = WPDAPP_PLUGIN_DIR . 'assets/js/hive-comment.js';
+        $js_ver  = WPDAPP_VERSION . (file_exists($js_file) ? '.' . filemtime($js_file) : '');
+        wp_enqueue_script(
+            'wpdapp-hive-comment',
+            WPDAPP_PLUGIN_URL . 'assets/js/hive-comment.js',
+            ['jquery'],
+            $js_ver,
+            true
+        );
+        // Localize data for AJAX
+        $post_id = is_singular() ? get_the_ID() : 0;
+        $options = get_option('wpdapp_options', []);
+        // In Hive-only display, always enable reply buttons regardless of checkbox
+        $show_reply_buttons = !empty($options['show_reply_buttons']) || !empty($options['hive_only_mode']);
+        wp_localize_script('wpdapp-hive-comment', 'wpdapp_frontend', [
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('wpdapp_frontend_sync'),
+            'post_id' => $post_id,
+            'show_reply_buttons' => $show_reply_buttons ? 1 : 0,
+            'i18n' => [
+                'replyWithKeychain' => __('Reply with Keychain', 'wp-dapp'),
+                'replyToPostWithKeychain' => __('Reply to Post with Keychain', 'wp-dapp'),
+                'connectWithKeychain' => __('Connect with Keychain', 'wp-dapp'),
+                'connecting' => __('Connecting...', 'wp-dapp'),
+                'connectedAs' => __('Connected as:', 'wp-dapp'),
+                'yourReplyPlaceholder' => __('Your reply...', 'wp-dapp'),
+                'yourReply' => __('Your reply', 'wp-dapp'), // Added for aria-label
+                'submit' => __('Submit', 'wp-dapp'),
+                'cancel' => __('Cancel', 'wp-dapp'),
+                'posting' => __('Posting...', 'wp-dapp'),
+                'keychainNotDetected' => __('Hive Keychain not detected. Please install the extension.', 'wp-dapp'),
+                'verifyPrompt' => __('Enter your Hive username to verify:', 'wp-dapp'),
+                'verifyFailed' => __('Verification failed:', 'wp-dapp'),
+                'keychainConnectFailed' => __('Keychain connection failed:', 'wp-dapp'),
+                'pleaseEnterReply' => __('Please enter a reply.', 'wp-dapp'),
+                'replyMinLength' => __('Reply must be at least 3 characters.', 'wp-dapp'),
+                'replyMaxLength' => __('Reply must be at most 5000 characters.', 'wp-dapp'), // Added
+                'pleaseConnectFirst' => __('Please connect with Keychain first.', 'wp-dapp'),
+                'postedSyncing' => __('Reply posted successfully! Syncing...', 'wp-dapp'),
+                'replyPostedSynced' => __('Reply posted and synced!', 'wp-dapp'),
+                'syncFailedPrefix' => __('Posted to Hive, but sync failed:', 'wp-dapp'),
+                'syncErrorOccurred' => __('Posted to Hive, but sync error occurred.', 'wp-dapp'),
+                'syncedRefreshFailed' => __('Synced, but failed to refresh comments.', 'wp-dapp'),
+                'syncedRefreshError' => __('Synced, but refresh failed.', 'wp-dapp'),
+                'syncHiveComments' => __('Sync (copy) Hive replies into WP comments', 'wp-dapp'),
+                'syncing' => __('Syncing...', 'wp-dapp'),
+                'enterHiveUsername' => __('Enter your Hive username:', 'wp-dapp'),
+                'hiveUsernamePlaceholder' => __('Hive username', 'wp-dapp'),
+                'verifyWithKeychain' => __('Verify with Keychain', 'wp-dapp'),
+                'pleaseEnterUsername' => __('Please enter your Hive username.', 'wp-dapp'),
+                'verifying' => __('Verifying...', 'wp-dapp'),
+                'verificationTimeout' => __('No response from Hive Keychain. Make sure it\'s installed and unlocked.', 'wp-dapp'),
+                'statusConnected' => __('Connected', 'wp-dapp'),
+                'statusNotConnected' => __('Not connected', 'wp-dapp'),
+                'change' => __('Change', 'wp-dapp'),
+                'save' => __('Save', 'wp-dapp'),
+            ]
+        ]);
     }
 
     /**
@@ -44,7 +109,10 @@ class WP_Dapp_Frontend {
         }
 
         $options = get_option('wpdapp_options', []);
-        if (empty($options['enable_comment_sync'])) {
+        $enable_sync = !empty($options['enable_comment_sync']);
+        $hive_only_display = !empty($options['hive_only_mode']);
+        // If sync is disabled and we're not in Hive-only display, don't render anything
+        if (!$enable_sync && !$hive_only_display) {
             return '';
         }
 
@@ -55,6 +123,8 @@ class WP_Dapp_Frontend {
         }
 
         $status = !empty($options['hive_only_mode']) ? 'all' : 'approve';
+        // In Hive-only display, treat reply buttons as enabled regardless of the setting
+        $show_reply_buttons_opt = !empty($options['show_reply_buttons']) || !empty($options['hive_only_mode']);
         $comments = get_comments([
             'post_id'  => $post_id,
             'status'   => $status,
@@ -65,7 +135,83 @@ class WP_Dapp_Frontend {
         ]);
 
         if (empty($comments)) {
-            return '<div class="wpdapp-hive-comments"><p class="wpdapp-muted">No Hive comments yet.</p></div>';
+            // Render container with root data attributes even when there are no comments
+            $html  = '<div class="wpdapp-hive-comments" role="region" aria-label="' . esc_attr__('Hive comments', 'wp-dapp') . '" data-root-author="' . esc_attr($root_author) . '" data-root-permlink="' . esc_attr($root_permlink) . '">';
+
+            // Header (top-level reply button before external links)
+            $html .= '<div class="wpdapp-hive-comments-header">';
+            if ($show_reply_buttons_opt) {
+                $html .= '<button class="wpdapp-reply-button" aria-label="' . esc_attr__('Reply to Post with Keychain', 'wp-dapp') . '" data-author="' . esc_attr($root_author) . '" data-permlink="' . esc_attr($root_permlink) . '">' . esc_html__('Reply to Post with Keychain', 'wp-dapp') . '</button>';
+            }
+            // Keep external link after Keychain option
+            $frontend = !empty($options['hive_frontend']) ? $options['hive_frontend'] : 'peakd';
+            switch ($frontend) {
+                case 'hive.blog': $base = 'https://hive.blog/@'; break;
+                case 'ecency':   $base = 'https://ecency.com/@'; break;
+                case 'peakd':
+                default:         $base = 'https://peakd.com/@'; break;
+            }
+            $thread_url_base = $base . rawurlencode($root_author) . '/' . rawurlencode($root_permlink);
+            if ($atts['show_reply_links'] === '1') {
+                $html .= '<span class="wpdapp-muted"> · <a href="' . esc_url($thread_url_base) . '" target="_blank" rel="noopener nofollow">' . esc_html__('View thread / reply on Hive', 'wp-dapp') . '</a></span>';
+            }
+            $html .= '</div>';
+
+            // If Hive-only display is enabled, render the live Hive thread even when mirroring is off
+            if ($hive_only_display) {
+                $replies = $this->hive_api->get_all_replies($root_author, $root_permlink, 0, 2000);
+                if (!is_wp_error($replies) && !empty($replies)) {
+                    // Build tree by parent key "author/permlink"
+                    $by_parent_key = [];
+                    foreach ($replies as $reply) {
+                        $parent_key = strtolower(($reply['parent_author'] ?? '') . '/' . ($reply['parent_permlink'] ?? ''));
+                        if (!isset($by_parent_key[$parent_key])) { $by_parent_key[$parent_key] = []; }
+                        $by_parent_key[$parent_key][] = $reply;
+                    }
+                    $root_key = strtolower($root_author . '/' . $root_permlink);
+                    $max_depth = isset($options['hive_max_thread_depth']) ? intval($options['hive_max_thread_depth']) : 4;
+                    if ($max_depth < 1) { $max_depth = 1; }
+                    if ($max_depth > 10) { $max_depth = 10; }
+                    $html .= $this->render_hive_branch($by_parent_key, $root_key, $thread_url_base, 0, $max_depth);
+                } else {
+                    // Fall back to message when nothing retrieved
+                    $html .= '<p class="wpdapp-muted">' . esc_html__('No Hive comments yet.', 'wp-dapp') . '</p>';
+                }
+                $html .= '</div>';
+            } else {
+                // Not Hive-only and no mirrored comments
+                $html .= '<p class="wpdapp-muted">' . esc_html__('No Hive comments yet.', 'wp-dapp') . '</p>';
+                $html .= '</div>';
+            }
+
+            // Determine frontend base URL for footer link (reusing $thread_url_base from header)
+            // $thread_url_base already computed above
+
+            // Always render the footer so the main reply button can attach (single footer only)
+            $show_reply_links = ($atts['show_reply_links'] === '1');
+            $html .= '<div class="wpdapp-hive-comments-footer">';
+            if ($enable_sync) {
+                $html .= '<span class="wpdapp-muted">' . esc_html__('These are mirrored from Hive', 'wp-dapp');
+                if ($show_reply_links) {
+                    $html .= ' · <a href="' . esc_url($thread_url_base) . '" target="_blank" rel="noopener nofollow">' . esc_html__('View thread / reply on Hive', 'wp-dapp') . '</a>';
+                }
+                $html .= '</span>';
+                if ($show_reply_buttons_opt) {
+                    $html .= ' <button class="wpdapp-reply-button" aria-label="' . esc_attr__('Reply to Post with Keychain', 'wp-dapp') . '" data-author="' . esc_attr($root_author) . '" data-permlink="' . esc_attr($root_permlink) . '">' . esc_html__('Reply to Post with Keychain', 'wp-dapp') . '</button>';
+                }
+                $html .= '<button class="wpdapp-sync-button">' . esc_html__('Sync (copy) Hive replies into WP comments', 'wp-dapp') . '</button>';
+            } else {
+                // When sync is disabled, keep footer minimal with only the external link context
+                $html .= '<span class="wpdapp-muted">' . esc_html__('Mirroring is off. ', 'wp-dapp');
+                if ($show_reply_links) {
+                    $html .= '<a href="' . esc_url($thread_url_base) . '" target="_blank" rel="noopener nofollow">' . esc_html__('View thread / reply on Hive', 'wp-dapp') . '</a>';
+                }
+                $html .= '</span>';
+                // Offer a one‑time import button for convenience
+                $html .= ' <button class="wpdapp-sync-button" data-force="1">' . esc_html__('Import Hive Comments', 'wp-dapp') . '</button>';
+            }
+            $html .= '</div>';
+            return $html;
         }
 
         // Build tree by parent
@@ -79,28 +225,58 @@ class WP_Dapp_Frontend {
         }
 
         $show_reply_links = $atts['show_reply_links'] === '1';
-        $thread_url_base = 'https://peakd.com/@' . rawurlencode($root_author) . '/' . rawurlencode($root_permlink);
+        // Determine frontend base URL
+        $frontend = !empty($options['hive_frontend']) ? $options['hive_frontend'] : 'peakd';
+        switch ($frontend) {
+            case 'hive.blog':
+                $base = 'https://hive.blog/@';
+                break;
+            case 'ecency':
+                $base = 'https://ecency.com/@';
+                break;
+            case 'peakd':
+            default:
+                $base = 'https://peakd.com/@';
+                break;
+        }
+        $thread_url_base = $base . rawurlencode($root_author) . '/' . rawurlencode($root_permlink);
 
-        $html  = '<div class="wpdapp-hive-comments">';
-        $html .= $this->render_comment_branch($by_parent, 0, $thread_url_base);
+        $html  = '<div class="wpdapp-hive-comments" role="region" aria-label="' . esc_attr__('Hive comments', 'wp-dapp') . '" data-root-author="' . esc_attr($root_author) . '" data-root-permlink="' . esc_attr($root_permlink) . '">';
+
+        // Header area above comments: Keychain reply first, then external link
+        $html .= '<div class="wpdapp-hive-comments-header">';
+        if ($show_reply_buttons_opt) {
+            $html .= '<button class="wpdapp-reply-button" aria-label="' . esc_attr__('Reply to Post with Keychain', 'wp-dapp') . '" data-author="' . esc_attr($root_author) . '" data-permlink="' . esc_attr($root_permlink) . '">' . esc_html__('Reply to Post with Keychain', 'wp-dapp') . '</button>';
+        }
+        if ($show_reply_links) {
+            $html .= '<span class="wpdapp-muted"> · <a href="' . esc_url($thread_url_base) . '" target="_blank" rel="noopener nofollow">' . esc_html__('View thread / reply on Hive', 'wp-dapp') . '</a></span>';
+        }
+        $html .= '</div>';
+        // Determine max depth from settings (default 4)
+        $max_depth = isset($options['hive_max_thread_depth']) ? intval($options['hive_max_thread_depth']) : 4;
+        if ($max_depth < 1) { $max_depth = 1; }
+        if ($max_depth > 10) { $max_depth = 10; }
+        $html .= $this->render_comment_branch($by_parent, 0, $thread_url_base, 0, $max_depth);
         $html .= '</div>';
 
-        // Small footer to indicate origin
+        // Footer: keep minimal (sync button only) to avoid duplication with header
         $html .= '<div class="wpdapp-hive-comments-footer">';
-        $html .= '<span class="wpdapp-muted">Replies are mirrored from Hive. ';
-        if ($show_reply_links) {
-            $html .= '<a href="' . esc_url($thread_url_base) . '" target="_blank" rel="noopener nofollow">Reply on Hive</a>';
+        // If mirroring is off but comments exist (from a previous import), allow one‑time import via force flag
+        if (!$enable_sync) {
+            $html .= '<button class="wpdapp-sync-button" data-force="1">' . esc_html__('Import Hive Comments', 'wp-dapp') . '</button>';
+        } else {
+            $html .= '<button class="wpdapp-sync-button">' . esc_html__('Sync (copy) Hive replies into WP comments', 'wp-dapp') . '</button>';
         }
-        $html .= '</span></div>';
+        $html .= '</div>';
 
         return $html;
     }
 
-    private function render_comment_branch($by_parent, $parent_id, $thread_url_base) {
+    private function render_comment_branch($by_parent, $parent_id, $thread_url_base, $depth = 0, $max_depth = 4) {
         if (empty($by_parent[$parent_id])) {
             return '';
         }
-        $html = '<ol class="wpdapp-comment-list">';
+        $html = '<ol class="wpdapp-comment-list" data-depth="' . intval($depth) . '">';
         foreach ($by_parent[$parent_id] as $c) {
             $author = esc_html(get_comment_author($c));
             $date   = esc_html(get_comment_date('', $c));
@@ -112,7 +288,7 @@ class WP_Dapp_Frontend {
                 $reply_link = $thread_url_base . '#@' . rawurlencode(str_replace('/', '/', $key));
             }
 
-            $html .= '<li class="wpdapp-comment">';
+            $html .= '<li class="wpdapp-comment" data-hive-key="' . esc_attr($key) . '">';
             $html .= '<div class="wpdapp-comment-body">';
             $html .= '<div class="wpdapp-comment-meta">'
                   . '<span class="wpdapp-comment-author">' . $author . '</span>'
@@ -122,12 +298,54 @@ class WP_Dapp_Frontend {
             $html .= '<div class="wpdapp-comment-content">' . $content . '</div>';
             if (!empty($reply_link)) {
                 $html .= '<div class="wpdapp-comment-actions">'
-                      . '<a class="wpdapp-reply-link" href="' . esc_url($reply_link) . '" target="_blank" rel="noopener nofollow">Reply on Hive</a>'
+                      . '<a class="wpdapp-reply-link" href="' . esc_url($reply_link) . '" target="_blank" rel="noopener nofollow">' . esc_html__('Reply on Hive', 'wp-dapp') . '</a>'
                       . '</div>';
             }
             $html .= '</div>';
             // Children
-            $html .= $this->render_comment_branch($by_parent, intval($c->comment_ID), $thread_url_base);
+            if ($depth + 1 < $max_depth) {
+                $html .= $this->render_comment_branch($by_parent, intval($c->comment_ID), $thread_url_base, $depth + 1, $max_depth);
+            } else if (!empty($by_parent[intval($c->comment_ID)])) {
+                // Reached max depth but there are children: show a link to view the rest on Hive
+                $html .= '<div class="wpdapp-show-more"><a href="' . esc_url($thread_url_base) . '" target="_blank" rel="noopener nofollow">' . esc_html__('View more replies on Hive', 'wp-dapp') . '</a></div>';
+            }
+            $html .= '</li>';
+        }
+        $html .= '</ol>';
+        return $html;
+    }
+
+    /**
+     * Render a branch from live Hive replies (keyed by hive parent key author/permlink).
+     */
+    private function render_hive_branch($by_parent_key, $parent_key, $thread_url_base, $depth = 0, $max_depth = 4) {
+        if (empty($by_parent_key[$parent_key])) {
+            return '';
+        }
+        $html = '<ol class="wpdapp-comment-list" data-depth="' . intval($depth) . '">';
+        foreach ($by_parent_key[$parent_key] as $reply) {
+            $author  = esc_html(isset($reply['author']) ? $reply['author'] : '');
+            $dateStr = esc_html(isset($reply['created']) ? gmdate('Y-m-d H:i', strtotime($reply['created'])) : '');
+            $body    = isset($reply['body']) ? wp_kses_post($reply['body']) : '';
+            $key     = strtolower((isset($reply['author']) ? $reply['author'] : '') . '/' . (isset($reply['permlink']) ? $reply['permlink'] : ''));
+            $reply_link = $thread_url_base . '#@' . rawurlencode(str_replace('/', '/', $key));
+            $html .= '<li class="wpdapp-comment" data-hive-key="' . esc_attr($key) . '">';
+            $html .= '<div class="wpdapp-comment-body">';
+            $html .= '<div class="wpdapp-comment-meta">'
+                  . '<span class="wpdapp-comment-author">' . $author . '</span>'
+                  . ' · '
+                  . '<span class="wpdapp-comment-date">' . $dateStr . '</span>'
+                  . '</div>';
+            $html .= '<div class="wpdapp-comment-content">' . $body . '</div>';
+            $html .= '<div class="wpdapp-comment-actions">'
+                  . '<a class="wpdapp-reply-link" href="' . esc_url($reply_link) . '" target="_blank" rel="noopener nofollow">' . esc_html__('Reply on Hive', 'wp-dapp') . '</a>'
+                  . '</div>';
+            $html .= '</div>';
+            if ($depth + 1 < $max_depth) {
+                $html .= $this->render_hive_branch($by_parent_key, $key, $thread_url_base, $depth + 1, $max_depth);
+            } else if (!empty($by_parent_key[$key])) {
+                $html .= '<div class="wpdapp-show-more"><a href="' . esc_url($thread_url_base) . '" target="_blank" rel="noopener nofollow">' . esc_html__('View more replies on Hive', 'wp-dapp') . '</a></div>';
+            }
             $html .= '</li>';
         }
         $html .= '</ol>';
@@ -158,10 +376,24 @@ class WP_Dapp_Frontend {
             return $content;
         }
 
-        $thread_url = 'https://peakd.com/@' . rawurlencode($root_author) . '/' . rawurlencode($root_permlink);
+        // Respect chosen frontend for notice URL
+        $frontend = !empty($options['hive_frontend']) ? $options['hive_frontend'] : 'peakd';
+        switch ($frontend) {
+            case 'hive.blog':
+                $base = 'https://hive.blog/@';
+                break;
+            case 'ecency':
+                $base = 'https://ecency.com/@';
+                break;
+            case 'peakd':
+            default:
+                $base = 'https://peakd.com/@';
+                break;
+        }
+        $thread_url = $base . rawurlencode($root_author) . '/' . rawurlencode($root_permlink);
         $notice  = '<div class="wpdapp-hive-comments-notice">';
-        $notice .= '<span class="wpdapp-muted">WordPress comments are disabled. This post mirrors replies from Hive. '
-                . '<a href="' . esc_url($thread_url) . '" target="_blank" rel="noopener nofollow">View and reply on Hive</a>.'
+        $notice .= '<span class="wpdapp-muted">' . esc_html__('WordPress comments are disabled. This post mirrors replies from Hive.', 'wp-dapp') . ' '
+                . '<a href="' . esc_url($thread_url) . '" target="_blank" rel="noopener nofollow">' . esc_html__('View and reply on Hive', 'wp-dapp') . '</a>.'
                 . '</span>';
         $notice .= '</div>';
         return $content . $notice;
@@ -206,7 +438,9 @@ class WP_Dapp_Frontend {
             $shortcode = '[wpdapp_hive_comments post_id="' . intval($post->ID) . '"]';
             return $content . do_shortcode($shortcode);
         }, 99);
-        return $template;
+        // Suppress the native comments template entirely in Hive-only display
+        // by returning a minimal empty template output.
+        return dirname(__FILE__) . '/templates/empty-comments.php';
     }
 }
 

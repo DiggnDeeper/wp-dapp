@@ -2,6 +2,8 @@
 .wpdapp-hive-comments { margin-top: 2rem; }
 .wpdapp-hive-comments .wpdapp-muted { color: #777; font-size: 0.95em; }
 .wpdapp-hive-comments-footer { margin-top: 0.75rem; }
+.wpdapp-hive-comments-header { margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.wpdapp-hive-comments-footer .wpdapp-reply-button { margin-right: 0.5rem; }
 
 .wpdapp-comment-list { list-style: none; margin: 0; padding: 0; }
 .wpdapp-comment-list > .wpdapp-comment { margin: 1.2rem 0; }
@@ -16,4 +18,41 @@
 
 .wpdapp-hive-comments-notice { margin-top: 1rem; padding: 0.75rem 1rem; background: rgba(127,127,127,0.08); border-left: 3px solid #888; }
 .wpdapp-hive-comments-notice .wpdapp-muted { color: #aaa; }
+
+/* Reply UI */
+.wpdapp-comment-actions { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+.wpdapp-reply-button { margin-top: 0.1rem; padding: 0.3rem 0.55rem; font-size: 0.9em; line-height: 1.2; border-radius: 4px; border: 1px solid rgba(127,127,127,0.35); background: transparent; color: #ddd; cursor: pointer; }
+.wpdapp-reply-button:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.55); }
+.wpdapp-reply-link { text-decoration: underline; }
+.wpdapp-reply-form { margin-top: 0.5rem; border: 1px solid rgba(127,127,127,0.2); padding: 0.5rem; border-radius: 4px; }
+.wpdapp-reply-form textarea { width: 100%; min-height: 100px; }
+.wpdapp-reply-form .wpdapp-form-error { margin-top: 0.5rem; color: #b33; }
+.wpdapp-reply-form .wpdapp-form-success { margin-top: 0.5rem; color: #2d8a34; }
+.wpdapp-reply-form .wpdapp-username-label { display: block; margin-bottom: 0.25rem; font-size: 0.95em; color: #ccc; }
+.wpdapp-reply-form .wpdapp-username { width: 100%; max-width: 240px; padding: 0.3rem; margin-right: 0.5rem; }
+.wpdapp-reply-form .wpdapp-verify-keychain { margin: 0.25rem 0 0.5rem; }
+.wpdapp-reply-form .wpdapp-conn-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
+.wpdapp-status-chip { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.8em; border: 1px solid rgba(127,127,127,0.35); }
+.wpdapp-status-chip.connected { color: #2d8a34; border-color: rgba(45,138,52,0.6); }
+.wpdapp-status-chip.not-connected { color: #b33; border-color: rgba(179,51,51,0.6); }
+.wpdapp-connected-as { display: flex; align-items: center; gap: 0.5rem; margin: 0; }
+.wpdapp-connected-as .wpdapp-username-display { font-weight: 600; color: #ddd; }
+.wpdapp-change-account, .wpdapp-save-account, .wpdapp-cancel-account { padding: 0.2rem 0.45rem; font-size: 0.85em; border: 1px solid rgba(127,127,127,0.35); background: transparent; color: #ddd; border-radius: 4px; cursor: pointer; }
+.wpdapp-change-account:hover, .wpdapp-save-account:hover, .wpdapp-cancel-account:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.55); }
+.wpdapp-username-edit { width: 220px; padding: 0.3rem; }
+
+/* Depth limiting hint when threads get too deep */
+.wpdapp-comment-list[data-max-depth] .wpdapp-comment-list[data-depth] { position: relative; }
+.wpdapp-show-more { display: inline-block; margin: 0.25rem 0; font-size: 0.9em; }
+
+/* Mobile responsive */
+@media (max-width: 600px) {
+    .wpdapp-hive-comments { margin-top: 1rem; }
+    .wpdapp-comment-list .wpdapp-comment > .wpdapp-comment-list { margin-left: 0.75rem; padding-left: 0.75rem; border-left-width: 1px; }
+    .wpdapp-reply-form { padding: 0.3rem; }
+    .wpdapp-reply-form textarea { min-height: 80px; font-size: 1em; }
+    .wpdapp-comment-actions { flex-direction: column; align-items: flex-start; gap: 0.3rem; }
+    .wpdapp-hive-comments-footer { text-align: center; }
+    .wpdapp-hive-comments-footer button { width: 100%; margin-top: 0.5rem; }
+}
 

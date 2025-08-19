@@ -20,6 +20,9 @@ class WP_Dapp_Ajax_Handler {
         add_action('wp_ajax_wpdapp_prepare_post', [$this, 'ajax_prepare_post']);
         add_action('wp_ajax_wpdapp_update_post_meta', [$this, 'ajax_update_post_meta']);
         add_action('wp_ajax_wpdapp_sync_comments', [$this, 'ajax_sync_comments']);
+        add_action('wp_ajax_nopriv_wpdapp_sync_comments', [$this, 'ajax_sync_comments']);
+        add_action('wp_ajax_wpdapp_render_hive_comments', [$this, 'ajax_render_hive_comments']);
+        add_action('wp_ajax_nopriv_wpdapp_render_hive_comments', [$this, 'ajax_render_hive_comments']);
         // Legacy: reset auto_publish was used in previous versions; action removed.
     }
 
@@ -29,12 +32,12 @@ class WP_Dapp_Ajax_Handler {
     public function ajax_verify_keychain() {
         // Verify nonce
         if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'wpdapp_verify_credentials')) {
-            wp_send_json_error('Security check failed');
+            wp_send_json_error(__('Security check failed', 'wp-dapp'));
         }
         
         // Check if user has permissions
         if (!current_user_can('manage_options')) {
-            wp_send_json_error('Permission denied');
+            wp_send_json_error(__('Permission denied', 'wp-dapp'));
         }
         
         // Get data from request
@@ -44,11 +47,11 @@ class WP_Dapp_Ajax_Handler {
         
         // Basic validation
         if (empty($account)) {
-            wp_send_json_error('Hive account name is required');
+            wp_send_json_error(__('Hive account name is required', 'wp-dapp'));
         }
         
         if (empty($message) || empty($signature)) {
-            wp_send_json_error('Signature verification failed');
+            wp_send_json_error(__('Signature verification failed', 'wp-dapp'));
         }
         
         // Verify signature with the Hive API
@@ -67,7 +70,7 @@ class WP_Dapp_Ajax_Handler {
         update_option('wpdapp_options', $options);
         
         wp_send_json_success([
-            'message' => 'Hive account verified successfully'
+            'message' => __('Hive account verified successfully', 'wp-dapp')
         ]);
     }
 
@@ -77,7 +80,7 @@ class WP_Dapp_Ajax_Handler {
     public function ajax_verify_posts() {
         // Check nonce
         if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'wpdapp_verification')) {
-            wp_send_json_error('Invalid security token');
+            wp_send_json_error(__('Invalid security token', 'wp-dapp'));
         }
         
         // Check if Hive account is configured
@@ -85,7 +88,7 @@ class WP_Dapp_Ajax_Handler {
         $hive_account = !empty($options['hive_account']) ? $options['hive_account'] : '';
         
         if (empty($hive_account)) {
-            wp_send_json_error('Hive credentials are not configured');
+            wp_send_json_error(__('Hive credentials are not configured', 'wp-dapp'));
         }
         
         // Get published posts with Hive meta
@@ -141,26 +144,26 @@ class WP_Dapp_Ajax_Handler {
     public function ajax_prepare_post() {
         // Check nonce
         if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'wpdapp_publish')) {
-            wp_send_json_error('Invalid security token');
+            wp_send_json_error(__('Invalid security token', 'wp-dapp'));
         }
         
         // Get post ID
         $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
         
         if (!$post_id) {
-            wp_send_json_error('Invalid post ID');
+            wp_send_json_error(__('Invalid post ID', 'wp-dapp'));
         }
         
         // Check if current user can edit this post
         if (!current_user_can('edit_post', $post_id)) {
-            wp_send_json_error('Permission denied');
+            wp_send_json_error(__('Permission denied', 'wp-dapp'));
         }
         
         // Get post data
         $post = get_post($post_id);
         
         if (!$post) {
-            wp_send_json_error('Post not found');
+            wp_send_json_error(__('Post not found', 'wp-dapp'));
         }
         
         // Build tags from categories, tags, and default settings
@@ -272,7 +275,7 @@ class WP_Dapp_Ajax_Handler {
     public function ajax_update_post_meta() {
         // Check nonce
         if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'wpdapp_publish')) {
-            wp_send_json_error('Invalid security token');
+            wp_send_json_error(__('Invalid security token', 'wp-dapp'));
         }
         
         // Get post ID and Hive data
@@ -280,12 +283,12 @@ class WP_Dapp_Ajax_Handler {
         $hive_data = isset($_POST['hive_data']) ? $_POST['hive_data'] : [];
         
         if (!$post_id || empty($hive_data)) {
-            wp_send_json_error('Invalid data');
+            wp_send_json_error(__('Invalid data', 'wp-dapp'));
         }
         
         // Check if current user can edit this post
         if (!current_user_can('edit_post', $post_id)) {
-            wp_send_json_error('Permission denied');
+            wp_send_json_error(__('Permission denied', 'wp-dapp'));
         }
         
         // Save Hive publication data
@@ -301,7 +304,7 @@ class WP_Dapp_Ajax_Handler {
         delete_post_meta($post_id, '_wpdapp_hive_error');
         
         wp_send_json_success([
-            'message' => 'Post meta updated successfully'
+            'message' => __('Post meta updated successfully', 'wp-dapp')
         ]);
     }
 
@@ -309,40 +312,32 @@ class WP_Dapp_Ajax_Handler {
      * AJAX handler to sync Hive comments into WordPress comments for a given post.
      */
     public function ajax_sync_comments() {
-        // Check nonce
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'wpdapp_publish')) {
-            wp_send_json_error('Invalid security token');
+        // Check nonce (works for frontend too)
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'wpdapp_frontend_sync')) { // Use frontend nonce
+            wp_send_json_error(__('Invalid security token', 'wp-dapp'));
         }
 
         $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
-        if (!$post_id) {
-            wp_send_json_error('Invalid post ID');
+        if (!$post_id || get_post_status($post_id) !== 'publish') {
+            wp_send_json_error(__('Invalid or unpublished post', 'wp-dapp'));
         }
 
-        if (!current_user_can('edit_post', $post_id)) {
-            wp_send_json_error('Permission denied');
-        }
-
-        // Option check: ensure comment sync is enabled
+        // Allow a one-time import when explicitly forced from the frontend, even if mirroring is off
         $options = get_option('wpdapp_options', []);
-        $comment_sync_enabled = !empty($options['enable_comment_sync']);
-        if (!$comment_sync_enabled) {
-            wp_send_json_error('Comment sync is disabled in WP-Dapp settings');
+        $force = !empty($_POST['force']);
+        if (empty($options['enable_comment_sync']) && !$force) {
+            wp_send_json_error(__('Comment sync is disabled', 'wp-dapp'));
         }
         $auto_approve = !empty($options['auto_approve_comments']);
 
-        // Ensure this post has Hive mapping
+        // Ensure post is Hive-published
         $hive_author = get_post_meta($post_id, '_wpdapp_hive_author', true);
         $hive_permlink = get_post_meta($post_id, '_wpdapp_hive_permlink', true);
         if (empty($hive_author) || empty($hive_permlink)) {
-            wp_send_json_error('This post has not been published to Hive');
+            wp_send_json_error(__('This post has not been published to Hive', 'wp-dapp'));
         }
 
-        // Delegate to reusable comment sync service
-        if (!class_exists('WP_Dapp_Comment_Sync')) {
-            wp_send_json_error('Comment sync service not available');
-        }
-
+        // Proceed with sync
         $service = new WP_Dapp_Comment_Sync();
         $result = $service->sync_post_comments($post_id, $auto_approve);
         if (is_wp_error($result)) {
@@ -350,6 +345,36 @@ class WP_Dapp_Ajax_Handler {
         }
 
         wp_send_json_success($result);
+    }
+
+    /**
+     * AJAX handler to render the Hive comments block HTML for a given post.
+     */
+    public function ajax_render_hive_comments() {
+        // Check nonce (reuse frontend sync nonce)
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'wpdapp_frontend_sync')) {
+            wp_send_json_error(__('Invalid security token', 'wp-dapp'));
+        }
+
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        if (!$post_id || get_post_status($post_id) !== 'publish') {
+            wp_send_json_error(__('Invalid or unpublished post', 'wp-dapp'));
+        }
+
+        $options = get_option('wpdapp_options', []);
+        if (empty($options['enable_comment_sync'])) {
+            wp_send_json_error(__('Comment sync is disabled', 'wp-dapp'));
+        }
+
+        $root_author = get_post_meta($post_id, '_wpdapp_hive_author', true);
+        $root_permlink = get_post_meta($post_id, '_wpdapp_hive_permlink', true);
+        if (empty($root_author) || empty($root_permlink)) {
+            wp_send_json_error(__('This post has not been published to Hive', 'wp-dapp'));
+        }
+
+        // Render via shortcode
+        $html = do_shortcode('[wpdapp_hive_comments post_id="' . intval($post_id) . '"]');
+        wp_send_json_success(['html' => $html]);
     }
 
     // Legacy endpoint removed.

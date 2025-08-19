@@ -69,6 +69,8 @@ add_action('plugins_loaded', 'wpdapp_version_update', 5); // Priority 5 to run b
  * Initialize plugin classes on plugins_loaded
  */
 function wpdapp_init() {
+    // Load plugin textdomain
+    load_plugin_textdomain('wp-dapp', false, dirname(plugin_basename(__FILE__)) . '/languages');
     // Initialize classes
     new WP_Dapp_Settings_Page();
     new WP_Dapp_Post_Meta();
@@ -103,6 +105,9 @@ function wpdapp_activate() {
         'default_tags' => 'blog,wordpress',
         'enable_comment_sync' => 0,
         'auto_approve_comments' => 0,
+        'hive_frontend' => 'peakd',
+        'hive_max_thread_depth' => 4,
+        'show_reply_buttons' => 1,
     ];
     
     // Only set options if they don't exist
