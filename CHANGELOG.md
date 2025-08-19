@@ -4,6 +4,7 @@ This file documents all notable changes to the WP-Dapp WordPress plugin.
 
 ## [Unreleased]
 ### Added
+ - Frontend Hive reply UI baseline documented in `BASELINE.md` (username-only submit flow, inline account switcher, status chip)
 
 ### Changed
 - Combined tag sources (categories, tags, and default tags) with normalization and 5-tag limit for Hive
