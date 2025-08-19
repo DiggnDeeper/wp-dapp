@@ -32,7 +32,8 @@ jQuery(document).ready(function($) {
             const permlink = parts[1] || '';
             const $actions = $comment.children('.wpdapp-comment-body').children('.wpdapp-comment-actions');
             if ($actions.length && $actions.find('.wpdapp-reply-button').length === 0) {
-                $actions.append('<button type="button" class="wpdapp-reply-button" aria-label="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyWithKeychain : 'Reply with Keychain') + '" data-author="' + author + '" data-permlink="' + permlink + '">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyWithKeychain : 'Reply with Keychain') + '</button>');
+                // Put Keychain reply button first, then the external link
+                $actions.prepend('<button type="button" class="wpdapp-reply-button" aria-label="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyWithKeychain : 'Reply with Keychain') + '" data-author="' + author + '" data-permlink="' + permlink + '">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyWithKeychain : 'Reply with Keychain') + '</button>');
             }
         });
     }
