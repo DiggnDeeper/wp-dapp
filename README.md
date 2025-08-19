@@ -9,8 +9,9 @@ A WordPress plugin that seamlessly integrates with the Hive blockchain, allowing
 - **Hive Keychain Authentication**: Securely authenticate with your Hive account using the Hive Keychain browser extension (no private keys stored)
 - **Post to Hive**: Publish WordPress posts to the Hive blockchain with a single click
 Note: WordPress Publish is separate from publishing to Hive. Use the "Publish to Hive" button in the post editor to broadcast via Hive Keychain.
-- **Hive-only Display (Comments)**: Show the Hive discussion thread on posts, even if you don’t mirror replies into WordPress comments
-- **Optional Mirroring**: If desired, copy Hive replies into native WP comments; a one-time Import button is available when mirroring is off
+- **Hive-only Display (Comments)**: Show the live Hive discussion thread on posts without importing into WP comments
+- **Optional Mirroring**: Copy Hive replies into native WP comments (and a one-time Import button when mirroring is off)
+- **Inline Reply UI**: Username-only Keychain reply flow, remembers username, supports inline account switch, and refreshes thread after posting
 - **Beneficiary Support**: Add beneficiaries to share rewards with other Hive accounts
 - **WordPress Tag Integration**: Automatically converts WordPress categories and tags to Hive tags
 - **Default Tags**: Set default tags to include in all your Hive posts
@@ -52,8 +53,10 @@ Note: WordPress Publish is separate from publishing to Hive. Use the "Publish to
 
 ## Comments: Hive-only Display vs Mirroring
 
-- **Hive-only Display (recommended)**: Hides the WP comment form/template and shows the Hive thread with reply buttons and links. Works without importing anything. Users reply via Keychain; the page updates the Hive thread.
+- **Hive-only Display (recommended)**: Hides the WP comment form/template and shows the live Hive thread with reply buttons and links. Works without importing anything. Users reply via Keychain; the page updates the Hive thread.
 - **Enable Mirroring (optional)**: Copies Hive replies into native WP comments. When enabled, you’ll see a “Sync (copy) Hive replies into WP comments” button on posts. When off, you’ll see an “Import Hive Comments” one-time button for convenience.
+
+Settings include: max thread depth, show/hide reply buttons (for native WP comments), and your preferred Hive frontend (PeakD, Hive.blog, Ecency).
 
 Max thread depth and your chosen Hive frontend (PeakD, Hive.blog, Ecency) are configurable in Settings → WP‑Dapp.
 
@@ -133,3 +136,4 @@ This plugin is licensed under the MIT License.
 - Fixed the "Add Beneficiary" button functionality in the post editor
 - Improved JavaScript event handling for better reliability
 - Added better error handling and debugging support
+- Documented Hive comments features: Hive-only Display, optional mirroring, inline reply UI, thread depth, and frontend selection

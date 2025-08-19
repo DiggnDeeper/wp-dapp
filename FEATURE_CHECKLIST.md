@@ -1,8 +1,8 @@
-# WP-Dapp Feature Checklist: Hive Comment Synchronization
+# WP-Dapp Feature Checklist
 
-This checklist tracks improvements for the Hive comment sync feature. It's prioritized from high to low. Check off items as they're completed. Last updated: 2024-10-15
+This checklist tracks improvements for the Hive comments and publishing features. It's prioritized from high to low. Last updated: 2025-08-19
 
-## High Priority
+## High Priority (0.9 scope)
 - [x] **Improve Username Handling in Reply Form**  
   Replace prompt() with Keychain-based login to auto-detect username. Add "Connect with Keychain" button.  
   *Effort: Medium* | *Status: Completed*
@@ -14,6 +14,18 @@ This checklist tracks improvements for the Hive comment sync feature. It's prior
 - [x] **Enhance Error Handling and Feedback in Reply Form**  
   Add loading states, in-form messages, and handle common errors gracefully.  
   *Effort: Low* | *Status: Completed*
+
+- [ ] **Reply UX Polish**  
+  Add robust retry UX, error toasts, and smoother loading transitions.  
+  *Effort: Medium* | *Status: Planned*
+
+- [ ] **Background Sync Reliability**  
+  Retries, debouncing, and clear progress indicators to avoid duplicate syncs.  
+  *Effort: Medium* | *Status: Planned*
+
+- [ ] **First‑run Onboarding Wizard**  
+  Guide through Hive-only vs mirroring, thread depth, and frontend selection.  
+  *Effort: Medium* | *Status: Planned*
 
 ## Medium Priority
 - [x] **Consolidate and Improve Footer Text**  
@@ -58,11 +70,10 @@ This checklist tracks improvements for the Hive comment sync feature. It's prior
   *Effort: Low* | *Status: Completed*
 
 ## Notes
-- Branch: feature/hive-comment-sync
-- Test after each item: Pull branch, clear cache, test on a post.
+- Branch: dev (feature branches: `feat/*`)
+- Test after each item: pull branch, clear caches, test on a post.
 - Backup site before testing!
 
 ## Plan
-- Next up: General Polish and Testing.
-- Then: General Polish and Testing.
-- All items completed!
+- Next up (0.9): Reply UX polish, background sync reliability, onboarding wizard.
+- Then: Dashboard widget and status indicators; beneficiary validation.

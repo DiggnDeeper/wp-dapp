@@ -4,17 +4,18 @@
 WP-Dapp is a WordPress plugin that integrates with the Hive blockchain, allowing WordPress users to publish their content to Hive directly from their WordPress dashboard. This enables creators to take advantage of blockchain technology and potentially earn cryptocurrency rewards without needing to manually cross-post content.
 
 ## Current Features
-- Basic WordPress integration structure
-- Settings page for Hive credentials
-- Simple post publishing to Hive on WordPress post publish
-- Tag conversion from WordPress to Hive
-- Custom tag management
-- Support for beneficiaries including default diggndeeper.com beneficiary
-- Post metadata box for Hive-specific settings
-- Control when content is published to Hive (immediate vs. opt-out per post)
-- Secure credential storage with encryption
-- Credential verification
-- Enhanced UX for beneficiary management with visual feedback
+- WordPress integration for publishing to Hive via Hive Keychain (no private keys stored)
+- Post meta box for Hive-specific settings (tags, beneficiaries)
+- Tag conversion from WordPress categories/tags + default tags with dedupe and limits
+- Beneficiary support with improved management UI
+- Comments integration
+  - Hive-only Display: render Hive thread without importing into WP
+  - Optional mirroring: copy Hive replies into native WP comments
+  - Inline reply UI: Keychain popup, remembered username, inline account switcher
+  - Immediate sync-back and DOM refresh after posting
+  - i18n + accessibility improvements; mobile-friendly styles
+- Settings for Hive frontend choice (PeakD/Hive.blog/Ecency), max thread depth, and reply button visibility
+- Simple update checker
 
 ## Planned Features and Improvements
 
@@ -31,7 +32,7 @@ WP-Dapp is a WordPress plugin that integrates with the Hive blockchain, allowing
 - [ ] Develop dashboard widget showing Hive post status
 - [ ] Add Hive post preview functionality
 - [ ] Create post status indicators in post list
-- [x] Implement Hive account connection verification
+- [x] Implement Hive account connection verification (via Keychain)
 - [ ] Add post update functionality with version tracking
   - [ ] UI controls for choosing between update and new post modes
   - [ ] Version history tracking for updated posts
@@ -45,7 +46,7 @@ WP-Dapp is a WordPress plugin that integrates with the Hive blockchain, allowing
 
 ### Phase 3: Advanced Features
 - [ ] Add support for Hive communities
-- [ ] Implement comment synchronization
+- [ ] Moderation tools and anti-spam (candidate for Pro add-on)
 - [ ] Add upvote/reward tracking
 - [ ] Support for Hive Power delegation
 - [ ] Implement Web3 wallet integration options
@@ -54,10 +55,17 @@ WP-Dapp is a WordPress plugin that integrates with the Hive blockchain, allowing
 - [ ] Add option to retroactively publish old WordPress posts to Hive
 - [ ] Implement batch operations for multiple posts
 
+## Release 0.9 Scope (target)
+- Reply UX polish: loading states, retries, error toasts
+- Background sync reliability: retries, debouncing, clear progress
+- First-run onboarding wizard
+- Docs refresh: README, USER_GUIDE, BASELINE, readme.txt
+- Simple CI: lint and smoke test
+
 ## Technical Stack
 - PHP for WordPress integration
-- JavaScript for admin UI enhancements
-- Hive-js or similar libraries for blockchain interaction
+- JavaScript for admin + frontend UI enhancements
+- Hive Keychain for signing/broadcast (no server-side key storage)
 - WordPress Settings API for configuration
 - WordPress Metadata API for post-specific settings
 - jQuery for DOM manipulation and animation
@@ -81,9 +89,9 @@ We follow the GitHub Flow methodology:
 - Detailed change logs for upgrades
 
 ## Next Development Focus
-1. **Enhanced Validation**: Add beneficiary account validation against Hive API
-2. **UX Improvements**: Implement sorting and template functionality for beneficiaries
-3. **Dashboard Integration**: Develop better post status indicators and dashboard widget
+1. **Reply UX polish**: loading states, error toasts, and smooth retries
+2. **Background sync reliability**: robust retry/debounce, clear progress
+3. **Onboarding wizard**: first-run guided setup for comments settings
 
 ## Learning Resources for Development
 - [WordPress Plugin Developer Handbook](https://developer.wordpress.org/plugins/)

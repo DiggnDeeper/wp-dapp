@@ -2,6 +2,23 @@
 
 Date: 2024-10-15
 
+Anchor commit: bc5e478
+
+Environment:
+- WordPress: 6.x (tested on 6.4+)
+- PHP: 7.4+ (compatible with 8.1+)
+
+Acceptance checklist:
+- Username-only Keychain reply flow works end-to-end (popup, post, confirm).
+- After success, AJAX sync runs and comments block refreshes with new reply.
+- Status chip and "Connected as <username>" render; account change works.
+- i18n strings load; accessibility attributes present; mobile layout stable.
+- Settings respected: show/hide reply buttons, Hive frontend, max thread depth.
+- Hive-only Display shows thread when mirroring is off; one-time Import visible.
+
+Rollback notes:
+- Tag this baseline in git (e.g., baseline-2024-10-15-bc5e478) before major edits.
+
 This document captures a stable, known-good state of the Hive comments and reply experience on the front end. Use this as a reference point when making future changes.
 
 ## Frontend Reply Flow (Username-only)

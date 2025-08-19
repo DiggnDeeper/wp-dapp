@@ -26,6 +26,18 @@ Please be respectful, inclusive, and considerate to other contributors. We aim t
    git checkout -b feature/your-feature-name
    ```
 
+## Branching & Releases
+
+- `main`: stable
+- `dev`: next
+- `feature/<name>`: small, focused scope targeting `dev`
+- Tag releases with `vX.Y.Z`; tag baselines with `baseline-YYYYMMDD-<shortsha>`
+
+## Commit Style
+
+- Use Conventional Commits: `feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `test:`, `build:`
+- Keep commits small and descriptive; include context in the body when helpful
+
 ## Development Environment
 
 ### Prerequisites
@@ -45,6 +57,11 @@ Please be respectful, inclusive, and considerate to other contributors. We aim t
 - Use PHPDoc comments for functions and classes
 - Keep code modular and maintainable
 - Write descriptive commit messages
+
+### Linting & Formatting
+- PHP: PHPCS with WordPress rules
+- JS/CSS: Prettier (and ESLint where applicable)
+- Run linters before opening a PR
 
 ## Testing
 
@@ -94,6 +111,11 @@ Before submitting a pull request:
 - Update relevant documentation for your changes
 - Add comments to your code
 - Consider updating the README if your changes affect usage
+
+## Backups & Sync
+
+- Before structural changes, create a quick zip of the plugin directory
+- For Nextcloud users, exclude `node_modules`, caches, and vendor dirs to prevent sync churn
 
 ## Commit Messages
 
