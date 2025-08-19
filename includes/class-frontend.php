@@ -104,7 +104,10 @@ class WP_Dapp_Frontend {
         }
 
         $options = get_option('wpdapp_options', []);
-        if (empty($options['enable_comment_sync'])) {
+        $enable_sync = !empty($options['enable_comment_sync']);
+        $hive_only_display = !empty($options['hive_only_mode']);
+        // If sync is disabled and we're not in Hive-only display, don't render anything
+        if (!$enable_sync && !$hive_only_display) {
             return '';
         }
 
@@ -148,23 +151,38 @@ class WP_Dapp_Frontend {
             }
             $html .= '</div>';
 
-            $html .= '<p class="wpdapp-muted">' . esc_html__('No Hive comments yet.', 'wp-dapp') . '</p>';
+            // Message depends on whether syncing is enabled
+            if ($enable_sync) {
+                $html .= '<p class="wpdapp-muted">' . esc_html__('No Hive comments yet.', 'wp-dapp') . '</p>';
+            } else {
+                $html .= '<p class="wpdapp-muted">' . esc_html__('Comment sync is disabled. Replies are not mirrored here. Use the link above to view or reply on Hive.', 'wp-dapp') . '</p>';
+            }
             $html .= '</div>';
 
             // Determine frontend base URL for footer link (reusing $thread_url_base from header)
             // $thread_url_base already computed above
 
             // Always render the footer so the main reply button can attach (single footer only)
+            $show_reply_links = ($atts['show_reply_links'] === '1');
             $html .= '<div class="wpdapp-hive-comments-footer">';
-            $html .= '<span class="wpdapp-muted">' . esc_html__('These are mirrored from Hive', 'wp-dapp');
-            if ($show_reply_links) {
-                $html .= ' · <a href="' . esc_url($thread_url_base) . '" target="_blank" rel="noopener nofollow">' . esc_html__('View thread / reply on Hive', 'wp-dapp') . '</a>';
+            if ($enable_sync) {
+                $html .= '<span class="wpdapp-muted">' . esc_html__('These are mirrored from Hive', 'wp-dapp');
+                if ($show_reply_links) {
+                    $html .= ' · <a href="' . esc_url($thread_url_base) . '" target="_blank" rel="noopener nofollow">' . esc_html__('View thread / reply on Hive', 'wp-dapp') . '</a>';
+                }
+                $html .= '</span>';
+                if ($show_reply_buttons_opt) {
+                    $html .= ' <button class="wpdapp-reply-button" aria-label="' . esc_attr__('Reply to Post with Keychain', 'wp-dapp') . '" data-author="' . esc_attr($root_author) . '" data-permlink="' . esc_attr($root_permlink) . '">' . esc_html__('Reply to Post with Keychain', 'wp-dapp') . '</button>';
+                }
+                $html .= '<button class="wpdapp-sync-button">' . esc_html__('Sync Hive Comments', 'wp-dapp') . '</button>';
+            } else {
+                // When sync is disabled, keep footer minimal with only the external link context
+                $html .= '<span class="wpdapp-muted">' . esc_html__('Mirroring is off. ', 'wp-dapp');
+                if ($show_reply_links) {
+                    $html .= '<a href="' . esc_url($thread_url_base) . '" target="_blank" rel="noopener nofollow">' . esc_html__('View thread / reply on Hive', 'wp-dapp') . '</a>';
+                }
+                $html .= '</span>';
             }
-            $html .= '</span>';
-            if ($show_reply_buttons_opt) {
-                $html .= ' <button class="wpdapp-reply-button" aria-label="' . esc_attr__('Reply to Post with Keychain', 'wp-dapp') . '" data-author="' . esc_attr($root_author) . '" data-permlink="' . esc_attr($root_permlink) . '">' . esc_html__('Reply to Post with Keychain', 'wp-dapp') . '</button>';
-            }
-            $html .= '<button class="wpdapp-sync-button">' . esc_html__('Sync Hive Comments', 'wp-dapp') . '</button>';
             $html .= '</div>';
             return $html;
         }
