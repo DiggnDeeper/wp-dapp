@@ -115,6 +115,7 @@ class WP_Dapp_Frontend {
         }
 
         $status = !empty($options['hive_only_mode']) ? 'all' : 'approve';
+        $show_reply_buttons_opt = !empty($options['show_reply_buttons']);
         $comments = get_comments([
             'post_id'  => $post_id,
             'status'   => $status,
@@ -154,6 +155,9 @@ class WP_Dapp_Frontend {
                 $html .= ' · <a href="' . esc_url($thread_url_base) . '" target="_blank" rel="noopener nofollow">' . esc_html__('View thread / reply on Hive', 'wp-dapp') . '</a>';
             }
             $html .= '</span>';
+            if ($show_reply_buttons_opt) {
+                $html .= ' <button class="wpdapp-reply-button" aria-label="' . esc_attr__('Reply to Post with Keychain', 'wp-dapp') . '" data-author="' . esc_attr($root_author) . '" data-permlink="' . esc_attr($root_permlink) . '">' . esc_html__('Reply to Post with Keychain', 'wp-dapp') . '</button>';
+            }
             $html .= '<button class="wpdapp-sync-button">' . esc_html__('Sync Hive Comments', 'wp-dapp') . '</button>';
             $html .= '</div>';
             return $html;
@@ -201,6 +205,9 @@ class WP_Dapp_Frontend {
             $html .= ' · <a href="' . esc_url($thread_url_base) . '" target="_blank" rel="noopener nofollow">' . esc_html__('View thread / reply on Hive', 'wp-dapp') . '</a>';
         }
         $html .= '</span>';
+        if ($show_reply_buttons_opt) {
+            $html .= ' <button class="wpdapp-reply-button" aria-label="' . esc_attr__('Reply to Post with Keychain', 'wp-dapp') . '" data-author="' . esc_attr($root_author) . '" data-permlink="' . esc_attr($root_permlink) . '">' . esc_html__('Reply to Post with Keychain', 'wp-dapp') . '</button>';
+        }
         $html .= '<button class="wpdapp-sync-button">' . esc_html__('Sync Hive Comments', 'wp-dapp') . '</button>';
         $html .= '</div>';
 
