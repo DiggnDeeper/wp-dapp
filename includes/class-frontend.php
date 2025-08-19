@@ -38,7 +38,8 @@ class WP_Dapp_Frontend {
         // Localize data for AJAX
         $post_id = is_singular() ? get_the_ID() : 0;
         $options = get_option('wpdapp_options', []);
-        $show_reply_buttons = !empty($options['show_reply_buttons']);
+        // In Hive-only display, always enable reply buttons regardless of checkbox
+        $show_reply_buttons = !empty($options['show_reply_buttons']) || !empty($options['hive_only_mode']);
         wp_localize_script('wpdapp-hive-comment', 'wpdapp_frontend', [
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('wpdapp_frontend_sync'),
@@ -118,7 +119,8 @@ class WP_Dapp_Frontend {
         }
 
         $status = !empty($options['hive_only_mode']) ? 'all' : 'approve';
-        $show_reply_buttons_opt = !empty($options['show_reply_buttons']);
+        // In Hive-only display, treat reply buttons as enabled regardless of the setting
+        $show_reply_buttons_opt = !empty($options['show_reply_buttons']) || !empty($options['hive_only_mode']);
         $comments = get_comments([
             'post_id'  => $post_id,
             'status'   => $status,
@@ -134,7 +136,7 @@ class WP_Dapp_Frontend {
 
             // Header (top-level reply button before external links)
             $html .= '<div class="wpdapp-hive-comments-header">';
-            if (!empty($options['show_reply_buttons'])) {
+            if ($show_reply_buttons_opt) {
                 $html .= '<button class="wpdapp-reply-button" aria-label="' . esc_attr__('Reply to Post with Keychain', 'wp-dapp') . '" data-author="' . esc_attr($root_author) . '" data-permlink="' . esc_attr($root_permlink) . '">' . esc_html__('Reply to Post with Keychain', 'wp-dapp') . '</button>';
             }
             // Keep external link after Keychain option
@@ -218,7 +220,7 @@ class WP_Dapp_Frontend {
 
         // Header area above comments: Keychain reply first, then external link
         $html .= '<div class="wpdapp-hive-comments-header">';
-        if (!empty($options['show_reply_buttons'])) {
+        if ($show_reply_buttons_opt) {
             $html .= '<button class="wpdapp-reply-button" aria-label="' . esc_attr__('Reply to Post with Keychain', 'wp-dapp') . '" data-author="' . esc_attr($root_author) . '" data-permlink="' . esc_attr($root_permlink) . '">' . esc_html__('Reply to Post with Keychain', 'wp-dapp') . '</button>';
         }
         if ($show_reply_links) {
@@ -369,7 +371,9 @@ class WP_Dapp_Frontend {
             $shortcode = '[wpdapp_hive_comments post_id="' . intval($post->ID) . '"]';
             return $content . do_shortcode($shortcode);
         }, 99);
-        return $template;
+        // Suppress the native comments template entirely in Hive-only display
+        // by returning a minimal empty template output.
+        return dirname(__FILE__) . '/templates/empty-comments.php';
     }
 }
 

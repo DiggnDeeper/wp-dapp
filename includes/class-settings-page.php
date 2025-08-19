@@ -240,7 +240,7 @@ class WP_Dapp_Settings_Page {
                 'field' => 'show_reply_buttons',
                 'type' => 'checkbox',
                 'label' => __('Enable Keychain reply buttons on-site', 'wp-dapp'),
-                'description' => __('Adds “Reply with Keychain” buttons above the thread and on each imported comment. Requires the Hive Keychain browser extension. Buttons are visible in both display modes; posting from them still requires comment sync to be enabled to mirror replies back into WP.', 'wp-dapp')
+                'description' => __('Adds “Reply with Keychain” buttons above the thread and on each imported comment (native WP comments mode only). In Hive‑only Display, reply buttons are always shown. Requires the Hive Keychain browser extension; mirroring back into WP still requires comment sync to be enabled.', 'wp-dapp')
             ]
         );
         
