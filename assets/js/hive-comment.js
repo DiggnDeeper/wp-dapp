@@ -21,22 +21,24 @@ jQuery(document).ready(function($) {
         return permlink + '-' + Date.now().toString(36);
     }
 
-    // Add reply buttons to each comment (keep inline replies)
-    if (wpdapp_frontend.show_reply_buttons) {
-      $('.wpdapp-comment-list > li.wpdapp-comment').each(function() {
-        const $comment = $(this);
-        const hiveKey = $comment.data('hive-key');
-        if (!hiveKey) return;
-        const parts = String(hiveKey).split('/');
-        const author = parts[0] || '';
-        const permlink = parts[1] || '';
-        // Only target this LI's own actions, not descendants
-        const $actions = $comment.children('.wpdapp-comment-body').children('.wpdapp-comment-actions');
-        if ($actions.length && $actions.find('.wpdapp-reply-button').length === 0) {
-            $actions.append('<button type="button" class="wpdapp-reply-button" aria-label="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyWithKeychain : 'Reply with Keychain') + '" data-author="' + author + '" data-permlink="' + permlink + '">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyWithKeychain : 'Reply with Keychain') + '</button>');
-        }
-      });
+    function addInlineReplyButtons() {
+        if (!wpdapp_frontend.show_reply_buttons) return;
+        $('.wpdapp-comment-list > li.wpdapp-comment').each(function() {
+            const $comment = $(this);
+            const hiveKey = $comment.data('hive-key');
+            if (!hiveKey) return;
+            const parts = String(hiveKey).split('/');
+            const author = parts[0] || '';
+            const permlink = parts[1] || '';
+            const $actions = $comment.children('.wpdapp-comment-body').children('.wpdapp-comment-actions');
+            if ($actions.length && $actions.find('.wpdapp-reply-button').length === 0) {
+                $actions.append('<button type="button" class="wpdapp-reply-button" aria-label="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyWithKeychain : 'Reply with Keychain') + '" data-author="' + author + '" data-permlink="' + permlink + '">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyWithKeychain : 'Reply with Keychain') + '</button>');
+            }
+        });
     }
+
+    // Initial injection on page load
+    addInlineReplyButtons();
 
     // Note: Top-level reply button is rendered server-side in the footer to avoid duplicates
 
@@ -296,6 +298,8 @@ jQuery(document).ready(function($) {
                                     $footer.remove();
                                 }
                                 $('.wpdapp-hive-comments').first().replaceWith(renderResponse.data.html);
+                                // Re-inject inline reply buttons after DOM refresh
+                                addInlineReplyButtons();
                             }
                         }
                     });
