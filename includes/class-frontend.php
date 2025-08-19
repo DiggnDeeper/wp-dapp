@@ -226,7 +226,6 @@ class WP_Dapp_Frontend {
         if (empty($by_parent[$parent_id])) {
             return '';
         }
-        $max_depth = 4; // Limit deep threading
         $html = '<ol class="wpdapp-comment-list" data-depth="' . intval($depth) . '">';
         foreach ($by_parent[$parent_id] as $c) {
             $author = esc_html(get_comment_author($c));

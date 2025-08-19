@@ -208,7 +208,12 @@ class WP_Dapp_Settings_Page {
             [$this, 'render_field'],
             'wpdapp-settings',
             'wpdapp_comment_sync_section',
-            ['field' => 'auto_approve_comments', 'type' => 'checkbox', 'label' => __('Mark imported comments as approved', 'wp-dapp')]
+            [
+                'field' => 'auto_approve_comments',
+                'type' => 'checkbox',
+                'label' => __('Mark imported comments as approved', 'wp-dapp'),
+                'description' => __('Only applies when Hive-only mode is off.', 'wp-dapp')
+            ]
         );
 
         add_settings_field(
@@ -217,7 +222,12 @@ class WP_Dapp_Settings_Page {
             [$this, 'render_field'],
             'wpdapp-settings',
             'wpdapp_comment_sync_section',
-            ['field' => 'hive_only_mode', 'type' => 'checkbox', 'label' => __('Hide WP comment form and show Hive replies with a "Reply on Hive" link', 'wp-dapp')]
+            [
+                'field' => 'hive_only_mode',
+                'type' => 'checkbox',
+                'label' => __('Hide WP comment form and always show mirrored Hive replies with a \'Reply on Hive\' link', 'wp-dapp'),
+                'description' => __('Imported comments display regardless of approval status.', 'wp-dapp')
+            ]
         );
 
         add_settings_field(
@@ -259,7 +269,7 @@ class WP_Dapp_Settings_Page {
                 'min' => 1,
                 'max' => 10,
                 'step' => 1,
-                'description' => __('Limit nested replies shown on-site (default 4).', 'wp-dapp')
+                'description' => __('How many nested levels to render on-site (1–10). Deeper replies remain available via the \"View more replies on Hive\" link.', 'wp-dapp')
             ]
         );
         
