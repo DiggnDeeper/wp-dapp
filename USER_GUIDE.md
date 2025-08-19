@@ -6,7 +6,7 @@ This comprehensive guide will help you get the most out of the WP-Dapp plugin, w
 
 1. [Getting Started](#getting-started)
 2. [Publishing to Hive](#publishing-to-hive)
-3. [Comment Sync](#comment-sync)
+3. [Comments: Hive-only vs Mirroring](#comments-hive-only-vs-mirroring)
 4. [Beneficiaries System](#beneficiaries-system)
 5. [Tag System](#tag-system)
 6. [Advanced Settings](#advanced-settings)
@@ -71,22 +71,26 @@ WordPress Publish is separate from Hive publish. After you publish a post in Wor
 4. Approve the transaction in Hive Keychain
 5. Use the provided link to view the post on Hive
 
-## Comment Sync
+## Comments: Hive-only vs Mirroring
 
-WP-Dapp can import Hive replies as native WordPress comments.
+WP‑Dapp shows and interacts with Hive comments directly on your site. Mirroring into WP comments is optional.
 
-### Enable Comment Sync
+### Hive‑only Display (recommended)
 
-1. Go to Settings > WP-Dapp
-2. In the "Comment Sync" section, enable "Enable Comment Sync"
-3. (Optional) Enable "Auto-approve Imported Comments" to approve synced comments automatically
+- Hides the WP comment form/template
+- Shows the Hive thread with reply buttons and links
+- Works even if you do not import anything into WP
+- Available via Settings → WP‑Dapp → Comment Sync → “Hive‑only Display”
 
-### Syncing Comments for a Post
+### Enable Mirroring (optional)
 
-1. Open a WordPress post that has been published to Hive
-2. In the "Publish to Hive" meta box, click "Sync Comments"
-3. The plugin will fetch replies from Hive and insert them as WordPress comments, preserving threading where possible
-4. The sync status shows how many were imported or skipped (already present)
+- Copies Hive replies into native WP comments
+- Adds a “Sync (copy) Hive replies into WP comments” button to the post
+- If mirroring is off, a one‑time “Import Hive Comments” button is available on the post
+
+### Auto‑approve Imported Comments
+
+- Applies to the native WP comments display. In Hive‑only Display, imported comments (if any) are shown regardless of approval state.
 
 ## Beneficiaries System
 

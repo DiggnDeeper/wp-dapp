@@ -5,6 +5,8 @@ This file documents all notable changes to the WP-Dapp WordPress plugin.
 ## [Unreleased]
 ### Added
  - Frontend Hive reply UI baseline documented in `BASELINE.md` (username-only submit flow, inline account switcher, status chip)
+ - Hive-only Display now renders the live Hive thread even when mirroring is off (no WP comments required)
+ - One-time "Import Hive Comments" button when mirroring is off
 
 ### Changed
 - Combined tag sources (categories, tags, and default tags) with normalization and 5-tag limit for Hive
@@ -12,6 +14,11 @@ This file documents all notable changes to the WP-Dapp WordPress plugin.
 - Updated Keychain json_metadata to app `wp-dapp/0.7.3` and format `html`
 - Removed duplicate Keychain detection/publish logic from admin-script; centralized in meta box script
 - Removed Auto-Publish feature and UI; clarified that WordPress publish is separate from Hive publish
+ - Settings copy overhaul for Comment Sync: clearly separates display (Hive-only vs native WP) from storage (Enable Mirroring)
+ - Renamed "Enable Comment Sync" → "Enable Mirroring"; clarified that mirroring is optional in Hive-only
+ - Reply buttons are always shown in Hive-only Display; checkbox only affects native WP comments mode
+ - Sync button label clarified to "Sync (copy) Hive replies into WP comments"
+ - Max Thread Depth setting is respected end-to-end in frontend renderer
 
 ### Fixed
 - Fixed Auto-Publish checkbox defaulting to enabled in settings
@@ -21,6 +28,7 @@ This file documents all notable changes to the WP-Dapp WordPress plugin.
 - Enhanced content formatting to remove WordPress-specific HTML elements, classes, and attributes when publishing to Hive
 
 ### Documentation
+ - README and USER_GUIDE updated to document Hive-only Display, mirroring, reply buttons, sync/import actions, and thread depth
 
 ## [0.7.4] - 2025-08-16
 ### Changed
