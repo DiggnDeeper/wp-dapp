@@ -125,7 +125,38 @@ class WP_Dapp_Frontend {
         ]);
 
         if (empty($comments)) {
-            return '<div class="wpdapp-hive-comments" role="region" aria-label="' . esc_attr__('Hive comments', 'wp-dapp') . '"><p class="wpdapp-muted">' . esc_html__('No Hive comments yet.', 'wp-dapp') . '</p></div>';
+            // Render container with root data attributes even when there are no comments
+            $html  = '<div class="wpdapp-hive-comments" role="region" aria-label="' . esc_attr__('Hive comments', 'wp-dapp') . '" data-root-author="' . esc_attr($root_author) . '" data-root-permlink="' . esc_attr($root_permlink) . '">';
+            $html .= '<p class="wpdapp-muted">' . esc_html__('No Hive comments yet.', 'wp-dapp') . '</p>';
+            $html .= '</div>';
+
+            // Determine frontend base URL for footer link
+            $frontend = !empty($options['hive_frontend']) ? $options['hive_frontend'] : 'peakd';
+            switch ($frontend) {
+                case 'hive.blog':
+                    $base = 'https://hive.blog/@';
+                    break;
+                case 'ecency':
+                    $base = 'https://ecency.com/@';
+                    break;
+                case 'peakd':
+                default:
+                    $base = 'https://peakd.com/@';
+                    break;
+            }
+            $thread_url_base = $base . rawurlencode($root_author) . '/' . rawurlencode($root_permlink);
+            $show_reply_links = $atts['show_reply_links'] === '1';
+
+            // Always render the footer so the main reply button can attach
+            $html .= '<div class="wpdapp-hive-comments-footer">';
+            $html .= '<span class="wpdapp-muted">' . esc_html__('These are mirrored from Hive', 'wp-dapp');
+            if ($show_reply_links) {
+                $html .= ' · <a href="' . esc_url($thread_url_base) . '" target="_blank" rel="noopener nofollow">' . esc_html__('View thread / reply on Hive', 'wp-dapp') . '</a>';
+            }
+            $html .= '</span>';
+            $html .= '<button class="wpdapp-sync-button">' . esc_html__('Sync Hive Comments', 'wp-dapp') . '</button>';
+            $html .= '</div>';
+            return $html;
         }
 
         // Build tree by parent
@@ -163,17 +194,15 @@ class WP_Dapp_Frontend {
         $html .= $this->render_comment_branch($by_parent, 0, $thread_url_base, 0, $max_depth);
         $html .= '</div>';
 
-        // Consolidated footer notice (avoid duplicating when hive_only_mode already shows notice)
-        if (comments_open($post_id)) {
-            $html .= '<div class="wpdapp-hive-comments-footer">';
-            $html .= '<span class="wpdapp-muted">' . esc_html__('These are mirrored from Hive', 'wp-dapp');
-            if ($show_reply_links) {
-                $html .= ' · <a href="' . esc_url($thread_url_base) . '" target="_blank" rel="noopener nofollow">' . esc_html__('View thread / reply on Hive', 'wp-dapp') . '</a>';
-            }
-            $html .= '</span>';
-            $html .= '<button class="wpdapp-sync-button">' . esc_html__('Sync Hive Comments', 'wp-dapp') . '</button>'; // Added sync button
-            $html .= '</div>';
+        // Consolidated footer notice: always render footer to enable main reply button
+        $html .= '<div class="wpdapp-hive-comments-footer">';
+        $html .= '<span class="wpdapp-muted">' . esc_html__('These are mirrored from Hive', 'wp-dapp');
+        if ($show_reply_links) {
+            $html .= ' · <a href="' . esc_url($thread_url_base) . '" target="_blank" rel="noopener nofollow">' . esc_html__('View thread / reply on Hive', 'wp-dapp') . '</a>';
         }
+        $html .= '</span>';
+        $html .= '<button class="wpdapp-sync-button">' . esc_html__('Sync Hive Comments', 'wp-dapp') . '</button>';
+        $html .= '</div>';
 
         return $html;
     }
