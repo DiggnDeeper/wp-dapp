@@ -74,6 +74,7 @@ class WP_Dapp_Frontend {
                 'hiveUsernamePlaceholder' => __('Hive username', 'wp-dapp'),
                 'verifyWithKeychain' => __('Verify with Keychain', 'wp-dapp'),
                 'pleaseEnterUsername' => __('Please enter your Hive username.', 'wp-dapp'),
+                'verifying' => __('Verifying...', 'wp-dapp'),
             ]
         ]);
     }

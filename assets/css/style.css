@@ -26,6 +26,9 @@
 .wpdapp-reply-form textarea { width: 100%; min-height: 100px; }
 .wpdapp-reply-form .wpdapp-form-error { margin-top: 0.5rem; color: #b33; }
 .wpdapp-reply-form .wpdapp-form-success { margin-top: 0.5rem; color: #2d8a34; }
+.wpdapp-reply-form .wpdapp-username-label { display: block; margin-bottom: 0.25rem; font-size: 0.95em; color: #ccc; }
+.wpdapp-reply-form .wpdapp-username { width: 100%; max-width: 240px; padding: 0.3rem; margin-right: 0.5rem; }
+.wpdapp-reply-form .wpdapp-verify-keychain { margin: 0.25rem 0 0.5rem; }
 
 /* Depth limiting hint when threads get too deep */
 .wpdapp-comment-list[data-max-depth] .wpdapp-comment-list[data-depth] { position: relative; }

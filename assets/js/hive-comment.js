@@ -8,6 +8,9 @@ jQuery(document).ready(function($) {
         return typeof hive_keychain !== 'undefined';
     }
 
+    // Counter to generate unique IDs per reply form
+    let wpdappFormCounter = 0;
+
     // Function to generate permlink
     function generatePermlink(text) {
         let permlink = text.toLowerCase()
@@ -30,7 +33,7 @@ jQuery(document).ready(function($) {
         // Only target this LI's own actions, not descendants
         const $actions = $comment.children('.wpdapp-comment-body').children('.wpdapp-comment-actions');
         if ($actions.length && $actions.find('.wpdapp-reply-button').length === 0) {
-            $actions.append('<button class="wpdapp-reply-button" aria-label="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyWithKeychain : 'Reply with Keychain') + '" data-author="' + author + '" data-permlink="' + permlink + '">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyWithKeychain : 'Reply with Keychain') + '</button>');
+            $actions.append('<button type="button" class="wpdapp-reply-button" aria-label="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyWithKeychain : 'Reply with Keychain') + '" data-author="' + author + '" data-permlink="' + permlink + '">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyWithKeychain : 'Reply with Keychain') + '</button>');
         }
       });
     }
@@ -38,7 +41,7 @@ jQuery(document).ready(function($) {
     // Add main reply button at the bottom
     if (wpdapp_frontend.show_reply_buttons) {
       $('.wpdapp-hive-comments-footer').append(
-          '<button class="wpdapp-reply-button" aria-label="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyToPostWithKeychain : 'Reply to Post with Keychain') + '" data-author="' + $('.wpdapp-hive-comments').data('root-author') + '" data-permlink="' + $('.wpdapp-hive-comments').data('root-permlink') + '">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyToPostWithKeychain : 'Reply to Post with Keychain') + '</button>'
+          '<button type="button" class="wpdapp-reply-button" aria-label="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyToPostWithKeychain : 'Reply to Post with Keychain') + '" data-author="' + $('.wpdapp-hive-comments').data('root-author') + '" data-permlink="' + $('.wpdapp-hive-comments').data('root-permlink') + '">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.replyToPostWithKeychain : 'Reply to Post with Keychain') + '</button>'
       );
     }
 
@@ -54,10 +57,8 @@ jQuery(document).ready(function($) {
         hive_keychain.requestHandshake(function(response) {
             if (response.success) {
                 if (!username) {
-                    // If no username provided, we can't proceed - but now it's handled in UI
                     return;
                 }
-                // Verify by requesting a sign
                 hive_keychain.requestSignBuffer(username, 'Verify WP-Dapp Connection', 'Posting', function(signResponse) {
                     if (signResponse.success) {
                         hiveUsername = username;
@@ -73,8 +74,7 @@ jQuery(document).ready(function($) {
         });
     }
 
-    // Update reply form to include connect button if not connected
-    // In the reply button click handler:
+    // Update reply form to include connect UI if not connected
     $(document).on('click', '.wpdapp-reply-button', function(e) {
         e.preventDefault();
         const $button = $(this);
@@ -85,33 +85,47 @@ jQuery(document).ready(function($) {
 
         let $form = $button.next('.wpdapp-reply-form');
         if ($form.length === 0) {
+            const formId = ++wpdappFormCounter;
+            const usernameInputId = 'wpdapp-username-' + formId;
             $form = $('<div class="wpdapp-reply-form" role="form" aria-live="polite">' +
                 (hiveUsername ? '<p>' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.connectedAs : 'Connected as:') + ' ' + hiveUsername + '</p>' : 
-                '<label for="wpdapp-username">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.enterHiveUsername : 'Enter your Hive username:') + '</label>' +
-                '<input type="text" id="wpdapp-username" placeholder="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.hiveUsernamePlaceholder : 'Hive username') + '">' +
-                '<button class="wpdapp-verify-keychain">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.verifyWithKeychain : 'Verify with Keychain') + '</button>') +
+                '<label class="wpdapp-username-label" for="' + usernameInputId + '">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.enterHiveUsername : 'Enter your Hive username:') + '</label>' +
+                '<input type="text" class="wpdapp-username" id="' + usernameInputId + '" placeholder="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.hiveUsernamePlaceholder : 'Hive username') + '">' +
+                '<button type="button" class="wpdapp-verify-keychain">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.verifyWithKeychain : 'Verify with Keychain') + '</button>') +
                 '<textarea aria-label="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.yourReply : 'Your reply') + '" placeholder="' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.yourReplyPlaceholder : 'Your reply...') + '"></textarea>' +
-                '<button class="wpdapp-submit-reply">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.submit : 'Submit') + '</button>' +
-                '<button class="wpdapp-cancel-reply">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.cancel : 'Cancel') + '</button>' +
+                '<button type="button" class="wpdapp-submit-reply">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.submit : 'Submit') + '</button>' +
+                '<button type="button" class="wpdapp-cancel-reply">' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.cancel : 'Cancel') + '</button>' +
                 '</div>');
             $button.after($form);
         }
         $form.slideDown();
-        $form.find('textarea').focus(); // Add focus to textarea for keyboard accessibility
+        $form.find('textarea').focus();
     });
 
     // Handle verify button
     $(document).on('click', '.wpdapp-verify-keychain', function() {
-        const username = $(this).prev('#wpdapp-username').val().trim();
+        const $btn = $(this);
+        const $form = $btn.closest('.wpdapp-reply-form');
+        const $usernameInput = $form.find('.wpdapp-username');
+        const username = $usernameInput.val() ? $usernameInput.val().trim() : '';
         if (!username) {
             alert((wpdapp_frontend.i18n ? wpdapp_frontend.i18n.pleaseEnterUsername : 'Please enter your Hive username.'));
             return;
         }
+        $btn.text(wpdapp_frontend.i18n ? wpdapp_frontend.i18n.verifying : 'Verifying...').prop('disabled', true).addClass('loading');
         connectKeychain(function(verifiedUsername) {
-            $(this).prev('#wpdapp-username').remove();
-            $(this).prev('label').remove();
-            $(this).replaceWith('<p>' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.connectedAs : 'Connected as:') + ' ' + verifiedUsername + '</p>');
-        }.bind(this), username);
+            $usernameInput.remove();
+            $form.find('.wpdapp-username-label').remove();
+            $btn.replaceWith('<p>' + (wpdapp_frontend.i18n ? wpdapp_frontend.i18n.connectedAs : 'Connected as:') + ' ' + verifiedUsername + '</p>');
+        }, username);
+    });
+
+    // Allow pressing Enter to trigger verification
+    $(document).on('keydown', '.wpdapp-username', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            $(this).closest('.wpdapp-reply-form').find('.wpdapp-verify-keychain').trigger('click');
+        }
     });
 
     // Handle cancel
@@ -272,21 +286,10 @@ jQuery(document).ready(function($) {
                                     $footer.remove();
                                 }
                                 $('.wpdapp-hive-comments').first().replaceWith(renderResponse.data.html);
-                                // Optionally announce success
-                            } else {
-                                // Error handling
                             }
-                        },
-                        error: function() {
-                            // Error
                         }
                     });
-                } else {
-                    // Sync failed
                 }
-            },
-            error: function() {
-                // Error
             },
             complete: function() {
                 isSyncInFlight = false;
