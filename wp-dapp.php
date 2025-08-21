@@ -5,7 +5,13 @@
  * Version: 0.7.4
  * Author: DiggnDeeper
  * Author URI: https://diggndeeper.com
+ * Plugin URI: https://github.com/DiggnDeeper/wp-dapp
+ * Requires at least: 5.0
+ * Requires PHP: 7.4
+ * Text Domain: wp-dapp
+ * Domain Path: /languages
  * License: MIT
+ * License URI: https://opensource.org/licenses/MIT
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -166,7 +172,7 @@ register_uninstall_hook(__FILE__, 'wpdapp_uninstall');
 add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'wpdapp_plugin_action_links');
 
 function wpdapp_plugin_action_links($links) {
-    $settings_link = '<a href="' . admin_url('options-general.php?page=wpdapp-settings') . '">' . __('Settings', 'wpdapp') . '</a>';
+    $settings_link = '<a href="' . admin_url('options-general.php?page=wpdapp-settings') . '">' . __('Settings', 'wp-dapp') . '</a>';
     array_unshift($links, $settings_link);
     return $links;
 }
