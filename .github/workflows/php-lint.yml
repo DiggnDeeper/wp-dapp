@@ -1,0 +1,24 @@
+name: PHP Syntax Check
+
+on:
+  push:
+    branches: [ main, chore/**, feature/**, fix/** ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  php-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Find PHP files
+        run: |
+          git ls-files '*.php' > php-files.txt || true
+          echo "Files to lint:" && cat php-files.txt || true
+      - name: Lint PHP files
+        run: |
+          if [ -s php-files.txt ]; then
+            while read -r file; do php -l "$file"; done < php-files.txt; 
+          else
+            echo "No PHP files found"; 
+          fi
