@@ -1,8 +1,9 @@
 === WP-Dapp: Hive Integration ===
-Contributors: diggndeeper.com
+Contributors: diggndeeper
 Tags: hive, blockchain, publishing, crypto, social
 Requires at least: 5.0
-Tested up to: 6.4
+Tested up to: 6.5
+Requires PHP: 7.4
 Stable tag: 0.7.4
 License: MIT
 License URI: https://opensource.org/licenses/MIT

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1f6aa5"/>
+      <stop offset="100%" stop-color="#0f4d78"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="40" fill="url(#bg)"/>
+  <!-- WordPress circle motif (left) -->
+  <circle cx="96" cy="128" r="54" fill="#ffffff" opacity="0.15"/>
+  <circle cx="96" cy="128" r="40" fill="none" stroke="#ffffff" stroke-width="6" opacity="0.9"/>
+  <!-- Hive hex motif (right) -->
+  <g transform="translate(160,128)">
+    <polygon points="0,-34 29,-17 29,17 0,34 -29,17 -29,-17" fill="#E31337" opacity="0.9"/>
+    <rect x="-42" y="-6" width="26" height="12" rx="6" fill="#E31337" opacity="0.9"/>
+    <rect x="16" y="-6" width="26" height="12" rx="6" fill="#E31337" opacity="0.9"/>
+  </g>
+  <!-- Bridge (subtle arc) -->
+  <path d="M88,104 C128,84 160,84 168,104" fill="none" stroke="#ffffff" stroke-opacity="0.7" stroke-width="6" stroke-linecap="round"/>
+  <path d="M88,152 C128,172 160,172 168,152" fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="6" stroke-linecap="round"/>
+</svg>

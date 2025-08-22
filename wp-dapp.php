@@ -5,11 +5,17 @@
  * Version: 0.7.4
  * Author: DiggnDeeper
  * Author URI: https://diggndeeper.com
+ * Plugin URI: https://github.com/DiggnDeeper/wp-dapp
+ * Requires at least: 5.0
+ * Requires PHP: 7.4
+ * Text Domain: wp-dapp
+ * Domain Path: /languages
  * License: MIT
+ * License URI: https://opensource.org/licenses/MIT
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit; // Exit if accessed directly.
+	exit; // Exit if accessed directly.
 }
 
 // Define plugin constants
@@ -20,174 +26,174 @@ define( 'WPDAPP_REPO_URL', 'https://github.com/DiggnDeeper/wp-dapp' );
 
 /**
  * Safely include a file with error handling
- * 
+ *
  * @param string $file File path to include
  * @return bool True if successful, false otherwise
  */
-function wpdapp_safe_include($file) {
-    if (!file_exists($file)) {
-        return false;
-    }
-    
-    try {
-        include_once $file;
-        return true;
-    } catch (Exception $e) {
-        // Log the error or handle it silently
-        return false;
-    }
+function wpdapp_safe_include( $file ) {
+	if ( ! file_exists( $file ) ) {
+		return false;
+	}
+
+	try {
+		include_once $file;
+		return true;
+	} catch ( Exception $e ) {
+		// Log the error or handle it silently
+		return false;
+	}
 }
 
 // Include required core files
-wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-hive-api.php');
-wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-publish-handler.php');
-wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-settings-page.php');
-wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-post-meta.php');
-wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-ajax-handler.php');
-wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-comment-sync.php');
-wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-frontend.php');
-wpdapp_safe_include(WPDAPP_PLUGIN_DIR . 'includes/class-update-checker.php');
+wpdapp_safe_include( WPDAPP_PLUGIN_DIR . 'includes/class-hive-api.php' );
+wpdapp_safe_include( WPDAPP_PLUGIN_DIR . 'includes/class-publish-handler.php' );
+wpdapp_safe_include( WPDAPP_PLUGIN_DIR . 'includes/class-settings-page.php' );
+wpdapp_safe_include( WPDAPP_PLUGIN_DIR . 'includes/class-post-meta.php' );
+wpdapp_safe_include( WPDAPP_PLUGIN_DIR . 'includes/class-ajax-handler.php' );
+wpdapp_safe_include( WPDAPP_PLUGIN_DIR . 'includes/class-comment-sync.php' );
+wpdapp_safe_include( WPDAPP_PLUGIN_DIR . 'includes/class-frontend.php' );
+wpdapp_safe_include( WPDAPP_PLUGIN_DIR . 'includes/class-update-checker.php' );
 
 /**
  * Plugin version update handler - runs when plugin version changes
  */
 function wpdapp_version_update() {
-    $current_version = get_option('wpdapp_version', '0.0.0');
-    
-    // If this is a new installation or update from an older version
-    if (version_compare($current_version, WPDAPP_VERSION, '<')) {
-        // Get current options
-        $options = get_option('wpdapp_options', []);
-        
-        // Update stored version
-        update_option('wpdapp_version', WPDAPP_VERSION);
-    }
+	$current_version = get_option( 'wpdapp_version', '0.0.0' );
+
+	// If this is a new installation or update from an older version
+	if ( version_compare( $current_version, WPDAPP_VERSION, '<' ) ) {
+		// Get current options
+		$options = get_option( 'wpdapp_options', array() );
+
+		// Update stored version
+		update_option( 'wpdapp_version', WPDAPP_VERSION );
+	}
 }
-add_action('plugins_loaded', 'wpdapp_version_update', 5); // Priority 5 to run before other init functions
+add_action( 'plugins_loaded', 'wpdapp_version_update', 5 ); // Priority 5 to run before other init functions
 
 /**
  * Initialize plugin classes on plugins_loaded
  */
 function wpdapp_init() {
-    // Load plugin textdomain
-    load_plugin_textdomain('wp-dapp', false, dirname(plugin_basename(__FILE__)) . '/languages');
-    // Initialize classes
-    new WP_Dapp_Settings_Page();
-    new WP_Dapp_Post_Meta();
-    new WP_Dapp_Publish_Handler();
-    new WP_Dapp_Ajax_Handler();
-    // Initialize comment sync (registers cron schedule and hook)
-    if (class_exists('WP_Dapp_Comment_Sync')) {
-        new WP_Dapp_Comment_Sync();
-    }
-    // Initialize front-end helpers (shortcode and notice)
-    if (class_exists('WP_Dapp_Frontend')) {
-        new WP_Dapp_Frontend();
-    }
-    
-    // Initialize update checker if available
-    if (class_exists('WP_Dapp_Update_Checker')) {
-        new WP_Dapp_Update_Checker();
-    }
+	// Load plugin textdomain
+	load_plugin_textdomain( 'wp-dapp', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+	// Initialize classes
+	new WP_Dapp_Settings_Page();
+	new WP_Dapp_Post_Meta();
+	new WP_Dapp_Publish_Handler();
+	new WP_Dapp_Ajax_Handler();
+	// Initialize comment sync (registers cron schedule and hook)
+	if ( class_exists( 'WP_Dapp_Comment_Sync' ) ) {
+		new WP_Dapp_Comment_Sync();
+	}
+	// Initialize front-end helpers (shortcode and notice)
+	if ( class_exists( 'WP_Dapp_Frontend' ) ) {
+		new WP_Dapp_Frontend();
+	}
+
+	// Initialize update checker if available
+	if ( class_exists( 'WP_Dapp_Update_Checker' ) ) {
+		new WP_Dapp_Update_Checker();
+	}
 }
-add_action('plugins_loaded', 'wpdapp_init');
+add_action( 'plugins_loaded', 'wpdapp_init' );
 
 /**
  * Plugin activation hook
  */
 function wpdapp_activate() {
-    // Set default options
-    $default_options = [
-        'hive_account' => '',
-        'enable_default_beneficiary' => '1',
-        'default_beneficiary_account' => 'diggndeeper.com',
-        'default_beneficiary_weight' => '100', // 1%
-        'default_tags' => 'blog,wordpress',
-        'enable_comment_sync' => 0,
-        'auto_approve_comments' => 0,
-        'hive_frontend' => 'peakd',
-        'hive_max_thread_depth' => 4,
-        'show_reply_buttons' => 1,
-    ];
-    
-    // Only set options if they don't exist
-    if (!get_option('wpdapp_options')) {
-        add_option('wpdapp_options', $default_options);
-    }
-    
-    // Clear any transients
-    delete_transient('wpdapp_update_check');
+	// Set default options
+	$default_options = array(
+		'hive_account'                => '',
+		'enable_default_beneficiary'  => '1',
+		'default_beneficiary_account' => 'diggndeeper.com',
+		'default_beneficiary_weight'  => '100', // 1%
+		'default_tags'                => 'blog,wordpress',
+		'enable_comment_sync'         => 0,
+		'auto_approve_comments'       => 0,
+		'hive_frontend'               => 'peakd',
+		'hive_max_thread_depth'       => 4,
+		'show_reply_buttons'          => 1,
+	);
 
-    // Ensure our cron schedule exists before scheduling the event
-    if (class_exists('WP_Dapp_Comment_Sync')) {
-        new WP_Dapp_Comment_Sync();
-    }
+	// Only set options if they don't exist
+	if ( ! get_option( 'wpdapp_options' ) ) {
+		add_option( 'wpdapp_options', $default_options );
+	}
 
-    // Schedule recurring comment sync if not already scheduled
-    if (!wp_next_scheduled('wpdapp_sync_hive_comments_event')) {
-        // Default to our 15-minute schedule; if unavailable, fallback to hourly
-        $schedules = wp_get_schedules();
-        $recurrence = isset($schedules['wpdapp_every_15_minutes']) ? 'wpdapp_every_15_minutes' : 'hourly';
-        wp_schedule_event(time() + 5 * 60, $recurrence, 'wpdapp_sync_hive_comments_event');
-    }
+	// Clear any transients
+	delete_transient( 'wpdapp_update_check' );
+
+	// Ensure our cron schedule exists before scheduling the event
+	if ( class_exists( 'WP_Dapp_Comment_Sync' ) ) {
+		new WP_Dapp_Comment_Sync();
+	}
+
+	// Schedule recurring comment sync if not already scheduled
+	if ( ! wp_next_scheduled( 'wpdapp_sync_hive_comments_event' ) ) {
+		// Default to our 15-minute schedule; if unavailable, fallback to hourly
+		$schedules  = wp_get_schedules();
+		$recurrence = isset( $schedules['wpdapp_every_15_minutes'] ) ? 'wpdapp_every_15_minutes' : 'hourly';
+		wp_schedule_event( time() + 5 * 60, $recurrence, 'wpdapp_sync_hive_comments_event' );
+	}
 }
-register_activation_hook(__FILE__, 'wpdapp_activate');
+register_activation_hook( __FILE__, 'wpdapp_activate' );
 
 /**
  * Plugin deactivation hook
  */
 function wpdapp_deactivate() {
-    // Clean up transients
-    delete_transient('wpdapp_update_check');
-    // Clear scheduled comment sync
-    wp_clear_scheduled_hook('wpdapp_sync_hive_comments_event');
+	// Clean up transients
+	delete_transient( 'wpdapp_update_check' );
+	// Clear scheduled comment sync
+	wp_clear_scheduled_hook( 'wpdapp_sync_hive_comments_event' );
 }
-register_deactivation_hook(__FILE__, 'wpdapp_deactivate');
+register_deactivation_hook( __FILE__, 'wpdapp_deactivate' );
 
 /**
  * Plugin uninstall hook (static method)
  */
 function wpdapp_uninstall() {
-    // Get options
-    $options = get_option('wpdapp_options', []);
-    
-    // Delete options and data if requested
-    if (!empty($options['delete_data_on_uninstall'])) {
-        delete_option('wpdapp_options');
-        
-        // Delete post meta
-        global $wpdb;
-        $wpdb->query("DELETE FROM {$wpdb->postmeta} WHERE meta_key LIKE '_wpdapp_%'");
-    }
+	// Get options
+	$options = get_option( 'wpdapp_options', array() );
+
+	// Delete options and data if requested
+	if ( ! empty( $options['delete_data_on_uninstall'] ) ) {
+		delete_option( 'wpdapp_options' );
+
+		// Delete post meta
+		global $wpdb;
+		$wpdb->query( "DELETE FROM {$wpdb->postmeta} WHERE meta_key LIKE '_wpdapp_%'" );
+	}
 }
-register_uninstall_hook(__FILE__, 'wpdapp_uninstall');
+register_uninstall_hook( __FILE__, 'wpdapp_uninstall' );
 
 // Add plugin action links
-add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'wpdapp_plugin_action_links');
+add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'wpdapp_plugin_action_links' );
 
-function wpdapp_plugin_action_links($links) {
-    $settings_link = '<a href="' . admin_url('options-general.php?page=wpdapp-settings') . '">' . __('Settings', 'wpdapp') . '</a>';
-    array_unshift($links, $settings_link);
-    return $links;
+function wpdapp_plugin_action_links( $links ) {
+	$settings_link = '<a href="' . admin_url( 'options-general.php?page=wpdapp-settings' ) . '">' . __( 'Settings', 'wp-dapp' ) . '</a>';
+	array_unshift( $links, $settings_link );
+	return $links;
 }
 
 /**
  * WP-Dapp Tag System Documentation
- * 
+ *
  * This plugin handles tags from multiple sources and manages them for Hive publishing.
- * 
+ *
  * Tag Sources:
  * 1. WordPress Categories: Automatically converted to Hive tags
- * 2. WordPress Tags: Automatically converted to Hive tags 
+ * 2. WordPress Tags: Automatically converted to Hive tags
  * 3. Default Tags: Global tags set in the plugin settings
- * 
+ *
  * Tag Processing:
  * - All tags from the different sources are combined
  * - Duplicates are removed (array_unique)
  * - Tags are limited to 5 (Hive's maximum) using array_slice
  * - The first tag becomes the "parent_permlink" in Hive (main category)
  * - If no tags are available, 'blog' is used as a default
- * 
+ *
  * Hive Tag Requirements:
  * - Tags must be lowercase letters, numbers, or hyphens
  * - No spaces or special characters allowed

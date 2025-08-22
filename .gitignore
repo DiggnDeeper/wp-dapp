@@ -56,3 +56,7 @@ Thumbs.db
 *.rar 
 # Local dev
 .cursor/
+
+# Dev artifacts
+composer.phar
+.phpunit.result.cache
