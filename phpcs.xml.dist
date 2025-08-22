@@ -5,10 +5,7 @@
     <file>wp-dapp.php</file>
     <file>includes</file>
 
-    <arg value="-s" />
     <arg name="colors" />
-
-    <config name="installed_paths" value="vendor/wp-coding-standards/wpcs"/>
 
     <rule ref="WordPress" />
     <rule ref="WordPress-Docs" />
@@ -16,4 +13,5 @@
     <exclude-pattern>*/vendor/*</exclude-pattern>
     <exclude-pattern>*/assets/*</exclude-pattern>
     <exclude-pattern>*/_tmp/*</exclude-pattern>
+    <exclude-pattern>includes/plugin-update-checker/*</exclude-pattern>
 </ruleset>
